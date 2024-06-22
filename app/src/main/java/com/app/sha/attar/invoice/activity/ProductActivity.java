@@ -14,6 +14,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -119,11 +120,11 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
 
     private void callApiData() {
         itemList = new ArrayList<>();
-        itemList.add(new ProductModel("Apple","A1","15","MTS","Y"));
-        itemList.add(new ProductModel("Banana","B1","25","MTS","Y"));
-        itemList.add(new ProductModel("Cherry","C1","5","IK","Y"));
-        itemList.add(new ProductModel("Data","D1","35","MTS","N"));
-        itemList.add(new ProductModel("Elderberry","E1","40","IK","Y"));
+        itemList.add(new ProductModel(1,"Apple","A1","15","MTS","Y"));
+        itemList.add(new ProductModel(2,"Banana","B1","25","MTS","Y"));
+        itemList.add(new ProductModel(3,"Cherry","C1","5","IK","Y"));
+        itemList.add(new ProductModel(4,"Data","D1","35","MTS","N"));
+        itemList.add(new ProductModel(5,"Elderberry","E1","40","IK","Y"));
 
         filteredList.addAll(itemList);
         // Set up RecyclerView
@@ -154,7 +155,56 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void createDialogBox(Context context, ProductModel productModel) {
+        BottomSheetDialog dialog = new BottomSheetDialog(context);
+        dialog.setContentView(R.layout.dialog_product_create);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        TextInputEditText name = (TextInputEditText) dialog.findViewById(R.id.product_add_name);
+        TextInputEditText price = (TextInputEditText) dialog.findViewById(R.id.product_add_price);
+        Spinner owner = (Spinner) dialog.findViewById(R.id.product_add_owner);
+        CheckBox available = (CheckBox) dialog.findViewById(R.id.product_add_checkbox);
 
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.spinner_owners, android.R.layout.simple_spinner_item);
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        owner.setAdapter(adapter);
+
+        Button submit = (Button) dialog.findViewById(R.id.product_add_submit);
+        TextView close = (TextView) dialog.findViewById(R.id.product_add_close);
+        if (productModel != null) {
+            name.setText(productModel.getName());
+            price.setText(productModel.getPrice());
+            if("MTS".equalsIgnoreCase(productModel.getOwner())) {
+                owner.setSelection(0);
+            }else if("IK".equalsIgnoreCase(productModel.getOwner())){
+                owner.setSelection(1);
+            }
+            if("Y".equalsIgnoreCase(productModel.getStatus())){
+                available.setChecked(true);
+            }else{
+                available.setChecked(false);
+            }
+        }
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (productModel != null) {
+                    Toast.makeText(ProductActivity.this, "Update Product ID - " + productModel.getId(), Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(ProductActivity.this, "New product - " + name.getText() + "-" + price.getText(), Toast.LENGTH_LONG).show();
+                }
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
     }
 
     public void filter(String text, String owner) {
@@ -181,7 +231,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             text = text.toLowerCase();
             owner = owner.toLowerCase();
             for (ProductModel item : itemList) {
-                if (item.getName().toLowerCase().contains(text) || item.getOwner().toLowerCase().contains(owner)) {
+                if (item.getName().toLowerCase().contains(text) && item.getOwner().toLowerCase().contains(owner)) {
                     filteredList.add(item);
                 }
             }

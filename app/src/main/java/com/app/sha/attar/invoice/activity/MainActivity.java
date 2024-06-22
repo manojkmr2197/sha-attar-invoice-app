@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (item.getItemId() == R.id.nav_products){
             i = new Intent(MainActivity.this, ProductActivity.class);
             startActivity(i);
-            overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right);
+//            overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right);
         }else if(item.getItemId() == R.id.nav_accessories){
             i = new Intent(MainActivity.this, AccessoriesActivity.class);
             startActivity(i);

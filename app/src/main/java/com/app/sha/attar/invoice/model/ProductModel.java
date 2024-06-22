@@ -2,18 +2,28 @@ package com.app.sha.attar.invoice.model;
 
 public class ProductModel {
 
+    private Integer id;
     private String name;
     private String code;
     private String price;
     private String owner;
     private String status;
 
-    public ProductModel(String name, String code, String price, String owner, String status) {
+    public ProductModel(Integer id,String name, String code, String price, String owner, String status) {
+        this.id = id;
         this.name = name;
         this.code = code;
         this.price = price;
         this.owner = owner;
         this.status = status;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getName() {
