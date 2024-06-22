@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Sha Attar - Invoice</string>
+    <string name="action_settings">Settings</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string-array name="spinner_items">
+        <item>ALL</item>
+        <item>MTS</item>
+        <item>IK</item>
+    </string-array>
+
+</resources>
