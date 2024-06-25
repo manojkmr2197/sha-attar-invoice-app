@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "696586330165",
+    "project_id": "sahr-aththar",
+    "storage_bucket": "sahr-aththar.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:696586330165:android:b2e6ea1b8b089bc286917c",
+        "android_client_info": {
+          "package_name": "com.app.sha.attar.invoice"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbB067hAibrKbiesuyhjMMuthT-FZJwiw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

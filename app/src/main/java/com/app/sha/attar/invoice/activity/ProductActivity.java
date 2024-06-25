@@ -1,23 +1,20 @@
 package com.app.sha.attar.invoice.activity;
 
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+
 import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,14 +27,15 @@ import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.ProductViewAdapter;
 import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.ProductModel;
+import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.SingleTon;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.app.sha.attar.invoice.utils.DBUtil;
 
 public class ProductActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -57,7 +55,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
     Button search_bt;
 
     String searchText,searchOwner;
-
+    DBUtil dbObj;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +85,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
 
         FloatingActionButton add_fab = (FloatingActionButton) findViewById(R.id.product_add_fab);
         add_fab.setOnClickListener(this);
-
+        dbObj = new DBUtil();
         listener = new ClickListener() {
             @Override
             public void click(int index) {
@@ -119,13 +117,27 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void callApiData() {
-        itemList = new ArrayList<>();
-        itemList.add(new ProductModel(1,"Apple","A1","15","MTS","Y"));
-        itemList.add(new ProductModel(2,"Banana","B1","25","MTS","Y"));
-        itemList.add(new ProductModel(3,"Cherry","C1","5","IK","Y"));
-        itemList.add(new ProductModel(4,"Data","D1","35","MTS","N"));
-        itemList.add(new ProductModel(5,"Elderberry","E1","40","IK","Y"));
+        //itemList = new ArrayList<>();
+        dbObj.GetAllProducts(new FirestoreCallback() {
+            @Override
+            public void onCallback(List<ProductModel> i_itemList) {
+                System.out.println("Sabeek.size:"+i_itemList.size());
+                itemList.clear();
+                itemList.addAll(i_itemList);
+            }
+        });
+        //itemList = new ArrayList<>();
+       /* itemList = dbObj.GetAllProducts();
+        if(itemList.isEmpty())
+        {
+            itemList.add(new ProductModel(1,"Apple","A1","15","MTS","Y"));
+            itemList.add(new ProductModel(2,"Banana","B1","25","MTS","Y"));
+            itemList.add(new ProductModel(3,"Cherry","C1","5","IK","Y"));
+            itemList.add(new ProductModel(4,"Data","D1","35","MTS","N"));
+            itemList.add(new ProductModel(5,"Elderberry","E1","40","IK","Y"));
 
+        }
+        */
         filteredList.addAll(itemList);
         // Set up RecyclerView
         productAdapter= new ProductViewAdapter(context,filteredList,listener);
@@ -181,7 +193,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             }else if("IK".equalsIgnoreCase(productModel.getOwner())){
                 owner.setSelection(1);
             }
-            if("Y".equalsIgnoreCase(productModel.getStatus())){
+            if("Y".equalsIgnoreCase(productModel.getIsavailable())){
                 available.setChecked(true);
             }else{
                 available.setChecked(false);
@@ -199,8 +211,27 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                 if (productModel != null) {
                     Toast.makeText(ProductActivity.this, "Update Product ID - " + productModel.getId(), Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(ProductActivity.this, "New product - " + name.getText() + "-" + price.getText(), Toast.LENGTH_LONG).show();
+
+                    //Toast.makeText(ProductActivity.this, "New Product ID - " + productModel.getName(), Toast.LENGTH_LONG).show();
+
+                    //sabeek
+                    String strName = name.getText().toString();
+                    String strPrice = price.getText().toString();
+                    String strOwner = owner.getSelectedItem().toString();
+                    String strAvailStatus = available.isChecked() ? "Y" : "N";
+                    Boolean isSavedSuccessfully = FALSE;
+
+                    isSavedSuccessfully = dbObj.AddProduct(strName,strPrice,strOwner,strAvailStatus);
+                    if(isSavedSuccessfully == TRUE)
+                    {
+                        Toast.makeText(ProductActivity.this, "New product - " + name.getText() + "-" + price.getText(), Toast.LENGTH_LONG).show();
+                    }
+                    else {
+                        Toast.makeText(ProductActivity.this, "Error while adding new product product - " + name.getText() + "-" + price.getText(), Toast.LENGTH_LONG).show();
+                    }
+
                 }
+
                 dialog.dismiss();
             }
         });

@@ -7,15 +7,23 @@ public class ProductModel {
     private String code;
     private String price;
     private String owner;
-    private String status;
+    private String isavailable;
 
-    public ProductModel(Integer id,String name, String code, String price, String owner, String status) {
+    public ProductModel(){}
+
+    public ProductModel(String name, String price, String owner, String a_isavailable) {
+        this.name = name;
+        this.price = price;
+        this.owner = owner;
+        this.isavailable = a_isavailable;
+    }
+    public ProductModel(Integer id,String name, String code, String price, String owner, String a_isavailable) {
         this.id = id;
         this.name = name;
         this.code = code;
         this.price = price;
         this.owner = owner;
-        this.status = status;
+        this.isavailable = a_isavailable;
     }
 
     public Integer getId() {
@@ -58,11 +66,11 @@ public class ProductModel {
         this.owner = owner;
     }
 
-    public String getStatus() {
-        return status;
+    public String getIsavailable() {
+        return isavailable;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setIsavailable(String status) {
+        this.isavailable = status;
     }
 }
