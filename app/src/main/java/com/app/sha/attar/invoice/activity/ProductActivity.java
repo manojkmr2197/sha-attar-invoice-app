@@ -139,7 +139,6 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         }
         */
         filteredList.addAll(itemList);
-        // Set up RecyclerView
         productAdapter= new ProductViewAdapter(context,filteredList,listener);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(productAdapter);
