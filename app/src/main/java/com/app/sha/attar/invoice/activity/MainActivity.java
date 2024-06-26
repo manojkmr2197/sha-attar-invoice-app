@@ -190,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         LinearLayout product_ll = dialog.findViewById(R.id.new_bill_product_ll);
         LinearLayout non_product_ll = dialog.findViewById(R.id.new_bill_non_product_ll);
+        LinearLayout product_detail_ll = dialog.findViewById(R.id.new_bill_detail_ll);
 
         TextView new_bill_owner = (TextView) dialog.findViewById(R.id.new_bill_item_owner);
         TextView new_bill_unit_price = (TextView) dialog.findViewById(R.id.new_bill_unit_price);
@@ -202,6 +203,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         RadioButton nonProductRadioButton = (RadioButton) dialog.findViewById(R.id.new_bill_non_product);
         productRadioButton.setChecked(true);
         product_ll.setVisibility(View.VISIBLE);
+        product_detail_ll.setVisibility(View.GONE);
         non_product_ll.setVisibility(View.GONE);
         typeRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -233,6 +235,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, items);
         product_name.setAdapter(adapter);
 
+        product_name.setThreshold(1);
 
 
         // Show the dropdown when the AutoCompleteTextView is focused or clicked
@@ -266,6 +269,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     new_bill_code.setText(selectProductModel.getCode());
                     new_bill_unit_price.setText(String.valueOf(selectProductModel.getPrice()/1000));
                     selectedProduct[0] = selectProductModel;
+                    product_detail_ll.setVisibility(View.VISIBLE);
+
                 }
 
             }
