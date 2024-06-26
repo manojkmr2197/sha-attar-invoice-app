@@ -5,11 +5,11 @@ public class ProductModel {
     private Integer id;
     private String name;
     private String code;
-    private String price;
+    private Integer price;
     private String owner;
     private String status;
 
-    public ProductModel(Integer id,String name, String code, String price, String owner, String status) {
+    public ProductModel(Integer id,String name, String code, Integer price, String owner, String status) {
         this.id = id;
         this.name = name;
         this.code = code;
@@ -42,11 +42,11 @@ public class ProductModel {
         this.code = code;
     }
 
-    public String getPrice() {
+    public Integer getPrice() {
         return price;
     }
 
-    public void setPrice(String price) {
+    public void setPrice(Integer price) {
         this.price = price;
     }
 
