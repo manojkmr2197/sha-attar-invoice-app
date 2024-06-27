@@ -130,11 +130,12 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
        /* itemList = dbObj.GetAllProducts();
         if(itemList.isEmpty())
         {
-            itemList.add(new ProductModel(1,"Apple","A1","15","MTS","Y"));
-            itemList.add(new ProductModel(2,"Banana","B1","25","MTS","Y"));
-            itemList.add(new ProductModel(3,"Cherry","C1","5","IK","Y"));
-            itemList.add(new ProductModel(4,"Data","D1","35","MTS","N"));
-            itemList.add(new ProductModel(5,"Elderberry","E1","40","IK","Y"));
+           itemList = new ArrayList<>();
+        itemList.add(new ProductModel(1,"Apple","A1",15,"MTS","Y"));
+        itemList.add(new ProductModel(2,"Banana","B1",25,"MTS","Y"));
+        itemList.add(new ProductModel(3,"Cherry","C1",5,"IK","Y"));
+        itemList.add(new ProductModel(4,"Data","D1",35,"MTS","N"));
+        itemList.add(new ProductModel(5,"Elderberry","E1",40,"IK","Y"));
 
         }
         */
@@ -148,7 +149,6 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View view) {
         if(R.id.product_back == view.getId()){
             finish();
-            overridePendingTransition(R.anim.slide_out_right, R.anim.slide_in_left);
         }else if(R.id.product_add_fab == view.getId()){
             createDialogBox(ProductActivity.this, null);
         }else if(R.id.product_search == view.getId()){
@@ -164,6 +164,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
 
         }
     }
+
 
     private void createDialogBox(Context context, ProductModel productModel) {
         BottomSheetDialog dialog = new BottomSheetDialog(context);
