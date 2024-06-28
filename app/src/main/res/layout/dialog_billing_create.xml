@@ -85,7 +85,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:visibility="visible">
+                    android:visibility="gone">
 
 
                     <AutoCompleteTextView
@@ -183,39 +183,27 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical"
-                    android:visibility="gone">
+                    android:visibility="visible">
 
-                    <com.google.android.material.textfield.TextInputLayout
+                    <AutoCompleteTextView
+                        android:id="@+id/new_bill_non_product_name"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Name (eg. 10 ml Glass bottle) ">
+                        android:inputType="text"
+                        android:singleLine="true"
+                        android:textAllCaps="true"
+                        android:drawableEnd="@drawable/baseline_arrow_drop_down_24"
+                        android:hint="Name (eg. Glass bottle 10 ml )" />
 
-                        <!--this is the actual edit text which takes the input-->
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/new_bill_non_product_name"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="text"
-                            android:singleLine="true"
-                            android:textAllCaps="true" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:hint="Rupees (eg. 50) ">
+                        android:id="@+id/new_bill_non_product_price"
+                        android:textColor="@color/app_color"
+                        android:layout_gravity="end"
+                        android:text="Rs. 100"/>
 
-                        <!--this is the actual edit text which takes the input-->
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/new_bill_non_product_price"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="text"
-                            android:singleLine="true"
-                            android:textAllCaps="true" />
 
-                    </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
 
                 <TextView
