@@ -1,10 +1,13 @@
 package com.app.sha.attar.invoice.activity;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,6 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -37,6 +41,8 @@ import com.app.sha.attar.invoice.listener.BillingClickListener;
 import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
+import com.app.sha.attar.invoice.model.CustomerDetails;
+import com.app.sha.attar.invoice.model.CustomerHistoryModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.navigation.NavigationView;
@@ -44,6 +50,7 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -68,7 +75,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     Context context;
     Activity activity;
 
-    Button billing_add;
+    Button billing_add,billing_button;
+    TextView billing_total_amount,billing_selling_amount,billing_discount;
+
+    LinearLayout billing_discount_ll;
+
+    EditText customer_name,customer_phone;
+    TextView customer_search;
+
+    Integer totalAmount = 0,sellingAmount = 0,discount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,6 +132,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         billing_add = (Button) findViewById(R.id.home_bill_add_bt);
         billing_add.setOnClickListener(this);
 
+        billing_total_amount = (TextView) findViewById(R.id.billing_total_amount_price);
+        billing_selling_amount = (TextView) findViewById(R.id.billing_total_selling_price);
+        billing_discount = (TextView) findViewById(R.id.billing_discount);
+        billing_discount_ll = (LinearLayout) findViewById(R.id.billing_discount_ll);
+        billing_button = (Button) findViewById(R.id.billing_submit_invoice);
+
+        customer_name = (EditText) findViewById(R.id.billing_customer_name);
+        customer_phone = (EditText) findViewById(R.id.billing_customer_phone);
+        customer_search = (TextView) findViewById(R.id.billing_customer_search);
+
+        customer_search.setOnClickListener(this);
+        billing_discount_ll.setOnClickListener(this);
+        billing_button.setOnClickListener(this);
+
         bill_recycler =(RecyclerView) findViewById(R.id.home_recyclerView);
 
         listener =new BillingClickListener() {
@@ -144,10 +173,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (billingItemModelList.isEmpty()){
             content_ll.setVisibility(View.GONE);
             empty_ll.setVisibility(View.VISIBLE);
+            totalAmount = 0;
+            discount = 0;
+            billingAdapter.notifyDataSetChanged();
         }else{
             content_ll.setVisibility(View.VISIBLE);
             empty_ll.setVisibility(View.GONE);
+
+            for(BillingItemModel billingItemModel :billingItemModelList){
+                totalAmount += billingItemModel.getTotalPrice();
+            }
+
         }
+        sellingAmount =totalAmount - ((totalAmount * discount) /100);
+
+        billing_total_amount.setText("Rs. "+totalAmount);
+        billing_discount.setText("%  "+discount);
+        billing_selling_amount.setText("Rs. "+sellingAmount);
     }
 
     @Override
@@ -173,6 +215,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }else if(item.getItemId() == R.id.nav_report){
             i = new Intent(MainActivity.this, ReportActivity.class);
             startActivity(i);
+        }else if(item.getItemId() == R.id.nav_customer){
+            i = new Intent(MainActivity.this, CustomerHistoryActivity.class);
+            startActivity(i);
         }
         return true;
     }
@@ -181,8 +226,73 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onClick(View view) {
         if (R.id.home_bill_add_bt == view.getId()){
             createNewBillDialog(context,null);
+        }else if(R.id.billing_discount_ll == view.getId()){
+            createDiscountDialog();
+        }else if(R.id.billing_submit_invoice == view.getId()){
+            submitInvoiceDetails();
+        }else if(R.id.billing_customer_search == view.getId()){
+            searchCustomerInfo();
         }
 
+    }
+
+    private void searchCustomerInfo() {
+        //DB call with  customer_phone
+        String phone_no = customer_phone.getText().toString();
+
+        if(StringUtils.isEmpty(phone_no)){
+            Toast.makeText(MainActivity.this, "Enter Customer phone No ..!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Intent customerIntent = new Intent(MainActivity.this,CustomerHistoryActivity.class);
+        customerIntent.putExtra("phone_no",phone_no);
+        startActivityForResult(customerIntent,1);
+
+    }
+
+
+    private void submitInvoiceDetails() {
+
+
+
+        billingItemModelList.clear();
+        manageBillingLayout();
+    }
+
+    private void createDiscountDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter Discount %");
+
+        // Set up the input
+        final EditText input = new EditText(this);
+        input.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        // Specify the type of input expected
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        builder.setView(input);
+        input.setText(String.valueOf(discount));
+
+        // Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String inputText = input.getText().toString();
+                discount = Integer.parseInt(inputText);
+                billing_discount.setText(inputText);
+                manageBillingLayout();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
     }
 
     private void createNewBillDialog(Context context,BillingItemModel billingItemModel) {
@@ -405,10 +515,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     if("PRODUCT".equalsIgnoreCase(type[0])){
                         if(selectedProduct[0] == null){
                             Toast.makeText(MainActivity.this, "Please Choose the Product Name..!", Toast.LENGTH_LONG).show();
+                            return;
                         }
                         if(StringUtils.isEmpty(product_size.getText().toString())){
                             Toast.makeText(MainActivity.this, "Please fill the Quantity..!", Toast.LENGTH_LONG).show();
-
+                            return;
                         }
                         newBillingItemModel.setType(type[0]);
                         newBillingItemModel.setName(selectedProduct[0].getName());

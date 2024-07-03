@@ -10,26 +10,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardBackgroundColor="@color/white"
+        android:layout_margin="3dp"
         app:cardCornerRadius="3sp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:padding="5dp"
             android:orientation="vertical">
             <!--Attar view-->
             <LinearLayout
-                android:id="@+id/billing_product_ll"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:id="@+id/cust_history_product_ll"
                 android:gravity="center">
-
-                <Button
-                    android:id="@+id/billing_product_close"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="bottom"
-                    android:layout_marginEnd="5dp"
-                    android:background="@drawable/ic_baseline_clear_24" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -38,26 +32,26 @@
                     android:orientation="horizontal">
 
                     <TextView
-                        android:id="@+id/billing_product_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="5sp"
-                        android:maxLength="35"
                         android:text="Attar Name"
                         android:textAllCaps="true"
+                        android:maxLength="30"
+                        android:id="@+id/cust_history_product_name"
                         android:textColor="@color/app_color"
-                        android:textSize="13sp" />
+                        android:textSize="9sp" />
 
                     <TextView
-                        android:id="@+id/billing_product_code"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@color/app_color"
                         android:padding="5dp"
                         android:text="A15"
                         android:textAllCaps="true"
+                        android:id="@+id/cust_history_product_code"
                         android:textColor="@color/white"
-                        android:textSize="15sp"
+                        android:textSize="11sp"
                         android:textStyle="bold" />
 
                     <View
@@ -66,25 +60,26 @@
                         android:layout_weight="1" />
 
                     <TextView
-                        android:id="@+id/billing_product_units"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="10sp"
                         android:text="5 ML"
+                        android:id="@+id/cust_history_product_units"
+                        android:layout_marginEnd="10sp"
                         android:textColor="@color/app_color"
                         android:textStyle="bold" />
 
-
                     <TextView
-                        android:id="@+id/billing_product_unit_price"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="10sp"
                         android:text="Rs. 7"
                         android:textColor="@color/app_color"
+                        android:layout_marginEnd="10sp"
+                        android:id="@+id/cust_history_product_unit_price"
                         android:textStyle="bold" />
 
                 </LinearLayout>
+
+
 
                 <View
                     android:layout_width="1dp"
@@ -94,60 +89,47 @@
                     android:background="@color/black" />
 
                 <TextView
-                    android:id="@+id/billing_product_total_price"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.2"
                     android:text="Rs. 50"
+                    android:id="@+id/cust_history_product_total_price"
                     android:textColor="@color/app_color"
                     android:textStyle="bold" />
 
-                <Button
-                    android:id="@+id/billing_product_edit"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="bottom"
-                    android:layout_marginStart="5dp"
-                    android:background="@drawable/ic_baseline_edit_24" />
 
             </LinearLayout>
             <!--Accessories view-->
             <LinearLayout
-                android:id="@+id/billing_accessories_ll"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:id="@+id/cust_history_accessories_ll"
                 android:gravity="center">
-
-                <Button
-                    android:id="@+id/billing_accessories_close"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="bottom"
-                    android:layout_marginEnd="5dp"
-                    android:background="@drawable/ic_baseline_clear_24" />
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="horizontal">
+                    android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/billing_accessories_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="5sp"
-                    android:maxLength="35"
-                    android:text="50 ML fancy bottle"
-                    android:textAllCaps="true"
-                    android:textColor="@color/app_color"
-                    android:textSize="13sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="5sp"
+                        android:text="50 ML fancy bottle"
+                        android:textAllCaps="true"
+                        android:id="@+id/cust_history_accessories_name"
+                        android:maxLength="35"
+                        android:textColor="@color/app_color"
+                        android:textSize="9sp" />
 
 
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1" />
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1" />
+
+
+
                 </LinearLayout>
 
                 <View
@@ -158,32 +140,18 @@
                     android:background="@color/black" />
 
                 <TextView
-                    android:id="@+id/billing_accessories_price"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.2"
-                    android:text="Rs. 400"
+                    android:text="Rs. 4000"
+                    android:id="@+id/cust_history_accessories_price"
                     android:textColor="@color/app_color"
                     android:textStyle="bold" />
 
-                <Button
-                    android:id="@+id/billing_accessories_edit"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="bottom"
-                    android:layout_marginStart="5dp"
-                    android:background="@drawable/ic_baseline_edit_24" />
 
             </LinearLayout>
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="3sp"
-        android:alpha="0.5"
-        android:background="@color/black" />
 
 </LinearLayout>
