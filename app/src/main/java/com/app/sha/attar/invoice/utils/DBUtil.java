@@ -21,19 +21,13 @@ public class DBUtil {
 
         db = FirebaseFirestore.getInstance();
     }
-    public Boolean AddProduct(String a_ProductName, String a_ProductPrice, String a_ProductOwner, String a_IsProductAvail){
+    public Boolean AddProduct(ProductModel aModel) {
         AtomicReference<java.lang.Boolean> isObjectAdded = new AtomicReference<>(FALSE);
-        Map<String, Object> data = new HashMap<>();
-        data.put("name", a_ProductName);
-        data.put("price", a_ProductPrice);
-        data.put("owner", a_ProductOwner);
-        data.put("isavailable",a_IsProductAvail);
-        System.out.println("Data :"+a_ProductName+":"+a_ProductPrice+":"+a_ProductOwner+":"+a_IsProductAvail);
-        db.collection("product_details")
-                .add(data)
+        db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
+                .add(aModel)
                 .addOnSuccessListener(documentReference -> {
                     isObjectAdded.set(TRUE);
-                    System.out.println("Product Added suvccessfully.");
+                    System.out.println("Product Added successfully.");
                 })
                 .addOnFailureListener(e -> {
                     System.out.println("Error while saving product." + e);
@@ -48,6 +42,8 @@ public class DBUtil {
                     List<ProductModel> itemList = new ArrayList<>();
                     if (task.isSuccessful()) {
                         for (QueryDocumentSnapshot document : task.getResult()) {
+                            System.out.println("Sabeek:Data:");
+                            System.out.println(document);
                             ProductModel product = document.toObject(ProductModel.class);
                             itemList.add(product);
                         }
@@ -59,4 +55,66 @@ public class DBUtil {
                 });
     }
 
+
+    public void UpdateProduct(String documentId , ProductModel aModel) {
+
+        db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
+            .document(documentId)
+            .set(aModel)
+            .addOnSuccessListener(aVoid -> Log.d(TAG, "DocumentSnapshot successfully updated!"))
+            .addOnFailureListener(e -> Log.w(TAG, "Error updating document", e));
+    }
+
+    public void DeleteProduct(){}
+
+
+    public void GetAllAccessories(){}
+
+    public void AddAccessories(){}
+
+    public void UpdateAccessories(){}
+
+    public void DeleteAccessories(){}
+
+
 }
+/*
+* 1.Add product
+	->I/p : model object ,
+	  o/p :status Boolean
+
+2.Update product
+	I/p : model object , document id
+	o/p : status boolean
+
+3.Get All product list
+	o/p:All products with document id
+
+4.Get All accessories
+	o/p:Accessories with document id
+
+5.Add Accessories
+	->I/p : model object ,
+	  o/p :status Boolean
+6.Update Accessories
+	I/p : model object , document id
+	o/p : status boolean
+
+7.Delete Product
+	i/p: doc id
+	o/p: status boolean
+8.Delete accessories
+	i/p: doc id
+	o/p: status boolean
+
+9.BILLING
+	i/p :
+		Model-->{sale_id:string ,Date:timestamp , Total sold amount :int ,Discount:int,
+					ArrayOfProducts{
+							{DocId,name,code,unitprice,quantity,soldprice}
+					}
+					ArrayOfAccessiories{
+							{DocId,name,price}
+					}
+			 }
+* */

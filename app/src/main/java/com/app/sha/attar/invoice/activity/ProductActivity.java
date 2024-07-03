@@ -221,7 +221,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     String strAvailStatus = available.isChecked() ? "Y" : "N";
                     Boolean isSavedSuccessfully = FALSE;
 
-                    isSavedSuccessfully = dbObj.AddProduct(strName,strPrice,strOwner,strAvailStatus);
+                   // isSavedSuccessfully = dbObj.AddProduct(strName,strPrice,strOwner,strAvailStatus);
                     if(isSavedSuccessfully == TRUE)
                     {
                         Toast.makeText(ProductActivity.this, "New product - " + name.getText() + "-" + price.getText(), Toast.LENGTH_LONG).show();

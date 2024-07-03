@@ -10,14 +10,17 @@ public class ProductModel {
     private String isavailable;
 
     public ProductModel(){}
-
+    //        productModelList.add(new ProductModel(1,"Apple","A1",15000,"MTS","Y"));
+    //'ProductModel(java.lang.Integer, java.lang.String, java.lang.String, java.lang.String,
+    // java.lang.String, java.lang.String)' in 'com.app.sha.attar.invoice.model.ProductModel' cannot
+    // be applied to '(int, java.lang.String, java.lang.String, int, java.lang.String, java.lang.String)'
     public ProductModel(String name, String price, String owner, String a_isavailable) {
         this.name = name;
         this.price = price;
         this.owner = owner;
         this.isavailable = a_isavailable;
     }
-    public ProductModel(Integer id,String name, String code, String price, String owner, String a_isavailable) {
+    public ProductModel(int id,String name, String code, String price, String owner, String a_isavailable) {
         this.id = id;
         this.name = name;
         this.code = code;
@@ -25,6 +28,7 @@ public class ProductModel {
         this.owner = owner;
         this.isavailable = a_isavailable;
     }
+
 
     public Integer getId() {
         return id;

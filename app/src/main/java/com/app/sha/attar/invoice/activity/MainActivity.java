@@ -95,12 +95,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
         });
-
-        productModelList.add(new ProductModel(1,"Apple","A1",15000,"MTS","Y"));
-        productModelList.add(new ProductModel(2,"Banana","B1",25000,"MTS","Y"));
-        productModelList.add(new ProductModel(3,"Cherry","C1",5000,"IK","Y"));
-        productModelList.add(new ProductModel(4,"Data","D1",35000,"MTS","N"));
-        productModelList.add(new ProductModel(5,"Elderberry","E1",40000,"IK","Y"));
+        //
+        //productModelList.add(new ProductModel(1,"Apple","A1",15000,"MTS","Y"));
+        //productModelList.add(new ProductModel(2,"Banana","B1",25000,"MTS","Y"));
+        //productModelList.add(new ProductModel(3,"Cherry","C1",5000,"IK","Y"));
+        //productModelList.add(new ProductModel(4,"Data","D1",35000,"MTS","N"));
+        //productModelList.add(new ProductModel(5,"Elderberry","E1",40000,"IK","Y"));
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -273,7 +273,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     product_name.setText(selectProductModel.getName());
                     new_bill_owner.setText(selectProductModel.getOwner());
                     new_bill_code.setText(selectProductModel.getCode());
-                    new_bill_unit_price.setText(String.valueOf(selectProductModel.getPrice()/1000));
+                    Integer fullPrice = Integer.parseInt(selectProductModel.getPrice());
+                    new_bill_unit_price.setText(String.valueOf(fullPrice/1000));
                     selectedProduct[0] = selectProductModel;
                     product_detail_ll.setVisibility(View.VISIBLE);
 
@@ -299,7 +300,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     product_name.setText(selectProductModel.getName());
                     new_bill_owner.setText(selectProductModel.getOwner());
                     new_bill_code.setText(selectProductModel.getCode());
-                    new_bill_unit_price.setText(String.valueOf(selectProductModel.getPrice()/1000));
+                    Integer fullPrice = Integer.parseInt(selectProductModel.getPrice());
+                    new_bill_unit_price.setText(String.valueOf(fullPrice/1000));
                     selectedProduct[0] = selectProductModel;
                     product_size.setText(String.valueOf(billingItemModel.getUnits()));
                 }
@@ -337,8 +339,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         billingItemModel.setName(selectedProduct[0].getName());
                         billingItemModel.setCode(selectedProduct[0].getCode());
                         billingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
-                        billingItemModel.setUnitPrice(selectedProduct[0].getPrice()/1000);
-                        billingItemModel.setTotalPrice((Integer.parseInt(product_size.getText().toString()) * (selectedProduct[0].getPrice()/1000)) + 15);
+                        Integer fullPrice = Integer.parseInt(selectedProduct[0].getPrice());
+                        billingItemModel.setUnitPrice(fullPrice/1000);
+                        billingItemModel.setTotalPrice((Integer.parseInt(product_size.getText().toString()) * (fullPrice/1000)) + 15);
                     }else if("NON_PRODUCT".equalsIgnoreCase(type[0])){
                         if(StringUtils.isEmpty(non_product_name.getText().toString())){
                             Toast.makeText(MainActivity.this, "Please Choose the accessories Name..!", Toast.LENGTH_LONG).show();
@@ -369,8 +372,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         newBillingItemModel.setName(selectedProduct[0].getName());
                         newBillingItemModel.setCode(selectedProduct[0].getCode());
                         newBillingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
-                        newBillingItemModel.setUnitPrice(selectedProduct[0].getPrice()/1000);
-                        newBillingItemModel.setTotalPrice((Integer.parseInt(product_size.getText().toString()) * (selectedProduct[0].getPrice()/1000)) + 15);
+                        Integer fullPrice = Integer.parseInt(selectedProduct[0].getPrice());
+                        newBillingItemModel.setUnitPrice(fullPrice/1000);
+                        newBillingItemModel.setTotalPrice((Integer.parseInt(product_size.getText().toString()) * (fullPrice/1000)) + 15);
                     }else if("NON_PRODUCT".equalsIgnoreCase(type[0])){
                         if(StringUtils.isEmpty(non_product_name.getText().toString())){
                             Toast.makeText(MainActivity.this, "Please Choose the accessories Name..!", Toast.LENGTH_LONG).show();
