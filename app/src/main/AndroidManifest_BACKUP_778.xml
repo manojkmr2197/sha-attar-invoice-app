@@ -40,10 +40,14 @@
         </activity>
         <activity
             android:name=".activity.MainActivity"
-            android:exported="true" />
+<<<<<<< HEAD
+            android:exported="true"/>
         <activity android:name=".activity.PackageActivity"
             android:exported="false"/>
 
+=======
+            android:exported="true" />
+>>>>>>> 7c0a9e78be1deebf4b362b3aeeb62f1a45baebda
     </application>
 
 </manifest>

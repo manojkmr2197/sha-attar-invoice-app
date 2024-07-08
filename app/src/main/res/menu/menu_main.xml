@@ -22,6 +22,10 @@
     <item android:title="Reports">
         <menu>
             <item
+                android:id="@+id/nav_customer"
+                android:icon="@drawable/line"
+                android:title="Customer Details" />
+            <item
                 android:id="@+id/nav_report"
                 android:icon="@drawable/line"
                 android:title="Sales Report" />
