@@ -6,6 +6,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.CustomerDetails;
 import com.app.sha.attar.invoice.model.CustomerHistoryModel;
 import com.app.sha.attar.invoice.model.ProductModel;
@@ -48,7 +49,6 @@ public class DBUtil {
 
     public void getProductDetails(FirestoreCallback<List<ProductModel>> callback) {
         // Fetch data from Firestore
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -155,8 +155,8 @@ public class DBUtil {
                 });
     }
 
-    /*
-    public void getCustomerHistoryDetail(FirestoreCallback<CustomerHistoryModel> callback, Integer customerId) {
+
+    public void getCustomerHistoryDetail(FirestoreCallback<List<CustomerHistoryModel>> callback, Integer customerId) {
         // Fetch sale data from Firestore using the customer id
 
         db.collection(DatabaseConstants.SALE_COLLECTION).whereEqualTo(DatabaseConstants.USER_ID, customerId)
@@ -165,21 +165,41 @@ public class DBUtil {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
-                            if (!task.getResult().isEmpty()) {
-                                DocumentSnapshot document = task.getResult().getDocuments().get(0);
-                                CustomerDetails customerDetails = document.toObject(CustomerDetails.class);
-                                callback.onCallback(customerDetails);
-                            } else {
-                                System.out.println("No customer found with this phone number.");
+                            List<CustomerHistoryModel> saleDetails = new ArrayList<>();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                CustomerHistoryModel model = document.toObject(CustomerHistoryModel.class);
+                                saleDetails.add(model);
                             }
+                            callback.onCallback(saleDetails);
                         } else {
-                            System.err.println("Error fetching customer details: " + task.getException());
+                            System.err.println("Error fetching product details: " + task.getException());
                         }
                     }
                 });
     }
 
-     */
+    public void getBillingItemModelDetail(FirestoreCallback<List<BillingItemModel>> callback, Integer saleId) {
+        // Fetch sale data from Firestore using the customer id
+
+        db.collection(DatabaseConstants.BILLING_COLLECTION).whereEqualTo(DatabaseConstants.SALE_ID, saleId)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            List<BillingItemModel> billingItemModel = new ArrayList<>();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                BillingItemModel model = document.toObject(BillingItemModel.class);
+                                billingItemModel.add(model);
+                            }
+                            callback.onCallback(billingItemModel);
+                        } else {
+                            System.err.println("Error fetching product details: " + task.getException());
+                        }
+                    }
+                });
+    }
+
 }
 /*
 * 1.Add product

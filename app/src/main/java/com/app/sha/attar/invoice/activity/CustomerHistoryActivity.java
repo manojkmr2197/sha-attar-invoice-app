@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class CustomerHistoryActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -105,14 +106,6 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
     }
 
     private void searchCustomerDetails(String phoneNo) {
-        List<BillingItemModel> billingItemModelList = new ArrayList<>();
-        billingItemModelList.add(new BillingItemModel("PRODUCT","ATTAR","A12",12,23,1200));
-        billingItemModelList.add(new BillingItemModel("NON_PRODUCT","ATTAR","",0,0,80));
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            customerHistoryModelList.add(new CustomerHistoryModel(2300,10, OffsetDateTime.now(),billingItemModelList));
-            customerHistoryModelList.add(new CustomerHistoryModel(300,10, OffsetDateTime.now(),billingItemModelList));
-        }
         final CustomerDetails[] customerDetails = new CustomerDetails[1];// = new CustomerDetails[1];//= new CustomerDetails(phoneNo,"Bavani",customerHistoryModelList);
         dbObj.getCustomerDetail(new FirestoreCallback<CustomerDetails>() {
             @Override
@@ -122,6 +115,40 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
                 System.out.println("Customer Name: " + customerDetails[0].getName());
             }
         }, phoneNo);
+
+        dbObj.getCustomerHistoryDetail(new FirestoreCallback<List<CustomerHistoryModel>>() {
+            @Override
+            public void onCallback(List<CustomerHistoryModel> acustomerHistoryModelList ) {
+                customerHistoryModelList = acustomerHistoryModelList;
+                // You can now use customerDetails here
+                System.out.println("customerHistorySize: " + customerHistoryModelList.size());
+            }
+        }, customerDetails[0].getId());
+
+
+        List<BillingItemModel> billingItemModelList = new ArrayList<>();
+
+        IntStream.range(0, customerHistoryModelList.size()).forEach(i -> dbObj.getBillingItemModelDetail(new FirestoreCallback<List<BillingItemModel>>() {
+            @Override
+            public void onCallback(List<BillingItemModel> aBillingItemModel) {
+                customerHistoryModelList.get(i).setBillingItemModelList(aBillingItemModel);
+
+                // You can now use customerDetails here
+                System.out.println("aBillingItemModel: " + aBillingItemModel.size());
+            }
+        }, customerHistoryModelList.get(i).getSaleId()));
+/*
+
+
+
+        billingItemModelList.add(new BillingItemModel("PRODUCT","ATTAR","A12",12,23,1200));
+        billingItemModelList.add(new BillingItemModel("NON_PRODUCT","ATTAR","",0,0,80));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            customerHistoryModelList.add(new CustomerHistoryModel(2300,10, OffsetDateTime.now(),billingItemModelList));
+            customerHistoryModelList.add(new CustomerHistoryModel(300,10, OffsetDateTime.now(),billingItemModelList));
+        }
+*/
         if(customerDetails[0] != null){
             data_ll.setVisibility(View.VISIBLE);
             no_data_ll.setVisibility(View.GONE);
