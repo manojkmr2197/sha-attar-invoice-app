@@ -4,9 +4,19 @@ import static java.lang.Boolean.TRUE;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
+import com.app.sha.attar.invoice.model.CustomerDetails;
+import com.app.sha.attar.invoice.model.CustomerHistoryModel;
 import com.app.sha.attar.invoice.model.ProductModel;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +31,8 @@ public class DBUtil {
 
         db = FirebaseFirestore.getInstance();
     }
-    public Boolean AddProduct(ProductModel aModel) {
+
+    public Boolean addProduct(ProductModel aModel) {
         AtomicReference<java.lang.Boolean> isObjectAdded = new AtomicReference<>(FALSE);
         db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
                 .add(aModel)
@@ -35,48 +46,140 @@ public class DBUtil {
         return isObjectAdded.get();
     }
 
-    public void  GetAllProducts(final FirestoreCallback firestoreCallback){
-        db.collection("product_details")
+    public void getProductDetails(FirestoreCallback<List<ProductModel>> callback) {
+        // Fetch data from Firestore
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
                 .get()
-                .addOnCompleteListener(task -> {
-                    List<ProductModel> itemList = new ArrayList<>();
-                    if (task.isSuccessful()) {
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            System.out.println("Sabeek:Data:");
-                            System.out.println(document);
-                            ProductModel product = document.toObject(ProductModel.class);
-                            itemList.add(product);
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            List<ProductModel> products = new ArrayList<>();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                ProductModel product = document.toObject(ProductModel.class);
+                                products.add(product);
+                            }
+                            callback.onCallback(products);
+                        } else {
+                            System.err.println("Error fetching product details: " + task.getException());
                         }
-                    } else {
-                        System.out.println("Error while getting product list: " + task.getException());
-                        Log.w("ProductActivity", "Error getting documents.", task.getException());
                     }
-                    firestoreCallback.onCallback(itemList);
                 });
     }
 
-
-    public void UpdateProduct(String documentId , ProductModel aModel) {
-
+    public Boolean updateProduct(String documentId , ProductModel aModel) {
+        AtomicReference<java.lang.Boolean> isObjectAdded = new AtomicReference<>(FALSE);
         db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
             .document(documentId)
             .set(aModel)
-            .addOnSuccessListener(aVoid -> Log.d(TAG, "DocumentSnapshot successfully updated!"))
-            .addOnFailureListener(e -> Log.w(TAG, "Error updating document", e));
+                .addOnSuccessListener(documentReference -> {
+                    isObjectAdded.set(TRUE);
+                    System.out.println("Product Updated successfully.");
+                })
+                .addOnFailureListener(e -> {
+                    System.out.println("Error while updating product." + e);
+                });
+        return isObjectAdded.get();
     }
 
-    public void DeleteProduct(){}
+    public Boolean deleteProductById(String documentId, FirestoreCallback<Void> callback) {
+        AtomicReference<java.lang.Boolean> isObjectDeleted = new AtomicReference<>(FALSE);
+        db.collection(DatabaseConstants.PRODUCTS_COLLECTION).document(documentId)
+                .delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        // Call the callback with null since the task was successful
+                        callback.onCallback(aVoid);
+                        isObjectDeleted.set(TRUE);
+                        System.out.println("Product successfully deleted!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        System.err.println("Error deleting product: " + e);
+                    }
+                });
+        return isObjectDeleted.get();
+    }
 
+    public void getAllAccessories(FirestoreCallback<List<ProductModel>> callback) {
+        // Fetch data from Firestore
+        db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            List<ProductModel> products = new ArrayList<>();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                ProductModel product = document.toObject(ProductModel.class);
+                                products.add(product);
+                            }
+                            callback.onCallback(products);
+                        } else {
+                            System.err.println("Error fetching product details: " + task.getException());
+                        }
+                    }
+                });
+    }
 
-    public void GetAllAccessories(){}
+    public void addAccessories(){}
 
-    public void AddAccessories(){}
+    public void updateAccessories(){}
 
-    public void UpdateAccessories(){}
+    public void deleteAccessories(){}
 
-    public void DeleteAccessories(){}
+    public void getCustomerDetail(FirestoreCallback<CustomerDetails> callback, String phoneNumber) {
+        // Fetch data from Firestore using the phone number
 
+        db.collection(DatabaseConstants.CUSTOMER_COLLECTION).whereEqualTo(DatabaseConstants.USER_PHONE, phoneNumber)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            if (!task.getResult().isEmpty()) {
+                                DocumentSnapshot document = task.getResult().getDocuments().get(0);
+                                CustomerDetails customerDetails = document.toObject(CustomerDetails.class);
+                                callback.onCallback(customerDetails);
+                            } else {
+                                System.out.println("No customer found with this phone number.");
+                            }
+                        } else {
+                            System.err.println("Error fetching customer details: " + task.getException());
+                        }
+                    }
+                });
+    }
 
+    /*
+    public void getCustomerHistoryDetail(FirestoreCallback<CustomerHistoryModel> callback, Integer customerId) {
+        // Fetch sale data from Firestore using the customer id
+
+        db.collection(DatabaseConstants.SALE_COLLECTION).whereEqualTo(DatabaseConstants.USER_ID, customerId)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            if (!task.getResult().isEmpty()) {
+                                DocumentSnapshot document = task.getResult().getDocuments().get(0);
+                                CustomerDetails customerDetails = document.toObject(CustomerDetails.class);
+                                callback.onCallback(customerDetails);
+                            } else {
+                                System.out.println("No customer found with this phone number.");
+                            }
+                        } else {
+                            System.err.println("Error fetching customer details: " + task.getException());
+                        }
+                    }
+                });
+    }
+
+     */
 }
 /*
 * 1.Add product

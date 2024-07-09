@@ -117,28 +117,15 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void callApiData() {
-        //itemList = new ArrayList<>();
-        dbObj.GetAllProducts(new FirestoreCallback() {
+
+        dbObj.getProductDetails(new FirestoreCallback<List<ProductModel>>() {
             @Override
-            public void onCallback(List<ProductModel> i_itemList) {
-                System.out.println("Sabeek.size:"+i_itemList.size());
+            public void onCallback(List<ProductModel> products) {
                 itemList.clear();
-                itemList.addAll(i_itemList);
+                itemList.addAll(products);
+                System.out.println("Number of products: " + itemList.size());
             }
         });
-        //itemList = new ArrayList<>();
-       /* itemList = dbObj.GetAllProducts();
-        if(itemList.isEmpty())
-        {
-           itemList = new ArrayList<>();
-        itemList.add(new ProductModel(1,"Apple","A1",15,"MTS","Y"));
-        itemList.add(new ProductModel(2,"Banana","B1",25,"MTS","Y"));
-        itemList.add(new ProductModel(3,"Cherry","C1",5,"IK","Y"));
-        itemList.add(new ProductModel(4,"Data","D1",35,"MTS","N"));
-        itemList.add(new ProductModel(5,"Elderberry","E1",40,"IK","Y"));
-
-        }
-        */
         filteredList.addAll(itemList);
         productAdapter= new ProductViewAdapter(context,filteredList,listener);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -193,7 +180,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             }else if("IK".equalsIgnoreCase(productModel.getOwner())){
                 owner.setSelection(1);
             }
-            if("Y".equalsIgnoreCase(productModel.getIsavailable())){
+            if("Y".equalsIgnoreCase(productModel.getStatus())){
                 available.setChecked(true);
             }else{
                 available.setChecked(false);

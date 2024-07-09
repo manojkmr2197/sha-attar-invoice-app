@@ -204,29 +204,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        Intent i =null;
+        Intent i = null;
         mDrawerLayout.closeDrawer(GravityCompat.START);
-        if (item.getItemId() == R.id.nav_products){
+        if (item.getItemId() == R.id.nav_products) {
             i = new Intent(MainActivity.this, ProductActivity.class);
             startActivity(i);
-        }else if(item.getItemId() == R.id.nav_accessories){
+        } else if (item.getItemId() == R.id.nav_accessories) {
             i = new Intent(MainActivity.this, AccessoriesActivity.class);
             startActivity(i);
-        }else if(item.getItemId() == R.id.nav_report){
+        } else if (item.getItemId() == R.id.nav_report) {
             i = new Intent(MainActivity.this, ReportActivity.class);
             startActivity(i);
             overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right);
-        }else if(item.getItemId() == R.id.nav_packaging)
-        {
+        } else if (item.getItemId() == R.id.nav_packaging) {
             i = new Intent(MainActivity.this, PackageActivity.class);
             startActivity(i);
             overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right);
-        }else if(item.getItemId() == R.id.nav_customer){
+        } else if (item.getItemId() == R.id.nav_customer) {
             i = new Intent(MainActivity.this, CustomerHistoryActivity.class);
             startActivity(i);
+        }
         return true;
     }
-
     @Override
     public void onClick(View view) {
         if (R.id.home_bill_add_bt == view.getId()){

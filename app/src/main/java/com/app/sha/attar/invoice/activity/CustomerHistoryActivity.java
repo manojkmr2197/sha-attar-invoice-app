@@ -28,6 +28,9 @@ import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.CustomerDetails;
 import com.app.sha.attar.invoice.model.CustomerHistoryModel;
+import com.app.sha.attar.invoice.model.ProductModel;
+import com.app.sha.attar.invoice.utils.DBUtil;
+import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.google.android.material.textfield.TextInputEditText;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +55,7 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
     TextView back;
 
     LinearLayout data_ll,no_data_ll;
-
+    DBUtil dbObj;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,7 +81,7 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
 
         data_ll = (LinearLayout) findViewById(R.id.customer_history_data_ll);
         no_data_ll = (LinearLayout) findViewById(R.id.customer_history_no_data_ll);
-
+        dbObj = new DBUtil();
         listener =new ClickListener() {
             @Override
             public void click(int index) {
@@ -110,12 +113,19 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
             customerHistoryModelList.add(new CustomerHistoryModel(2300,10, OffsetDateTime.now(),billingItemModelList));
             customerHistoryModelList.add(new CustomerHistoryModel(300,10, OffsetDateTime.now(),billingItemModelList));
         }
-        CustomerDetails customerDetails = new CustomerDetails(phoneNo,"Bavani",customerHistoryModelList);
-
-        if(customerDetails != null){
+        final CustomerDetails[] customerDetails = new CustomerDetails[1];// = new CustomerDetails[1];//= new CustomerDetails(phoneNo,"Bavani",customerHistoryModelList);
+        dbObj.getCustomerDetail(new FirestoreCallback<CustomerDetails>() {
+            @Override
+            public void onCallback(CustomerDetails aCustomerDetails) {
+                customerDetails[0] = aCustomerDetails;
+                // You can now use customerDetails here
+                System.out.println("Customer Name: " + customerDetails[0].getName());
+            }
+        }, phoneNo);
+        if(customerDetails[0] != null){
             data_ll.setVisibility(View.VISIBLE);
             no_data_ll.setVisibility(View.GONE);
-            name.setText(customerDetails.getName());
+            name.setText(customerDetails[0].getName());
             customerHistoryAdapter.notifyDataSetChanged();
         }else{
             no_data_ll.setVisibility(View.VISIBLE);
