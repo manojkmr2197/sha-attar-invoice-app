@@ -91,16 +91,6 @@
                 android:visibility="visible"
                 android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Customer Name"
-                    android:layout_gravity="center"
-                    android:textColor="@color/app_color"
-                    android:layout_marginBottom="10sp"
-                    android:textSize="18sp"
-                    android:id="@+id/customer_history_name"/>
-
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/customer_history_recyclerView"
                     android:layout_width="match_parent"

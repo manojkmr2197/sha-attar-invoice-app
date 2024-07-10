@@ -46,6 +46,7 @@ public class CustomerHistoryAdapter extends RecyclerView.Adapter<CustomerHistory
         holder.date.setText(contentList.get(index).getBillingDate().toString());
         holder.discount.setText(String.valueOf(contentList.get(index).getDiscount())+" %");
         holder.amount.setText(String.valueOf(contentList.get(index).getSellingCost()));
+        holder.name.setText(contentList.get(index).getCustomerName());
 
         holder.item_ll.setOnClickListener(new View.OnClickListener() {
             @Override

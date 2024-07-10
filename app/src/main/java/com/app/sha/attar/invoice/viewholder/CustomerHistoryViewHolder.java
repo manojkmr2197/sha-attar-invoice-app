@@ -14,7 +14,7 @@ import com.app.sha.attar.invoice.R;
 public class CustomerHistoryViewHolder extends RecyclerView.ViewHolder {
 
     public LinearLayout item_ll;
-    public TextView date,amount,discount;
+    public TextView date,amount,discount,name;
     public CustomerHistoryViewHolder(@NonNull View itemView) {
         super(itemView);
 
@@ -22,6 +22,7 @@ public class CustomerHistoryViewHolder extends RecyclerView.ViewHolder {
         date =(TextView) itemView.findViewById(R.id.customer_history_date);
         amount =(TextView) itemView.findViewById(R.id.customer_history_price);
         discount =(TextView) itemView.findViewById(R.id.customer_history_discount);
+        name =(TextView) itemView.findViewById(R.id.customer_history_name);
 
 
     }

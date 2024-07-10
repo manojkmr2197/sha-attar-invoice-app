@@ -52,7 +52,6 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
     ClickListener listener;
 
     TextInputEditText search_et;
-    TextView name;
     Button search;
     TextView back;
 
@@ -79,7 +78,6 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
         search = (Button) findViewById(R.id.customer_history_search);
         search.setOnClickListener(this);
         search_et = (TextInputEditText) findViewById(R.id.customer_history_search_et);
-        name = (TextView) findViewById(R.id.customer_history_name);
 
         data_ll = (LinearLayout) findViewById(R.id.customer_history_data_ll);
         no_data_ll = (LinearLayout) findViewById(R.id.customer_history_no_data_ll);
@@ -159,7 +157,6 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
         if(billingInvoiceModelList != null){
             data_ll.setVisibility(View.VISIBLE);
             no_data_ll.setVisibility(View.GONE);
-            name.setText(billingInvoiceModelList.get(0).getCustomerName());
             customerHistoryAdapter.notifyDataSetChanged();
         }else{
             no_data_ll.setVisibility(View.VISIBLE);
