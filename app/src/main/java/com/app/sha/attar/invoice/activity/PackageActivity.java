@@ -7,17 +7,24 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.app.sha.attar.invoice.R;
+import com.app.sha.attar.invoice.utils.SharedPrefHelper;
+import com.google.android.material.textfield.TextInputEditText;
 
 public class PackageActivity extends AppCompatActivity implements View.OnClickListener{
 
     Context context;
     Activity activity;
+
+    TextInputEditText amount_et;
+
+    SharedPrefHelper helper;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -31,15 +38,23 @@ public class PackageActivity extends AppCompatActivity implements View.OnClickLi
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.setStatusBarColor(this.getResources().getColor(R.color.white));
         }
-        TextView back = (TextView) findViewById(R.id.product_back);
+        helper = new SharedPrefHelper(context);
+
+        amount_et = (TextInputEditText) findViewById(R.id.packaging_amount_et);
+        amount_et.setText(String.valueOf(helper.getPackageCost()));
+        Button submit = (Button) findViewById(R.id.packaging_save);
+        submit.setOnClickListener(this);
+        TextView back = (TextView) findViewById(R.id.packaging_back);
         back.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
-        if(R.id.product_back == v.getId()){
+        if(R.id.packaging_back == v.getId()){
             finish();
-            overridePendingTransition(R.anim.slide_out_right, R.anim.slide_in_left);
+        }else if(R.id.packaging_save == v.getId()){
+            helper.setPackageCost(Integer.parseInt(amount_et.getText().toString()));
+            finish();
         }
     }
 }

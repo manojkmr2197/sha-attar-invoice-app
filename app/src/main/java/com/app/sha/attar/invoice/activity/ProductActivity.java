@@ -28,23 +28,31 @@ import com.app.sha.attar.invoice.adapter.ProductViewAdapter;
 import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
+import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.app.sha.attar.invoice.utils.DBUtil;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class ProductActivity extends AppCompatActivity implements View.OnClickListener {
 
-    FrameLayout data_fl,no_data_fl;
+    FrameLayout data_fl, no_data_fl;
     Context context;
     Activity activity;
 
-    List<ProductModel> itemList =new ArrayList<>();
-    List<ProductModel> filteredList =new ArrayList<>();
+    List<ProductModel> itemList = new ArrayList<>();
+    List<ProductModel> filteredList = new ArrayList<>();
 
     ProductViewAdapter productAdapter;
     RecyclerView recyclerView;
@@ -54,8 +62,10 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
     Spinner ownerSpinner;
     Button search_bt;
 
-    String searchText,searchOwner;
+    String searchText, searchOwner;
     DBUtil dbObj;
+
+    SharedPrefHelper sharedPrefHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +96,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         FloatingActionButton add_fab = (FloatingActionButton) findViewById(R.id.product_add_fab);
         add_fab.setOnClickListener(this);
         dbObj = new DBUtil();
+        sharedPrefHelper = new SharedPrefHelper(context);
         listener = new ClickListener() {
             @Override
             public void click(int index) {
@@ -104,11 +115,11 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void checkInternet() {
-        if(SingleTon.isNetworkConnected(activity)){
+        if (SingleTon.isNetworkConnected(activity)) {
             no_data_fl.setVisibility(View.GONE);
             data_fl.setVisibility(View.VISIBLE);
             callApiData();
-        }else{
+        } else {
             no_data_fl.setVisibility(View.VISIBLE);
             data_fl.setVisibility(View.GONE);
             Toast.makeText(context, "No Internet connection. Please try again .! ", Toast.LENGTH_LONG).show();
@@ -118,33 +129,39 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
 
     private void callApiData() {
 
-        dbObj.getProductDetails(new FirestoreCallback<List<ProductModel>>() {
-            @Override
-            public void onCallback(List<ProductModel> products) {
-                itemList.clear();
-                itemList.addAll(products);
-                System.out.println("Number of products: " + itemList.size());
-            }
-        });
+        List<ProductModel> products = sharedPrefHelper.getTotalProductList();
+        System.out.println("Number of products: " + itemList.size());
+        if (products.isEmpty()) {
+            Toast.makeText(context, "Internal Server Error. Please try again .! ", Toast.LENGTH_LONG).show();
+        }
+        itemList.clear();
+        itemList.addAll(products);
+        filteredList.clear();
         filteredList.addAll(itemList);
-        productAdapter= new ProductViewAdapter(context,filteredList,listener);
+        productAdapter = new ProductViewAdapter(context, filteredList, listener);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(productAdapter);
     }
 
+
+    private void callReloadData() {
+        sharedPrefHelper.setTotalProductItem();
+        callApiData();
+    }
+
     @Override
     public void onClick(View view) {
-        if(R.id.product_back == view.getId()){
+        if (R.id.product_back == view.getId()) {
             finish();
-        }else if(R.id.product_add_fab == view.getId()){
+        } else if (R.id.product_add_fab == view.getId()) {
             createDialogBox(ProductActivity.this, null);
-        }else if(R.id.product_search == view.getId()){
+        } else if (R.id.product_search == view.getId()) {
             Log.v("data1 -- >", search_et.getText().toString());
             Log.v("data2 -- >", ownerSpinner.getSelectedItem().toString());
 
-            searchText =search_et.getText().toString();
-            searchOwner =ownerSpinner.getSelectedItem().toString();
-            if(searchOwner.equalsIgnoreCase("ALL")){
+            searchText = search_et.getText().toString();
+            searchOwner = ownerSpinner.getSelectedItem().toString();
+            if (searchOwner.equalsIgnoreCase("ALL")) {
                 searchOwner = "";
             }
             filter(searchText, searchOwner);
@@ -172,19 +189,36 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
 
         Button submit = (Button) dialog.findViewById(R.id.product_add_submit);
         TextView close = (TextView) dialog.findViewById(R.id.product_add_close);
+        TextView delete = (TextView) dialog.findViewById(R.id.product_add_delete);
         if (productModel != null) {
             name.setText(productModel.getName());
             price.setText(productModel.getPrice());
-            if("MTS".equalsIgnoreCase(productModel.getOwner())) {
+            if ("MTS".equalsIgnoreCase(productModel.getOwner())) {
                 owner.setSelection(0);
-            }else if("IK".equalsIgnoreCase(productModel.getOwner())){
+            } else if ("IK".equalsIgnoreCase(productModel.getOwner())) {
                 owner.setSelection(1);
             }
-            if("Y".equalsIgnoreCase(productModel.getStatus())){
+            if ("Y".equalsIgnoreCase(productModel.getStatus())) {
                 available.setChecked(true);
-            }else{
+            } else {
                 available.setChecked(false);
             }
+            delete.setVisibility(View.VISIBLE);
+            delete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    dbObj.deleteProductById(productModel.getDocumentId(), new FirestoreCallback<Void>() {
+                        @Override
+                        public void onCallback(Void result) {
+                            Toast.makeText(ProductActivity.this, "Product deleted (" + productModel.getName() + ") ..!", Toast.LENGTH_SHORT).show();
+                            callReloadData();
+                            dialog.dismiss();
+                        }
+                    });
+                }
+            });
+        } else {
+            delete.setVisibility(View.GONE);
         }
         close.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -195,34 +229,81 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (StringUtils.isEmpty(name.getText().toString())) {
+                    Toast.makeText(ProductActivity.this, "Please enter Product name ..!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (StringUtils.isEmpty(price.getText().toString())) {
+                    Toast.makeText(ProductActivity.this, "Please enter Product Price ..!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 if (productModel != null) {
-                    Toast.makeText(ProductActivity.this, "Update Product ID - " + productModel.getId(), Toast.LENGTH_LONG).show();
+                    productModel.setName(name.getText().toString());
+                    productModel.setPrice(price.getText().toString());
+                    productModel.setOwner(owner.getSelectedItem().toString());
+                    productModel.setStatus(available.isChecked() ? "Y" : "N");
+
+                    Boolean isUpdateSuccessfully = dbObj.updateProduct(productModel.getDocumentId(), productModel);
+                    if (isUpdateSuccessfully == TRUE) {
+                        Toast.makeText(ProductActivity.this, "Update Product ID - " + productModel.getId(), Toast.LENGTH_LONG).show();
+                    }else{
+                        Toast.makeText(ProductActivity.this, "Error while updating new product product - " + name.getText(), Toast.LENGTH_LONG).show();
+                    }
+                    callReloadData();
                 } else {
+                    ProductModel newProductModel = new ProductModel();
+                    newProductModel.setName(name.getText().toString());
+                    newProductModel.setPrice(price.getText().toString());
+                    newProductModel.setOwner(owner.getSelectedItem().toString());
+                    newProductModel.setStatus(available.isChecked() ? "Y" : "N");
+                    newProductModel.setCode(prepareProductCode(newProductModel.getName()));
+                    newProductModel.setId(getLatestProductID());
 
-                    //Toast.makeText(ProductActivity.this, "New Product ID - " + productModel.getName(), Toast.LENGTH_LONG).show();
-
-                    //sabeek
-                    String strName = name.getText().toString();
-                    String strPrice = price.getText().toString();
-                    String strOwner = owner.getSelectedItem().toString();
-                    String strAvailStatus = available.isChecked() ? "Y" : "N";
-                    Boolean isSavedSuccessfully = FALSE;
-
-                   // isSavedSuccessfully = dbObj.AddProduct(strName,strPrice,strOwner,strAvailStatus);
-                    if(isSavedSuccessfully == TRUE)
-                    {
-                        Toast.makeText(ProductActivity.this, "New product - " + name.getText() + "-" + price.getText(), Toast.LENGTH_LONG).show();
+                    Boolean isSavedSuccessfully = dbObj.addProduct(newProductModel);
+                    if (isSavedSuccessfully == TRUE) {
+                        Toast.makeText(ProductActivity.this, "New product - " + name.getText() + " Added", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(ProductActivity.this, "Error while adding new product product - " + name.getText(), Toast.LENGTH_LONG).show();
                     }
-                    else {
-                        Toast.makeText(ProductActivity.this, "Error while adding new product product - " + name.getText() + "-" + price.getText(), Toast.LENGTH_LONG).show();
-                    }
-
+                    callReloadData();
                 }
 
                 dialog.dismiss();
             }
         });
         dialog.show();
+    }
+
+
+    private Integer getLatestProductID() {
+        List<ProductModel> products = sharedPrefHelper.getTotalProductList();
+
+        if (products.isEmpty()) {
+            return 1;
+        } else {
+            Optional<ProductModel> maxProductModelrOptional = products.stream()
+                    .max(Comparator.comparingInt(ProductModel::getId));
+
+            return maxProductModelrOptional.map(productModel -> productModel.getId() + 1).orElse(1);
+        }
+    }
+
+    private String prepareProductCode(String name) {
+        List<ProductModel> products = sharedPrefHelper.getTotalProductList();
+
+        if (products.isEmpty()) {
+            return String.valueOf(name.charAt(0)) + 1;
+        } else {
+            Map<Character, List<ProductModel>> groupedByFirstLetter = products.stream()
+                    .collect(Collectors.groupingBy(user -> user.getName().charAt(0)));
+
+            return (groupedByFirstLetter.containsKey(name.charAt(0)) && groupedByFirstLetter.get(name.charAt(0)) != null) ?
+                    String.valueOf(name.charAt(0)) + groupedByFirstLetter.get(name.charAt(0)).size() + 1 :
+                    String.valueOf(name.charAt(0)) + 1;
+        }
+
     }
 
     public void filter(String text, String owner) {
@@ -254,10 +335,10 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
         }
-        if (filteredList.isEmpty()){
+        if (filteredList.isEmpty()) {
             data_fl.setVisibility(View.GONE);
             no_data_fl.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             data_fl.setVisibility(View.VISIBLE);
             no_data_fl.setVisibility(View.GONE);
         }

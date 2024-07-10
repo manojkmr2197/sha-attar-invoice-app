@@ -44,6 +44,8 @@ import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.CustomerDetails;
 import com.app.sha.attar.invoice.model.CustomerHistoryModel;
 import com.app.sha.attar.invoice.model.ProductModel;
+import com.app.sha.attar.invoice.utils.SharedPrefHelper;
+import com.app.sha.attar.invoice.utils.SingleTon;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -85,6 +87,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     Integer totalAmount = 0,sellingAmount = 0,discount = 0;
 
+    SharedPrefHelper sharedPrefHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,12 +116,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
         });
-        //
-        //productModelList.add(new ProductModel(1,"Apple","A1",15000,"MTS","Y"));
-        //productModelList.add(new ProductModel(2,"Banana","B1",25000,"MTS","Y"));
-        //productModelList.add(new ProductModel(3,"Cherry","C1",5000,"IK","Y"));
-        //productModelList.add(new ProductModel(4,"Data","D1",35000,"MTS","N"));
-        //productModelList.add(new ProductModel(5,"Elderberry","E1",40000,"IK","Y"));
+        sharedPrefHelper = new SharedPrefHelper(context);
+        productModelList.addAll(sharedPrefHelper.getTotalProductList());
 
         accessoriesModelList.add(new AccessoriesModel(1,"Fancy Bottle1",20));
         accessoriesModelList.add(new AccessoriesModel(2,"Design Bottle2",30));
@@ -166,6 +166,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         bill_recycler.setAdapter(billingAdapter);
 
         manageBillingLayout();
+
+    }
+
+    private boolean checkInternet() {
+        if (SingleTon.isNetworkConnected(activity)) {
+            return true;
+        } else {
+            Toast.makeText(context, "No Internet connection. Please try again .! ", Toast.LENGTH_LONG).show();
+            return false;
+        }
 
     }
 
@@ -219,7 +229,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_packaging) {
             i = new Intent(MainActivity.this, PackageActivity.class);
             startActivity(i);
-            overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right);
         } else if (item.getItemId() == R.id.nav_customer) {
             i = new Intent(MainActivity.this, CustomerHistoryActivity.class);
             startActivity(i);
@@ -229,13 +238,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onClick(View view) {
         if (R.id.home_bill_add_bt == view.getId()){
-            createNewBillDialog(context,null);
+            if(checkInternet())
+                createNewBillDialog(context,null);
         }else if(R.id.billing_discount_ll == view.getId()){
             createDiscountDialog();
         }else if(R.id.billing_submit_invoice == view.getId()){
-            submitInvoiceDetails();
+            if(checkInternet())
+                submitInvoiceDetails();
         }else if(R.id.billing_customer_search == view.getId()){
-            searchCustomerInfo();
+            if(checkInternet())
+                searchCustomerInfo();
         }
 
     }
@@ -257,8 +269,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
     private void submitInvoiceDetails() {
-
-
 
         billingItemModelList.clear();
         manageBillingLayout();

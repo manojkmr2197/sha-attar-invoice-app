@@ -14,7 +14,7 @@
             android:title="Accessories" />
         <item
             android:id="@+id/nav_packaging"
-            android:icon="@drawable/products"
+            android:icon="@drawable/delivery"
             android:title="Packaging" />
 
     </group>
@@ -23,7 +23,7 @@
         <menu>
             <item
                 android:id="@+id/nav_customer"
-                android:icon="@drawable/line"
+                android:icon="@drawable/customer"
                 android:title="Customer Details" />
             <item
                 android:id="@+id/nav_report"
