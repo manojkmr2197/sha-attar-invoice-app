@@ -5,11 +5,16 @@ public class AccessoriesModel {
     private Integer id;
     private String name;
     private Integer price;
+    private String documentId;
 
-    public AccessoriesModel(Integer id, String name, Integer price) {
+    public AccessoriesModel() {
+    }
+
+    public AccessoriesModel(Integer id, String name, Integer price, String documentId) {
         this.id = id;
         this.name = name;
         this.price = price;
+        this.documentId =documentId;
     }
 
     public Integer getId() {
@@ -34,5 +39,13 @@ public class AccessoriesModel {
 
     public void setPrice(Integer price) {
         this.price = price;
+    }
+
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
     }
 }

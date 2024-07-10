@@ -6,6 +6,7 @@ public class DatabaseConstants {
     }
     // Collection names
     public static final String PRODUCTS_COLLECTION = "product_details";
+    public static final String ACCESSORIES_COLLECTION = "accessories_details";
     public static final String CUSTOMER_COLLECTION = "customer_details";
     public static final String SALE_COLLECTION = "sale_details";
     public static final String BILLING_COLLECTION = "billingitem_details";

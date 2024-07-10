@@ -6,6 +6,9 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.app.sha.attar.invoice.activity.AccessoriesActivity;
+import com.app.sha.attar.invoice.model.AccessoriesModel;
+import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.CustomerDetails;
 import com.app.sha.attar.invoice.model.CustomerHistoryModel;
@@ -105,99 +108,150 @@ public class DBUtil {
         return isObjectDeleted.get();
     }
 
-    public void getAllAccessories(FirestoreCallback<List<ProductModel>> callback) {
+    public void getAllAccessories(FirestoreCallback<List<AccessoriesModel>> callback) {
         // Fetch data from Firestore
-        db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
+        db.collection(DatabaseConstants.ACCESSORIES_COLLECTION)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
-                            List<ProductModel> products = new ArrayList<>();
+                            List<AccessoriesModel> accessories = new ArrayList<>();
                             for (DocumentSnapshot document : task.getResult()) {
-                                ProductModel product = document.toObject(ProductModel.class);
-                                products.add(product);
+                                AccessoriesModel accessory = document.toObject(AccessoriesModel.class);
+                                accessories.add(accessory);
                             }
-                            callback.onCallback(products);
+                            callback.onCallback(accessories);
                         } else {
-                            System.err.println("Error fetching product details: " + task.getException());
+                            System.err.println("Error fetching Accessories details: " + task.getException());
                         }
                     }
                 });
     }
 
-    public void addAccessories(){}
-
-    public void updateAccessories(){}
-
-    public void deleteAccessories(){}
-
-    public void getCustomerDetail(FirestoreCallback<CustomerDetails> callback, String phoneNumber) {
-        // Fetch data from Firestore using the phone number
-
-        db.collection(DatabaseConstants.CUSTOMER_COLLECTION).whereEqualTo(DatabaseConstants.USER_PHONE, phoneNumber)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            if (!task.getResult().isEmpty()) {
-                                DocumentSnapshot document = task.getResult().getDocuments().get(0);
-                                CustomerDetails customerDetails = document.toObject(CustomerDetails.class);
-                                callback.onCallback(customerDetails);
-                            } else {
-                                System.out.println("No customer found with this phone number.");
-                            }
-                        } else {
-                            System.err.println("Error fetching customer details: " + task.getException());
-                        }
-                    }
+    public boolean addAccessories(AccessoriesModel aModel) {
+        AtomicReference<java.lang.Boolean> isObjectAdded = new AtomicReference<>(FALSE);
+        db.collection(DatabaseConstants.ACCESSORIES_COLLECTION)
+                .add(aModel)
+                .addOnSuccessListener(documentReference -> {
+                    isObjectAdded.set(TRUE);
+                    System.out.println("Accessories Added successfully.");
+                })
+                .addOnFailureListener(e -> {
+                    System.out.println("Error while saving Accessories." + e);
                 });
+        return isObjectAdded.get();
     }
 
-
-    public void getCustomerHistoryDetail(FirestoreCallback<List<CustomerHistoryModel>> callback, Integer customerId) {
-        // Fetch sale data from Firestore using the customer id
-
-        db.collection(DatabaseConstants.SALE_COLLECTION).whereEqualTo(DatabaseConstants.USER_ID, customerId)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            List<CustomerHistoryModel> saleDetails = new ArrayList<>();
-                            for (DocumentSnapshot document : task.getResult()) {
-                                CustomerHistoryModel model = document.toObject(CustomerHistoryModel.class);
-                                saleDetails.add(model);
-                            }
-                            callback.onCallback(saleDetails);
-                        } else {
-                            System.err.println("Error fetching product details: " + task.getException());
-                        }
-                    }
+    public boolean updateAccessories(String documentId , AccessoriesModel aModel) {
+        AtomicReference<java.lang.Boolean> isObjectAdded = new AtomicReference<>(FALSE);
+        db.collection(DatabaseConstants.ACCESSORIES_COLLECTION)
+                .document(documentId)
+                .set(aModel)
+                .addOnSuccessListener(documentReference -> {
+                    isObjectAdded.set(TRUE);
+                    System.out.println("Accessories Updated successfully.");
+                })
+                .addOnFailureListener(e -> {
+                    System.out.println("Error while updating product." + e);
                 });
+        return isObjectAdded.get();
     }
 
-    public void getBillingItemModelDetail(FirestoreCallback<List<BillingItemModel>> callback, Integer saleId) {
-        // Fetch sale data from Firestore using the customer id
-
-        db.collection(DatabaseConstants.BILLING_COLLECTION).whereEqualTo(DatabaseConstants.SALE_ID, saleId)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+    public boolean deleteAccessories(String documentId, FirestoreCallback<Void> callback) {
+        AtomicReference<java.lang.Boolean> isObjectDeleted = new AtomicReference<>(FALSE);
+        db.collection(DatabaseConstants.ACCESSORIES_COLLECTION).document(documentId)
+                .delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            List<BillingItemModel> billingItemModel = new ArrayList<>();
-                            for (DocumentSnapshot document : task.getResult()) {
-                                BillingItemModel model = document.toObject(BillingItemModel.class);
-                                billingItemModel.add(model);
-                            }
-                            callback.onCallback(billingItemModel);
-                        } else {
-                            System.err.println("Error fetching product details: " + task.getException());
-                        }
+                    public void onSuccess(Void aVoid) {
+                        // Call the callback with null since the task was successful
+                        callback.onCallback(aVoid);
+                        isObjectDeleted.set(TRUE);
+                        System.out.println("Accessories successfully deleted!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        System.err.println("Error deleting Accessories: " + e);
                     }
                 });
+        return isObjectDeleted.get();
+    }
+
+//    public void getCustomerDetail(FirestoreCallback<CustomerDetails> callback, String phoneNumber) {
+//        // Fetch data from Firestore using the phone number
+//
+//        db.collection(DatabaseConstants.CUSTOMER_COLLECTION).whereEqualTo(DatabaseConstants.USER_PHONE, phoneNumber)
+//                .get()
+//                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+//                        if (task.isSuccessful()) {
+//                            if (!task.getResult().isEmpty()) {
+//                                DocumentSnapshot document = task.getResult().getDocuments().get(0);
+//                                CustomerDetails customerDetails = document.toObject(CustomerDetails.class);
+//                                callback.onCallback(customerDetails);
+//                            } else {
+//                                System.out.println("No customer found with this phone number.");
+//                            }
+//                        } else {
+//                            System.err.println("Error fetching customer details: " + task.getException());
+//                        }
+//                    }
+//                });
+//    }
+//
+//
+//    public void getCustomerHistoryDetail(FirestoreCallback<List<CustomerHistoryModel>> callback, Integer customerId) {
+//        // Fetch sale data from Firestore using the customer id
+//
+//        db.collection(DatabaseConstants.SALE_COLLECTION).whereEqualTo(DatabaseConstants.USER_ID, customerId)
+//                .get()
+//                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+//                        if (task.isSuccessful()) {
+//                            List<CustomerHistoryModel> saleDetails = new ArrayList<>();
+//                            for (DocumentSnapshot document : task.getResult()) {
+//                                CustomerHistoryModel model = document.toObject(CustomerHistoryModel.class);
+//                                saleDetails.add(model);
+//                            }
+//                            callback.onCallback(saleDetails);
+//                        } else {
+//                            System.err.println("Error fetching product details: " + task.getException());
+//                        }
+//                    }
+//                });
+//    }
+//
+//    public void getBillingItemModelDetail(FirestoreCallback<List<BillingItemModel>> callback, Integer saleId) {
+//        // Fetch sale data from Firestore using the customer id
+//
+//        db.collection(DatabaseConstants.BILLING_COLLECTION).whereEqualTo(DatabaseConstants.SALE_ID, saleId)
+//                .get()
+//                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+//                        if (task.isSuccessful()) {
+//                            List<BillingItemModel> billingItemModel = new ArrayList<>();
+//                            for (DocumentSnapshot document : task.getResult()) {
+//                                BillingItemModel model = document.toObject(BillingItemModel.class);
+//                                billingItemModel.add(model);
+//                            }
+//                            callback.onCallback(billingItemModel);
+//                        } else {
+//                            System.err.println("Error fetching product details: " + task.getException());
+//                        }
+//                    }
+//                });
+//    }
+
+    public Boolean submitBillInvoice(BillingInvoiceModel aModel) {
+        //need to write a logic to save the billing data
+
+        return true;
     }
 
 }

@@ -8,6 +8,9 @@ public class BillingItemModel {
     Integer units;
     Integer unitPrice;
     Integer totalPrice;
+    ProductModel productModel;
+    AccessoriesModel accessoriesModel;
+    String saleId;
 
     public BillingItemModel() {
     }
@@ -67,5 +70,29 @@ public class BillingItemModel {
 
     public void setTotalPrice(Integer totalPrice) {
         this.totalPrice = totalPrice;
+    }
+
+    public ProductModel getProductModel() {
+        return productModel;
+    }
+
+    public void setProductModel(ProductModel productModel) {
+        this.productModel = productModel;
+    }
+
+    public AccessoriesModel getAccessoriesModel() {
+        return accessoriesModel;
+    }
+
+    public void setAccessoriesModel(AccessoriesModel accessoriesModel) {
+        this.accessoriesModel = accessoriesModel;
+    }
+
+    public String getSaleId() {
+        return saleId;
+    }
+
+    public void setSaleId(String saleId) {
+        this.saleId = saleId;
     }
 }

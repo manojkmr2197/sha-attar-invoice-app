@@ -20,13 +20,13 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Add Product"
+                android:text="Add Accessories"
                 android:textColor="@color/white"
                 android:padding="5dp"
                 android:textSize="15sp" />
 
             <TextView
-                android:id="@+id/product_add_close"
+                android:id="@+id/accessories_add_close"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:background="@drawable/ic_baseline_close_24" />
@@ -36,11 +36,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
-            android:hint="Enter Product Name *">
+            android:hint="Enter Accessories Name *">
 
             <!--this is the actual edit text which takes the input-->
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/product_add_name"
+                android:id="@+id/accessories_add_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textAllCaps="true"
@@ -62,7 +62,7 @@
 
                 <!--this is the actual edit text which takes the input-->
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/product_add_price"
+                    android:id="@+id/accessories_add_price"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
@@ -70,21 +70,7 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <androidx.appcompat.widget.AppCompatSpinner
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:id="@+id/product_add_owner"/>
-
         </LinearLayout>
-
-
-        <com.google.android.material.checkbox.MaterialCheckBox
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:id="@+id/product_add_checkbox"
-            android:text="Available"
-            android:textColorHint="@color/app_color"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -99,7 +85,7 @@
                 android:layout_weight="1"/>
 
             <Button
-                android:id="@+id/product_add_submit"
+                android:id="@+id/accessories_add_submit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -112,7 +98,7 @@
                 android:layout_weight="1"/>
 
             <TextView
-                android:id="@+id/product_add_delete"
+                android:id="@+id/accessories_add_delete"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="@drawable/baseline_delete_24" />

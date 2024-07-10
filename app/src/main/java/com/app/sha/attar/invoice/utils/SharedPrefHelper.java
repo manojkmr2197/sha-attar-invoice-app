@@ -81,16 +81,16 @@ public class SharedPrefHelper {
 
     public void setTotalAccessoriesItem(){
         SharedPreferences.Editor editor = sharedPreferences.edit();
-//        dbObj.getAllAccessories(new FirestoreCallback<List<AccessoriesModel>>() {
-//            @Override
-//            public void onCallback(List<AccessoriesModel> products) {
-//                System.out.println("Number of products: " + products.size());
-//                String json = gson.toJson(products);
-//                editor.putString(PRODUCT_KEY, json);
-//                editor.apply();
-//                editor.commit();
-//            }
-//        });
+        dbObj.getAllAccessories(new FirestoreCallback<List<AccessoriesModel>>() {
+            @Override
+            public void onCallback(List<AccessoriesModel> accessories) {
+                System.out.println("Number of products: " + accessories.size());
+                String json = gson.toJson(accessories);
+                editor.putString(ACCESSORIES_KEY, json);
+                editor.apply();
+                editor.commit();
+            }
+        });
     }
 
 

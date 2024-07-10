@@ -132,7 +132,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         List<ProductModel> products = sharedPrefHelper.getTotalProductList();
         System.out.println("Number of products: " + itemList.size());
         if (products.isEmpty()) {
-            Toast.makeText(context, "Internal Server Error. Please try again .! ", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "Products is empty. Please try again .! ", Toast.LENGTH_LONG).show();
         }
         itemList.clear();
         itemList.addAll(products);
@@ -146,6 +146,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
 
     private void callReloadData() {
         sharedPrefHelper.setTotalProductItem();
+        Toast.makeText(context, "Loading .! ", Toast.LENGTH_LONG).show();
         callApiData();
     }
 
@@ -207,6 +208,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             delete.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    Toast.makeText(context, "Loading .! ", Toast.LENGTH_LONG).show();
                     dbObj.deleteProductById(productModel.getDocumentId(), new FirestoreCallback<Void>() {
                         @Override
                         public void onCallback(Void result) {
@@ -238,7 +240,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     Toast.makeText(ProductActivity.this, "Please enter Product Price ..!", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
+                Toast.makeText(context, "Loading .! ", Toast.LENGTH_LONG).show();
                 if (productModel != null) {
                     productModel.setName(name.getText().toString());
                     productModel.setPrice(price.getText().toString());

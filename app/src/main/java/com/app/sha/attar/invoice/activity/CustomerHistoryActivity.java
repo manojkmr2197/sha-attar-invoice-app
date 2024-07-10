@@ -25,6 +25,7 @@ import com.app.sha.attar.invoice.adapter.CustomerHistoryAdapter;
 import com.app.sha.attar.invoice.adapter.CustomerHistoryDetailViewAdapter;
 import com.app.sha.attar.invoice.listener.BillingClickListener;
 import com.app.sha.attar.invoice.listener.ClickListener;
+import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.CustomerDetails;
 import com.app.sha.attar.invoice.model.CustomerHistoryModel;
@@ -46,7 +47,7 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
     Activity activity;
 
     CustomerHistoryAdapter customerHistoryAdapter;
-    List<CustomerHistoryModel> customerHistoryModelList =new ArrayList<>();
+    List<BillingInvoiceModel> billingInvoiceModelList =new ArrayList<>();
     RecyclerView recyclerView;
     ClickListener listener;
 
@@ -86,15 +87,15 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
         listener =new ClickListener() {
             @Override
             public void click(int index) {
-                if(customerHistoryModelList.get(index) != null && !customerHistoryModelList.get(index).getBillingItemModelList().isEmpty()) {
-                    createDetailDialogView(customerHistoryModelList.get(index));
+                if(billingInvoiceModelList.get(index) != null && !billingInvoiceModelList.get(index).getBillingItemModelList().isEmpty()) {
+                    createDetailDialogView(billingInvoiceModelList.get(index));
                 }
             }
         };
 
         recyclerView = (RecyclerView) findViewById(R.id.customer_history_recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
-        customerHistoryAdapter = new CustomerHistoryAdapter(context,customerHistoryModelList,listener);
+        customerHistoryAdapter = new CustomerHistoryAdapter(context,billingInvoiceModelList,listener);
         recyclerView.setAdapter(customerHistoryAdapter);
 
         Intent intent = getIntent();
@@ -106,37 +107,43 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
     }
 
     private void searchCustomerDetails(String phoneNo) {
-        final CustomerDetails[] customerDetails = new CustomerDetails[1];// = new CustomerDetails[1];//= new CustomerDetails(phoneNo,"Bavani",customerHistoryModelList);
-        dbObj.getCustomerDetail(new FirestoreCallback<CustomerDetails>() {
-            @Override
-            public void onCallback(CustomerDetails aCustomerDetails) {
-                customerDetails[0] = aCustomerDetails;
-                // You can now use customerDetails here
-                System.out.println("Customer Name: " + customerDetails[0].getName());
-            }
-        }, phoneNo);
 
-        dbObj.getCustomerHistoryDetail(new FirestoreCallback<List<CustomerHistoryModel>>() {
-            @Override
-            public void onCallback(List<CustomerHistoryModel> acustomerHistoryModelList ) {
-                customerHistoryModelList = acustomerHistoryModelList;
-                // You can now use customerDetails here
-                System.out.println("customerHistorySize: " + customerHistoryModelList.size());
-            }
-        }, customerDetails[0].getId());
+        //input  - phone no
+        //output - list of BillingInvoiceModel
+        //modify the logic
 
 
-        List<BillingItemModel> billingItemModelList = new ArrayList<>();
-
-        IntStream.range(0, customerHistoryModelList.size()).forEach(i -> dbObj.getBillingItemModelDetail(new FirestoreCallback<List<BillingItemModel>>() {
-            @Override
-            public void onCallback(List<BillingItemModel> aBillingItemModel) {
-                customerHistoryModelList.get(i).setBillingItemModelList(aBillingItemModel);
-
-                // You can now use customerDetails here
-                System.out.println("aBillingItemModel: " + aBillingItemModel.size());
-            }
-        }, customerHistoryModelList.get(i).getSaleId()));
+//        final CustomerDetails[] customerDetails = new CustomerDetails[1];// = new CustomerDetails[1];//= new CustomerDetails(phoneNo,"Bavani",customerHistoryModelList);
+//        dbObj.getCustomerDetail(new FirestoreCallback<CustomerDetails>() {
+//            @Override
+//            public void onCallback(CustomerDetails aCustomerDetails) {
+//                customerDetails[0] = aCustomerDetails;
+//                // You can now use customerDetails here
+//                System.out.println("Customer Name: " + customerDetails[0].getName());
+//            }
+//        }, phoneNo);
+//
+//        dbObj.getCustomerHistoryDetail(new FirestoreCallback<List<CustomerHistoryModel>>() {
+//            @Override
+//            public void onCallback(List<CustomerHistoryModel> acustomerHistoryModelList ) {
+//                customerHistoryModelList = acustomerHistoryModelList;
+//                // You can now use customerDetails here
+//                System.out.println("customerHistorySize: " + customerHistoryModelList.size());
+//            }
+//        }, customerDetails[0].getId());
+//
+//
+//        List<BillingItemModel> billingItemModelList = new ArrayList<>();
+//
+//        IntStream.range(0, customerHistoryModelList.size()).forEach(i -> dbObj.getBillingItemModelDetail(new FirestoreCallback<List<BillingItemModel>>() {
+//            @Override
+//            public void onCallback(List<BillingItemModel> aBillingItemModel) {
+//                customerHistoryModelList.get(i).setBillingItemModelList(aBillingItemModel);
+//
+//                // You can now use customerDetails here
+//                System.out.println("aBillingItemModel: " + aBillingItemModel.size());
+//            }
+//        }, customerHistoryModelList.get(i).getSaleId()));
 /*
 
 
@@ -149,10 +156,10 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
             customerHistoryModelList.add(new CustomerHistoryModel(300,10, OffsetDateTime.now(),billingItemModelList));
         }
 */
-        if(customerDetails[0] != null){
+        if(billingInvoiceModelList != null){
             data_ll.setVisibility(View.VISIBLE);
             no_data_ll.setVisibility(View.GONE);
-            name.setText(customerDetails[0].getName());
+            name.setText(billingInvoiceModelList.get(0).getCustomerName());
             customerHistoryAdapter.notifyDataSetChanged();
         }else{
             no_data_ll.setVisibility(View.VISIBLE);
@@ -160,7 +167,7 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
         }
     }
 
-    public void createDetailDialogView(CustomerHistoryModel customerHistoryModel) {
+    public void createDetailDialogView(BillingInvoiceModel billingInvoiceModel) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
@@ -178,7 +185,7 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
             }
         };
 
-        CustomerHistoryDetailViewAdapter adapter = new CustomerHistoryDetailViewAdapter(dialogView.getContext(),customerHistoryModel.getBillingItemModelList(),listener1);
+        CustomerHistoryDetailViewAdapter adapter = new CustomerHistoryDetailViewAdapter(dialogView.getContext(),billingInvoiceModel.getBillingItemModelList(),listener1);
         recyclerView.setAdapter(adapter);
 
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
