@@ -1,16 +1,22 @@
 package com.app.sha.attar.invoice.activity;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -20,7 +26,10 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.app.sha.attar.invoice.R;
+import com.app.sha.attar.invoice.utils.SharedConstants;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.OffsetDateTime;
 
@@ -64,6 +73,48 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         search_bt = (Button) findViewById(R.id.report_search);
         search_bt.setOnClickListener(this);
 
+        preAuthentication();
+
+    }
+
+    private void preAuthentication() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter Admin Credential");
+
+        // Set up the input
+        final EditText input = new EditText(this);
+        input.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        // Specify the type of input expected
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        builder.setView(input);
+
+        // Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String inputText = input.getText().toString();
+                if(StringUtils.isEmpty(inputText) || !SharedConstants.ADMIN_PASSWORD.equals(inputText)){
+                    Toast.makeText(ReportActivity.this, "Wrong Password. try again later.!", Toast.LENGTH_LONG).show();
+                    finish();
+                    dialog.cancel();
+                    return;
+                }
+                Toast.makeText(ReportActivity.this, "Login successful", Toast.LENGTH_LONG).show();
+                dialog.cancel();
+
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)

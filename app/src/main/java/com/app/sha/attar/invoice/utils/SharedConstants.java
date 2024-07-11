@@ -7,4 +7,7 @@ public class SharedConstants {
     public static String ACCESSORIES_KEY = "SHA_ATTAR_ACCESSORIES";
 
     public static String PACKAGING_KEY = "SHA_ATTAR_PACKAGING";
+
+
+    public static String ADMIN_PASSWORD = "123456";
 }
