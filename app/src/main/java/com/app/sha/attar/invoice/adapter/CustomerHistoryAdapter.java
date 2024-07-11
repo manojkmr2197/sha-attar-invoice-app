@@ -11,11 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
-import com.app.sha.attar.invoice.model.BillingItemModel;
-import com.app.sha.attar.invoice.model.CustomerHistoryModel;
-import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.viewholder.CustomerHistoryViewHolder;
-import com.app.sha.attar.invoice.viewholder.ProductViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;

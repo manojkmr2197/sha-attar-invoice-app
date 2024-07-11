@@ -26,20 +26,13 @@ import com.app.sha.attar.invoice.adapter.CustomerHistoryDetailViewAdapter;
 import com.app.sha.attar.invoice.listener.BillingClickListener;
 import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
-import com.app.sha.attar.invoice.model.BillingItemModel;
-import com.app.sha.attar.invoice.model.CustomerDetails;
-import com.app.sha.attar.invoice.model.CustomerHistoryModel;
-import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
-import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.google.android.material.textfield.TextInputEditText;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 
 public class CustomerHistoryActivity extends AppCompatActivity implements View.OnClickListener {
 

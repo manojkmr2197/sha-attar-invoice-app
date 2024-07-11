@@ -30,13 +30,13 @@ public class SharedPrefHelper {
         this.dbObj = new DBUtil();
     }
 
-    public int getPackageCost(){
-        return sharedPreferences.getInt(PACKAGING_KEY, 15);
+    public String getPackageCost(){
+        return sharedPreferences.getString(PACKAGING_KEY, "15");
     }
 
     public void setPackageCost(int amount){
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt(PACKAGING_KEY, amount);
+        editor.putString(PACKAGING_KEY, String.valueOf(amount));
         editor.apply();
         editor.commit();
     }
@@ -70,6 +70,7 @@ public class SharedPrefHelper {
     public List<AccessoriesModel> getTotalAccessoriesList(){
 
         List<AccessoriesModel> arrayItems = new ArrayList<>();
+
         String serializedObject = sharedPreferences.getString(ACCESSORIES_KEY, null);
         if (serializedObject != null) {
             Type type = new TypeToken<List<AccessoriesModel>>(){}.getType();

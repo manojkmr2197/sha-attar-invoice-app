@@ -14,5 +14,11 @@
         <item>MTS</item>
         <item>IK</item>
     </string-array>
+    <string-array name="spinner_report_type">
+        <item>Today</item>
+        <item>Yesterday</item>
+        <item>a week ago</item>
+        <item>a Month ago</item>
+    </string-array>
 
 </resources>

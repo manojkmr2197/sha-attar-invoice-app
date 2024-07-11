@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
-import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -17,13 +16,11 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,14 +33,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.BillingViewAdapter;
-import com.app.sha.attar.invoice.adapter.ProductViewAdapter;
 import com.app.sha.attar.invoice.listener.BillingClickListener;
-import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
-import com.app.sha.attar.invoice.model.CustomerDetails;
-import com.app.sha.attar.invoice.model.CustomerHistoryModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
@@ -121,6 +114,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
         dbObj = new DBUtil();
         sharedPrefHelper = new SharedPrefHelper(context);
+        sharedPrefHelper.setTotalProductItem();
+        sharedPrefHelper.setTotalAccessoriesItem();
         productModelList.addAll(sharedPrefHelper.getTotalProductList());
         accessoriesModelList.addAll(sharedPrefHelper.getTotalAccessoriesList());
 
@@ -547,7 +542,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         billingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
                         Integer fullPrice = Integer.parseInt(selectedProduct[0].getPrice());
                         billingItemModel.setUnitPrice(fullPrice/1000);
-                        billingItemModel.setTotalPrice((Integer.parseInt(product_size.getText().toString()) * (fullPrice/1000)) + sharedPrefHelper.getPackageCost());
+                        billingItemModel.setTotalPrice((Integer.parseInt(product_size.getText().toString()) * (fullPrice/1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                     }else if("NON_PRODUCT".equalsIgnoreCase(type[0])){
                         if(selectedNonProduct[0] == null){
                             Toast.makeText(MainActivity.this, "Please Choose the Accessories Name..!", Toast.LENGTH_LONG).show();
@@ -580,7 +575,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         newBillingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
                         Integer fullPrice = Integer.parseInt(selectedProduct[0].getPrice());
                         newBillingItemModel.setUnitPrice(fullPrice/1000);
-                        newBillingItemModel.setTotalPrice((Integer.parseInt(product_size.getText().toString()) * (fullPrice/1000)) + sharedPrefHelper.getPackageCost());
+                        newBillingItemModel.setTotalPrice((Integer.parseInt(product_size.getText().toString()) * (fullPrice/1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                     }else if("NON_PRODUCT".equalsIgnoreCase(type[0])){
 
                         if(selectedNonProduct[0] == null){

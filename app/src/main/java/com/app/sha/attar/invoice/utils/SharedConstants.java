@@ -6,5 +6,5 @@ public class SharedConstants {
     public static String PRODUCT_KEY = "SHA_ATTAR_PRODUCT";
     public static String ACCESSORIES_KEY = "SHA_ATTAR_ACCESSORIES";
 
-    public static String PACKAGING_KEY = "SHA_ATTAR_ACCESSORIES";
+    public static String PACKAGING_KEY = "SHA_ATTAR_PACKAGING";
 }
