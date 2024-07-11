@@ -1,4 +1,5 @@
 package com.app.sha.attar.invoice.utils;
+import static com.app.sha.attar.invoice.utils.DatabaseConstants.SALE_COLLECTION;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 
@@ -6,6 +7,7 @@ import androidx.annotation.NonNull;
 
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
+import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -16,7 +18,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DBUtil {
@@ -171,10 +175,10 @@ public class DBUtil {
         return isObjectDeleted.get();
     }
 
-//    public void getCustomerDetail(FirestoreCallback<CustomerDetails> callback, String phoneNumber) {
+//    public void getCustomerDetails(FirestoreCallback<BillingInvoiceModel> callback, String phoneNumber) {
 //        // Fetch data from Firestore using the phone number
 //
-//        db.collection(DatabaseConstants.CUSTOMER_COLLECTION).whereEqualTo(DatabaseConstants.USER_PHONE, phoneNumber)
+//        db.collection(DatabaseConstants.SALE_COLLECTION).whereEqualTo(DatabaseConstants.USER_PHONE, phoneNumber)
 //                .get()
 //                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
 //                    @Override
@@ -182,8 +186,8 @@ public class DBUtil {
 //                        if (task.isSuccessful()) {
 //                            if (!task.getResult().isEmpty()) {
 //                                DocumentSnapshot document = task.getResult().getDocuments().get(0);
-//                                CustomerDetails customerDetails = document.toObject(CustomerDetails.class);
-//                                callback.onCallback(customerDetails);
+//                                BillingInvoiceModel billingInvoiceModel = document.toObject(BillingInvoiceModel.class);
+//                                callback.onCallback(billingInvoiceModel);
 //                            } else {
 //                                System.out.println("No customer found with this phone number.");
 //                            }
@@ -193,58 +197,106 @@ public class DBUtil {
 //                    }
 //                });
 //    }
-//
-//
-//    public void getCustomerHistoryDetail(FirestoreCallback<List<CustomerHistoryModel>> callback, Integer customerId) {
-//        // Fetch sale data from Firestore using the customer id
-//
-//        db.collection(DatabaseConstants.SALE_COLLECTION).whereEqualTo(DatabaseConstants.USER_ID, customerId)
-//                .get()
-//                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-//                    @Override
-//                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-//                        if (task.isSuccessful()) {
-//                            List<CustomerHistoryModel> saleDetails = new ArrayList<>();
-//                            for (DocumentSnapshot document : task.getResult()) {
-//                                CustomerHistoryModel model = document.toObject(CustomerHistoryModel.class);
-//                                saleDetails.add(model);
-//                            }
-//                            callback.onCallback(saleDetails);
-//                        } else {
-//                            System.err.println("Error fetching product details: " + task.getException());
-//                        }
-//                    }
-//                });
-//    }
-//
-//    public void getBillingItemModelDetail(FirestoreCallback<List<BillingItemModel>> callback, Integer saleId) {
-//        // Fetch sale data from Firestore using the customer id
-//
-//        db.collection(DatabaseConstants.BILLING_COLLECTION).whereEqualTo(DatabaseConstants.SALE_ID, saleId)
-//                .get()
-//                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-//                    @Override
-//                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-//                        if (task.isSuccessful()) {
-//                            List<BillingItemModel> billingItemModel = new ArrayList<>();
-//                            for (DocumentSnapshot document : task.getResult()) {
-//                                BillingItemModel model = document.toObject(BillingItemModel.class);
-//                                billingItemModel.add(model);
-//                            }
-//                            callback.onCallback(billingItemModel);
-//                        } else {
-//                            System.err.println("Error fetching product details: " + task.getException());
-//                        }
-//                    }
-//                });
-//    }
 
-    public Boolean submitBillInvoice(BillingInvoiceModel aModel) {
-        //need to write a logic to save the billing data
 
-        return true;
+    public void getBillingInvoiceDetail(FirestoreCallback<List<BillingInvoiceModel>> callback, String phoneNumber) {
+        db.collection(SALE_COLLECTION).whereEqualTo(DatabaseConstants.USER_PHONE, phoneNumber)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            List<BillingInvoiceModel> saleDetails = new ArrayList<>();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                BillingInvoiceModel model = document.toObject(BillingInvoiceModel.class);
+                                saleDetails.add(model);
+                            }
+                            callback.onCallback(saleDetails);
+                        } else {
+                            System.err.println("Error fetching product details: " + task.getException());
+                        }
+                    }
+                });
     }
 
+    public void getBillingItemModelDetail(FirestoreCallback<List<BillingItemModel>> callback, String saleId) {
+
+        db.collection(DatabaseConstants.BILLING_COLLECTION).whereEqualTo(DatabaseConstants.SALE_ID, saleId)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            List<BillingItemModel> billingItemModel = new ArrayList<>();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                BillingItemModel model = document.toObject(BillingItemModel.class);
+                                billingItemModel.add(model);
+                            }
+                            callback.onCallback(billingItemModel);
+                        } else {
+                            System.err.println("Error fetching product details: " + task.getException());
+                        }
+                    }
+                });
+    }
+
+
+    public Boolean submitBillInvoice(BillingInvoiceModel itemModel) {
+        AtomicReference<Boolean> isObjectAdded = new AtomicReference<>(Boolean.FALSE);
+        Map<String, Object> data = new HashMap<>();
+        data.put("billingDate", itemModel.getBillingDate());
+        data.put("customerName", itemModel.getCustomerName());
+        data.put("customerPhone", itemModel.getCustomerPhone());
+        data.put("discount", itemModel.getDiscount()); // Additional data specific to the second table
+        data.put("saleId", itemModel.getSaleId());
+        data.put("sellingCost", itemModel.getSellingCost());
+        data.put("totalCost", itemModel.getTotalCost());
+
+        db.collection(DatabaseConstants.SALE_COLLECTION)
+                .add(data)
+                .addOnSuccessListener(documentReference -> {
+
+                    if(submitBillingItems(itemModel.getBillingItemModelList()) == TRUE)
+                    {
+                        isObjectAdded.set(Boolean.TRUE);
+                        System.out.println("Billing item added to second table successfully.");
+                    }else{
+                        System.out.println("Billing item NOT added to second table successfully.");
+                    }
+
+                })
+                .addOnFailureListener(e -> {
+                    System.err.println("Error while adding billing item to second table: " + e);
+                });
+        return isObjectAdded.get();
+    }
+
+
+    public Boolean submitBillingItems(List<BillingItemModel> itemModel) {
+        AtomicReference<Boolean> isObjectAdded = new AtomicReference<>(Boolean.FALSE);
+        for (int i = 0; i < itemModel.size(); i++) {
+            BillingItemModel model = itemModel.get(i);
+            Map<String, Object> data = new HashMap<>();
+            data.put("code", model.getCode());
+            data.put("name", model.getName());
+            data.put("saleId", model.getSaleId());
+            data.put("totalPrice", model.getTotalPrice());
+            data.put("type", model.getType());
+            data.put("unitPrice", model.getUnitPrice());
+            data.put("units", model.getUnits());
+            db.collection(DatabaseConstants.BILLING_COLLECTION)
+                    .add(data)
+                    .addOnSuccessListener(documentReference -> {
+                        isObjectAdded.set(Boolean.TRUE);
+                        System.out.println("Billing item added to second table successfully.");
+                    })
+                    .addOnFailureListener(e -> {
+                        isObjectAdded.set(Boolean.FALSE);
+                        System.err.println("Error while adding billing item to second table: " + e);
+                    });
+        }
+        return isObjectAdded.get();
+    }
 }
 /*
 * 1.Add product
