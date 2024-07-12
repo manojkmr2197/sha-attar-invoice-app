@@ -10,7 +10,7 @@ public class BillingItemModel {
     Integer totalPrice;
     ProductModel productModel;
     AccessoriesModel accessoriesModel;
-    String saleId;
+    Long saleId;
 
     public BillingItemModel() {
     }
@@ -88,11 +88,11 @@ public class BillingItemModel {
         this.accessoriesModel = accessoriesModel;
     }
 
-    public String getSaleId() {
+    public Long getSaleId() {
         return saleId;
     }
 
-    public void setSaleId(String saleId) {
+    public void setSaleId(Long saleId) {
         this.saleId = saleId;
     }
 }

@@ -299,7 +299,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             return String.valueOf(name.charAt(0)) + 1;
         } else {
             Map<Character, List<ProductModel>> groupedByFirstLetter = products.stream()
-                    .collect(Collectors.groupingBy(user -> user.getName().charAt(0)));
+                    .collect(Collectors.groupingBy(productModel -> productModel.getName().charAt(0)));
 
             return (groupedByFirstLetter.containsKey(name.charAt(0)) && groupedByFirstLetter.get(name.charAt(0)) != null) ?
                     String.valueOf(name.charAt(0)) + groupedByFirstLetter.get(name.charAt(0)).size() + 1 :

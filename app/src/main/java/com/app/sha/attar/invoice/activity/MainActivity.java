@@ -277,14 +277,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         BillingInvoiceModel billingInvoiceModel = new BillingInvoiceModel();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            billingInvoiceModel.setBillingDate(OffsetDateTime.now());
+            billingInvoiceModel.setBillingDate(OffsetDateTime.now().toEpochSecond());
         }
-        billingInvoiceModel.setBillingItemModelList(billingItemModelList);
+
         billingInvoiceModel.setCustomerName(customer_name.getText().toString());
         billingInvoiceModel.setCustomerPhone(customer_phone.getText().toString());
         billingInvoiceModel.setDiscount(discount);
         billingInvoiceModel.setSellingCost(sellingAmount);
         billingInvoiceModel.setTotalCost(totalAmount);
+
+        billingItemModelList.stream().forEach(item ->{
+            item.setSaleId(billingInvoiceModel.getBillingDate());
+        });
+
+        billingInvoiceModel.setBillingItemModelList(billingItemModelList);
 
         if(dbObj.submitBillInvoice(billingInvoiceModel)){
             Toast.makeText(MainActivity.this, "Submitted Successfully..!", Toast.LENGTH_LONG).show();

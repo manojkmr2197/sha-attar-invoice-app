@@ -5,7 +5,7 @@ import java.util.List;
 
 public class BillingInvoiceModel {
 
-    OffsetDateTime billingDate;
+    Long billingDate;
     Integer totalCost;
     Integer discount;
     String customerName;
@@ -15,7 +15,7 @@ public class BillingInvoiceModel {
     List<BillingItemModel> billingItemModelList;
 
     public BillingInvoiceModel(){}
-    public BillingInvoiceModel(OffsetDateTime billingDate,Integer totalCost,Integer discount,String customerName,String customerPhone,Integer sellingCost,String saleId){
+    public BillingInvoiceModel(Long billingDate,Integer totalCost,Integer discount,String customerName,String customerPhone,Integer sellingCost,String saleId){
         this.billingDate=billingDate;
         this.totalCost=totalCost;
         this.discount=discount;
@@ -24,11 +24,11 @@ public class BillingInvoiceModel {
         this.sellingCost=sellingCost;
         this.saleId=saleId;
     }
-    public OffsetDateTime getBillingDate() {
+    public Long getBillingDate() {
         return billingDate;
     }
 
-    public void setBillingDate(OffsetDateTime billingDate) {
+    public void setBillingDate(Long billingDate) {
         this.billingDate = billingDate;
     }
 
