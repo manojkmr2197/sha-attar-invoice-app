@@ -73,7 +73,7 @@
                         android:id="@+id/product_search_et"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textAllCaps="true"
+                        android:inputType="textCapCharacters"
                         android:singleLine="true"/>
 
                 </com.google.android.material.textfield.TextInputLayout>

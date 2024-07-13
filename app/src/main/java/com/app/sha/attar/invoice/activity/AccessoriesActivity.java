@@ -1,9 +1,13 @@
 package com.app.sha.attar.invoice.activity;
 
+import static com.app.sha.attar.invoice.utils.SharedConstants.ACCESSORIES_KEY;
+import static com.app.sha.attar.invoice.utils.SharedConstants.PRODUCT_KEY;
+import static com.app.sha.attar.invoice.utils.SharedConstants.SHA_ATTAR;
 import static java.lang.Boolean.TRUE;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -14,6 +18,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,13 +27,19 @@ import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.AccessoriesViewAdapter;
 import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
+import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
+import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.gson.Gson;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -52,6 +63,10 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
 
     DBUtil dbObj;
     SharedPrefHelper sharedPrefHelper;
+    FirebaseFirestore db;
+
+    private SharedPreferences sharedPreferences;
+    private Gson gson;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,21 +96,31 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
 
         dbObj = new DBUtil();
         sharedPrefHelper = new SharedPrefHelper(context);
+        db = DBUtil.getInstance();
+
+        sharedPreferences = context.getSharedPreferences(SHA_ATTAR, Context.MODE_PRIVATE);
+        gson = new Gson();
+
         listener = new ClickListener() {
             @Override
             public void click(int index) {
                 createDialogBox(context, itemList.get(index));
             }
         };
+
+        adapter = new AccessoriesViewAdapter(context, itemList, listener);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
+
         checkInternet();
 
     }
 
     @Override
     public void onClick(View view) {
-        if (R.id.product_back == view.getId()) {
+        if (R.id.accessories_back == view.getId()) {
             finish();
-        } else if (R.id.product_add_fab == view.getId()) {
+        } else if (R.id.accessories_add_fab == view.getId()) {
             createDialogBox(context, null);
         }
     }
@@ -134,18 +159,31 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                 @Override
                 public void onClick(View view) {
                     Toast.makeText(context, "Loading .! ", Toast.LENGTH_LONG).show();
-                    dbObj.deleteAccessories(accessoriesModel.getDocumentId(), new FirestoreCallback<Void>() {
-                        @Override
-                        public void onCallback(Void result) {
-                            Toast.makeText(AccessoriesActivity.this, "Accessories deleted (" + accessoriesModel.getName() + ") ..!", Toast.LENGTH_SHORT).show();
-                            callReloadData();
-                            dialog.dismiss();
-                        }
-                    });
+
+                    db.collection(DatabaseConstants.ACCESSORIES_COLLECTION).document(accessoriesModel.getDocumentId())
+                            .delete()
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    // Call the callback with null since the task was successful
+                                    System.out.println("Accessories successfully deleted!");
+                                    Toast.makeText(context, "Accessories successfully deleted!", Toast.LENGTH_LONG).show();
+                                    setTotalAccessoriesItem();
+                                    dialog.dismiss();
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(context, "Error while deleting Accessories. Please try again.!", Toast.LENGTH_LONG).show();
+                                    System.err.println("Error deleting Accessories: " + e);
+                                    dialog.dismiss();
+                                }
+                            });
                 }
             });
         } else {
-            delete.setVisibility(View.GONE);
+            delete.setVisibility(View.INVISIBLE);
         }
         close.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,26 +208,48 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                     accessoriesModel.setName(name.getText().toString());
                     accessoriesModel.setPrice(Integer.valueOf(price.getText().toString()));
 
-                    Boolean isUpdateSuccessfully = dbObj.updateAccessories(accessoriesModel.getDocumentId(), accessoriesModel);
-                    if (isUpdateSuccessfully == TRUE) {
-                        Toast.makeText(AccessoriesActivity.this, "Update Product ID - " + accessoriesModel.getId(), Toast.LENGTH_LONG).show();
-                    }else{
-                        Toast.makeText(AccessoriesActivity.this, "Error while updating new product product - " + name.getText(), Toast.LENGTH_LONG).show();
-                    }
-                    callReloadData();
+                    db.collection(DatabaseConstants.ACCESSORIES_COLLECTION)
+                            .document(accessoriesModel.getDocumentId())
+                            .set(accessoriesModel)
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    Toast.makeText(context, "Update Accessories - " + accessoriesModel.getName() + " Successfully", Toast.LENGTH_LONG).show();
+                                    System.out.println("Accessories Updated successfully.");
+                                    setTotalAccessoriesItem();
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(context, "Error while updating accessories. Please try again", Toast.LENGTH_LONG).show();
+                                    System.out.println("Error while Updating accessories." + e);
+                                }
+                            });
                 } else {
                     AccessoriesModel accessoriesModel = new AccessoriesModel();
                     accessoriesModel.setName(name.getText().toString());
                     accessoriesModel.setPrice(Integer.valueOf(price.getText().toString()));
                     accessoriesModel.setId(getLatestProductID());
+                    accessoriesModel.setDocumentId(SingleTon.generateAccessoriesDocument());
 
-                    Boolean isSavedSuccessfully = dbObj.addAccessories(accessoriesModel);
-                    if (isSavedSuccessfully == TRUE) {
-                        Toast.makeText(AccessoriesActivity.this, "New Accessories - " + name.getText() + " Added", Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(AccessoriesActivity.this, "Error while adding new Accessories product - " + name.getText(), Toast.LENGTH_LONG).show();
-                    }
-                    callReloadData();
+                    db.collection(DatabaseConstants.ACCESSORIES_COLLECTION)
+                            .document(accessoriesModel.getDocumentId())
+                            .set(accessoriesModel)
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    Toast.makeText(context, "New Accessories - " + accessoriesModel.getName() + " Added", Toast.LENGTH_LONG).show();
+                                    System.out.println("Accessories Added successfully.");
+                                    setTotalAccessoriesItem();
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(context, "Error while saving Accessories. Please try again", Toast.LENGTH_LONG).show();
+                                    System.out.println("Error while saving Accessories." + e);
+                                }
+                            });
+
                 }
 
                 dialog.dismiss();
@@ -212,24 +272,34 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         }
     }
 
-    private void callReloadData() {
-        Toast.makeText(context, "Loading .! ", Toast.LENGTH_LONG).show();
-        sharedPrefHelper.setTotalAccessoriesItem();
-        callApiData();
-    }
-
     private void callApiData() {
 
-        List<AccessoriesModel> accessories = sharedPrefHelper.getTotalAccessoriesList();
-        System.out.println("Number of products: " + itemList.size());
-        if (accessories.isEmpty()) {
+        itemList = sharedPrefHelper.getTotalAccessoriesList();
+        System.out.println("Number of Accessories-- " + itemList.size());
+        if (itemList.isEmpty()) {
+            no_data_fl.setVisibility(View.VISIBLE);
+            data_fl.setVisibility(View.GONE);
             Toast.makeText(context, "Accessories is empty. Please try again .! ", Toast.LENGTH_LONG).show();
+            return;
         }
-        itemList.clear();
-        itemList.addAll(accessories);
-        adapter = new AccessoriesViewAdapter(context, itemList, listener);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
+       adapter.notifyDataSetChanged();
+
+    }
+
+    public void setTotalAccessoriesItem() {
+        Toast.makeText(context, "Loading .! ", Toast.LENGTH_LONG).show();
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        dbObj.getAllAccessories(new FirestoreCallback<List<AccessoriesModel>>() {
+            @Override
+            public void onCallback(List<AccessoriesModel> accessories) {
+                System.out.println("Number of Accessories: " + accessories.size());
+                String json = gson.toJson(accessories);
+                editor.putString(ACCESSORIES_KEY, json);
+                editor.apply();
+                editor.commit();
+                callApiData();
+            }
+        });
     }
 
 }

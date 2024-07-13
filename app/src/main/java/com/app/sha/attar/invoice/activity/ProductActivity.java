@@ -1,10 +1,13 @@
 package com.app.sha.attar.invoice.activity;
 
+import static com.app.sha.attar.invoice.utils.SharedConstants.PRODUCT_KEY;
+import static com.app.sha.attar.invoice.utils.SharedConstants.SHA_ATTAR;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,6 +22,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,9 +31,12 @@ import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.ProductViewAdapter;
 import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.ProductModel;
+import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -42,6 +49,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.app.sha.attar.invoice.utils.DBUtil;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.gson.Gson;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -65,7 +74,12 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
     String searchText, searchOwner;
     DBUtil dbObj;
 
+    FirebaseFirestore db;
+
     SharedPrefHelper sharedPrefHelper;
+
+    private SharedPreferences sharedPreferences;
+    private Gson gson;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,13 +111,17 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         add_fab.setOnClickListener(this);
         dbObj = new DBUtil();
         sharedPrefHelper = new SharedPrefHelper(context);
+        db = DBUtil.getInstance();
+        sharedPreferences = context.getSharedPreferences(SHA_ATTAR, Context.MODE_PRIVATE);
+        gson = new Gson();
+
         listener = new ClickListener() {
             @Override
             public void click(int index) {
                 createDialogBox(context, itemList.get(index));
             }
         };
-        checkInternet();
+
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.spinner_items, android.R.layout.simple_spinner_item);
@@ -111,6 +129,12 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         ownerSpinner.setAdapter(adapter);
+
+        productAdapter = new ProductViewAdapter(context, filteredList, listener);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(productAdapter);
+
+        checkInternet();
 
     }
 
@@ -127,27 +151,20 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
 
     }
 
-    private void callApiData() {
+    public void callApiData() {
 
-        List<ProductModel> products = sharedPrefHelper.getTotalProductList();
+        itemList = sharedPrefHelper.getTotalProductList();
         System.out.println("Number of products: " + itemList.size());
-        if (products.isEmpty()) {
+        if (itemList.isEmpty()) {
             Toast.makeText(context, "Products is empty. Please try again .! ", Toast.LENGTH_LONG).show();
+            no_data_fl.setVisibility(View.VISIBLE);
+            data_fl.setVisibility(View.GONE);
+            return;
         }
-        itemList.clear();
-        itemList.addAll(products);
         filteredList.clear();
         filteredList.addAll(itemList);
-        productAdapter = new ProductViewAdapter(context, filteredList, listener);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(productAdapter);
-    }
+        productAdapter.notifyDataSetChanged();
 
-
-    private void callReloadData() {
-        sharedPrefHelper.setTotalProductItem();
-        Toast.makeText(context, "Loading .! ", Toast.LENGTH_LONG).show();
-        callApiData();
     }
 
     @Override
@@ -209,18 +226,32 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                 @Override
                 public void onClick(View view) {
                     Toast.makeText(context, "Loading .! ", Toast.LENGTH_LONG).show();
-                    dbObj.deleteProductById(productModel.getDocumentId(), new FirestoreCallback<Void>() {
-                        @Override
-                        public void onCallback(Void result) {
-                            Toast.makeText(ProductActivity.this, "Product deleted (" + productModel.getName() + ") ..!", Toast.LENGTH_SHORT).show();
-                            callReloadData();
-                            dialog.dismiss();
-                        }
-                    });
+
+                    db.collection(DatabaseConstants.PRODUCTS_COLLECTION).document(productModel.getDocumentId())
+                            .delete()
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    // Call the callback with null since the task was successful
+                                    Toast.makeText(context, "Product successfully deleted!", Toast.LENGTH_LONG).show();
+                                    System.out.println("Product successfully deleted!");
+                                    setTotalProductItem();
+                                    dialog.dismiss();
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(context, "Error while deleting product. Please try again.!", Toast.LENGTH_LONG).show();
+                                    System.err.println("Error while deleting product. " + e);
+                                    dialog.dismiss();
+                                }
+                            });
+
                 }
             });
         } else {
-            delete.setVisibility(View.GONE);
+            delete.setVisibility(View.INVISIBLE);
         }
         close.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -247,13 +278,23 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     productModel.setOwner(owner.getSelectedItem().toString());
                     productModel.setStatus(available.isChecked() ? "Y" : "N");
 
-                    Boolean isUpdateSuccessfully = dbObj.updateProduct(productModel.getDocumentId(), productModel);
-                    if (isUpdateSuccessfully == TRUE) {
-                        Toast.makeText(ProductActivity.this, "Update Product ID - " + productModel.getId(), Toast.LENGTH_LONG).show();
-                    }else{
-                        Toast.makeText(ProductActivity.this, "Error while updating new product product - " + name.getText(), Toast.LENGTH_LONG).show();
-                    }
-                    callReloadData();
+                    db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
+                            .document(productModel.getDocumentId())
+                            .set(productModel)
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    Toast.makeText(context, "Update product - " + productModel.getName() + " Successfully", Toast.LENGTH_LONG).show();
+                                    System.out.println("Product Updated successfully.");
+                                    setTotalProductItem();
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(context, "Error while updating product. Please try again", Toast.LENGTH_LONG).show();
+                                    System.out.println("Error while Updating product." + e);
+                                }
+                            });
                 } else {
                     ProductModel newProductModel = new ProductModel();
                     newProductModel.setName(name.getText().toString());
@@ -262,17 +303,30 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     newProductModel.setStatus(available.isChecked() ? "Y" : "N");
                     newProductModel.setCode(prepareProductCode(newProductModel.getName()));
                     newProductModel.setId(getLatestProductID());
+                    newProductModel.setDocumentId(SingleTon.generateProductDocument());
 
-                    Boolean isSavedSuccessfully = dbObj.addProduct(newProductModel);
-                    if (isSavedSuccessfully == TRUE) {
-                        Toast.makeText(ProductActivity.this, "New product - " + name.getText() + " Added", Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(ProductActivity.this, "Error while adding new product product - " + name.getText(), Toast.LENGTH_LONG).show();
-                    }
-                    callReloadData();
+                    db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
+                            .document(newProductModel.getDocumentId())
+                            .set(newProductModel)
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    Toast.makeText(context, "New product - " + newProductModel.getName() + " Added", Toast.LENGTH_LONG).show();
+                                    System.out.println("Product Added successfully.");
+                                    setTotalProductItem();
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(context, "Error while saving product. Please try again", Toast.LENGTH_LONG).show();
+                                    System.out.println("Error while saving product." + e);
+                                }
+                            });
+
                 }
 
                 dialog.dismiss();
+
             }
         });
         dialog.show();
@@ -302,7 +356,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     .collect(Collectors.groupingBy(productModel -> productModel.getName().charAt(0)));
 
             return (groupedByFirstLetter.containsKey(name.charAt(0)) && groupedByFirstLetter.get(name.charAt(0)) != null) ?
-                    String.valueOf(name.charAt(0)) + groupedByFirstLetter.get(name.charAt(0)).size() + 1 :
+                    String.valueOf(name.charAt(0)) + (groupedByFirstLetter.get(name.charAt(0)).size() + 1) :
                     String.valueOf(name.charAt(0)) + 1;
         }
 
@@ -345,5 +399,20 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             no_data_fl.setVisibility(View.GONE);
         }
         productAdapter.notifyDataSetChanged();
+    }
+
+    public void setTotalProductItem(){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        dbObj.getProductDetails(new FirestoreCallback<List<ProductModel>>() {
+            @Override
+            public void onCallback(List<ProductModel> products) {
+                System.out.println("Number of products-- " + products.size());
+                String json = gson.toJson(products);
+                editor.putString(PRODUCT_KEY, json);
+                editor.apply();
+                editor.commit();
+                callApiData();
+            }
+        });
     }
 }

@@ -43,7 +43,7 @@
                 android:id="@+id/accessories_add_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAllCaps="true"
+                android:inputType="textCapCharacters"
                 android:singleLine="true"/>
 
         </com.google.android.material.textfield.TextInputLayout>

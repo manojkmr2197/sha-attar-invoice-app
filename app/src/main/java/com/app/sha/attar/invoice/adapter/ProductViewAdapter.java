@@ -43,7 +43,6 @@ public class ProductViewAdapter extends RecyclerView.Adapter<ProductViewHolder> 
         holder.code.setText(contentList.get(index).getCode());
         holder.price.setText(contentList.get(index).getPrice());
         holder.owner.setText(contentList.get(index).getOwner());
-        holder.status.setChecked("Y".equals(contentList.get(index).getStatus()));
         holder.edit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

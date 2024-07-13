@@ -1,10 +1,15 @@
 package com.app.sha.attar.invoice.utils;
+
 import static com.app.sha.attar.invoice.utils.DatabaseConstants.SALE_COLLECTION;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 
+import android.content.Context;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 
+import com.app.sha.attar.invoice.activity.ProductActivity;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
@@ -24,26 +29,20 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DBUtil {
-    private FirebaseFirestore db;
+    private static  FirebaseFirestore db;
 
-    public DBUtil(){
-
+    public DBUtil() {
         db = FirebaseFirestore.getInstance();
     }
 
-    public Boolean addProduct(ProductModel aModel) {
-        AtomicReference<java.lang.Boolean> isObjectAdded = new AtomicReference<>(FALSE);
-        db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
-                .add(aModel)
-                .addOnSuccessListener(documentReference -> {
-                    isObjectAdded.set(TRUE);
-                    System.out.println("Product Added successfully.");
-                })
-                .addOnFailureListener(e -> {
-                    System.out.println("Error while saving product." + e);
-                });
-        return isObjectAdded.get();
+    public static final FirebaseFirestore getInstance() {
+
+        if (db == null) {
+            db = FirebaseFirestore.getInstance();
+        }
+        return db;
     }
+
 
     public void getProductDetails(FirestoreCallback<List<ProductModel>> callback) {
         // Fetch data from Firestore
@@ -64,43 +63,6 @@ public class DBUtil {
                         }
                     }
                 });
-    }
-
-    public Boolean updateProduct(String documentId , ProductModel aModel) {
-        AtomicReference<java.lang.Boolean> isObjectAdded = new AtomicReference<>(FALSE);
-        db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
-            .document(documentId)
-            .set(aModel)
-                .addOnSuccessListener(documentReference -> {
-                    isObjectAdded.set(TRUE);
-                    System.out.println("Product Updated successfully.");
-                })
-                .addOnFailureListener(e -> {
-                    System.out.println("Error while updating product." + e);
-                });
-        return isObjectAdded.get();
-    }
-
-    public Boolean deleteProductById(String documentId, FirestoreCallback<Void> callback) {
-        AtomicReference<java.lang.Boolean> isObjectDeleted = new AtomicReference<>(FALSE);
-        db.collection(DatabaseConstants.PRODUCTS_COLLECTION).document(documentId)
-                .delete()
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        // Call the callback with null since the task was successful
-                        callback.onCallback(aVoid);
-                        isObjectDeleted.set(TRUE);
-                        System.out.println("Product successfully deleted!");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        System.err.println("Error deleting product: " + e);
-                    }
-                });
-        return isObjectDeleted.get();
     }
 
     public void getAllAccessories(FirestoreCallback<List<AccessoriesModel>> callback) {
@@ -138,7 +100,7 @@ public class DBUtil {
         return isObjectAdded.get();
     }
 
-    public boolean updateAccessories(String documentId , AccessoriesModel aModel) {
+    public boolean updateAccessories(String documentId, AccessoriesModel aModel) {
         AtomicReference<java.lang.Boolean> isObjectAdded = new AtomicReference<>(FALSE);
         db.collection(DatabaseConstants.ACCESSORIES_COLLECTION)
                 .document(documentId)
@@ -256,11 +218,10 @@ public class DBUtil {
                 .add(data)
                 .addOnSuccessListener(documentReference -> {
 
-                    if(submitBillingItems(itemModel.getBillingItemModelList()) == TRUE)
-                    {
+                    if (submitBillingItems(itemModel.getBillingItemModelList()) == TRUE) {
                         isObjectAdded.set(Boolean.TRUE);
                         System.out.println("Billing item added to second table successfully.");
-                    }else{
+                    } else {
                         System.out.println("Billing item NOT added to second table successfully.");
                     }
 
