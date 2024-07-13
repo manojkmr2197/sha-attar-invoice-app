@@ -108,10 +108,6 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
             }
         };
 
-        adapter = new AccessoriesViewAdapter(context, itemList, listener);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
-
         checkInternet();
 
     }
@@ -152,7 +148,7 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         TextView delete = (TextView) dialog.findViewById(R.id.accessories_add_delete);
         if (accessoriesModel != null) {
             name.setText(accessoriesModel.getName());
-            price.setText(accessoriesModel.getPrice());
+            price.setText(String.valueOf(accessoriesModel.getPrice()));
 
             delete.setVisibility(View.VISIBLE);
             delete.setOnClickListener(new View.OnClickListener() {
@@ -282,7 +278,9 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
             Toast.makeText(context, "Accessories is empty. Please try again .! ", Toast.LENGTH_LONG).show();
             return;
         }
-       adapter.notifyDataSetChanged();
+        adapter = new AccessoriesViewAdapter(context, itemList, listener);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
 
     }
 
