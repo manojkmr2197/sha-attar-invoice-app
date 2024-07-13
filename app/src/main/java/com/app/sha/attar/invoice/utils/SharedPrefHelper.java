@@ -85,7 +85,7 @@ public class SharedPrefHelper {
         dbObj.getAllAccessories(new FirestoreCallback<List<AccessoriesModel>>() {
             @Override
             public void onCallback(List<AccessoriesModel> accessories) {
-                System.out.println("Number of products: " + accessories.size());
+                System.out.println("Number of Accessories-- " + accessories.size());
                 String json = gson.toJson(accessories);
                 editor.putString(ACCESSORIES_KEY, json);
                 editor.apply();

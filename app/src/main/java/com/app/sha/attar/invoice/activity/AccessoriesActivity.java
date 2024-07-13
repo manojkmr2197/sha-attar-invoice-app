@@ -277,6 +277,9 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
             data_fl.setVisibility(View.GONE);
             Toast.makeText(context, "Accessories is empty. Please try again .! ", Toast.LENGTH_LONG).show();
             return;
+        }else{
+            data_fl.setVisibility(View.VISIBLE);
+            no_data_fl.setVisibility(View.GONE);
         }
         adapter = new AccessoriesViewAdapter(context, itemList, listener);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));

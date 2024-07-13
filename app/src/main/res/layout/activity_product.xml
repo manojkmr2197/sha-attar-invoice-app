@@ -38,8 +38,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Sha's Attar Products"
-                    android:textSize="20sp"
-                    android:textColor="@color/app_color"/>
+                    android:textColor="@color/app_color"
+                    android:textSize="20sp" />
             </LinearLayout>
 
 
@@ -54,13 +54,14 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_marginStart="5dp">
+            android:layout_marginStart="5dp"
+            android:gravity="center">
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
+
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/filledTextField"
                     android:layout_width="match_parent"
@@ -74,23 +75,28 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textCapCharacters"
-                        android:singleLine="true"/>
+                        android:singleLine="true" />
 
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
+
             <Spinner
+                android:id="@+id/product_spinner"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:id="@+id/product_spinner"/>
+                android:layout_height="match_parent" />
 
         </LinearLayout>
 
         <Button
+            android:id="@+id/product_search"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Search"
-            android:id="@+id/product_search"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:text="Search" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
         <!--Empty data layout-->
         <FrameLayout
@@ -98,16 +104,16 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:visibility="gone"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="No Data found"
-                android:textSize="20sp"
-                android:textColor="@color/app_color"/>
+                android:textColor="@color/app_color"
+                android:textSize="20sp" />
 
         </FrameLayout>
 
@@ -132,14 +138,16 @@
 
             </LinearLayout>
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/product_add_fab"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="16dp"
-                android:src="@drawable/ic_baseline_add_24" />
+        </FrameLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/product_add_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:src="@drawable/ic_baseline_add_24" />
 
         </FrameLayout>
     </LinearLayout>

@@ -10,7 +10,7 @@ public class BillingItemModel {
     Integer totalPrice;
     ProductModel productModel;
     AccessoriesModel accessoriesModel;
-    Long saleId;
+    Long invoiceId;
 
     public BillingItemModel() {
     }
@@ -88,11 +88,11 @@ public class BillingItemModel {
         this.accessoriesModel = accessoriesModel;
     }
 
-    public Long getSaleId() {
-        return saleId;
+    public Long getInvoiceId() {
+        return invoiceId;
     }
 
-    public void setSaleId(Long saleId) {
-        this.saleId = saleId;
+    public void setInvoiceId(Long invoiceId) {
+        this.invoiceId = invoiceId;
     }
 }

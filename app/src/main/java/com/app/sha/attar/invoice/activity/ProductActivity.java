@@ -160,6 +160,9 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             no_data_fl.setVisibility(View.VISIBLE);
             data_fl.setVisibility(View.GONE);
             return;
+        }else{
+            data_fl.setVisibility(View.VISIBLE);
+            no_data_fl.setVisibility(View.GONE);
         }
         filteredList.clear();
         filteredList.addAll(itemList);

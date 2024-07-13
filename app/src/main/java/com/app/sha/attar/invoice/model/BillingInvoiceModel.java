@@ -11,18 +11,17 @@ public class BillingInvoiceModel {
     String customerName;
     String customerPhone;
     Integer sellingCost;
-    String saleId;
     List<BillingItemModel> billingItemModelList;
 
     public BillingInvoiceModel(){}
-    public BillingInvoiceModel(Long billingDate,Integer totalCost,Integer discount,String customerName,String customerPhone,Integer sellingCost,String saleId){
+    public BillingInvoiceModel(Long billingDate,Integer totalCost,Integer discount,String customerName,String customerPhone,Integer sellingCost){
         this.billingDate=billingDate;
         this.totalCost=totalCost;
         this.discount=discount;
         this.customerName=customerName;
         this.customerPhone=customerPhone;
         this.sellingCost=sellingCost;
-        this.saleId=saleId;
+
     }
     public Long getBillingDate() {
         return billingDate;
@@ -79,11 +78,6 @@ public class BillingInvoiceModel {
     public void setBillingItemModelList(List<BillingItemModel> billingItemModelList) {
         this.billingItemModelList = billingItemModelList;
     }
-    public String getSaleId(){
-        return this.saleId;
-    }
-    public void setSaleId(String saleId)
-    {
-        this.saleId=saleId;
-    }
+
+
 }

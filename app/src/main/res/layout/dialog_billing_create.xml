@@ -200,8 +200,7 @@
                         android:layout_height="wrap_content"
                         android:id="@+id/new_bill_non_product_price"
                         android:textColor="@color/app_color"
-                        android:layout_gravity="end"
-                        android:text="Rs. 100"/>
+                        android:layout_gravity="end" />
 
 
                 </LinearLayout>
