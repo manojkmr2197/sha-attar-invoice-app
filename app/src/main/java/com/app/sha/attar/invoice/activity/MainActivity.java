@@ -304,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         billingInvoiceModel.setDiscount(discount);
         billingInvoiceModel.setSellingCost(sellingAmount);
         billingInvoiceModel.setTotalCost(totalAmount);
-
+        billingInvoiceModel.setBillingItemModelList(billingItemModelList);
         billingItemModelList.stream().forEach(item -> {
             item.setInvoiceId(billingInvoiceModel.getBillingDate());
         });

@@ -1,6 +1,8 @@
 package com.app.sha.attar.invoice.utils;
 
 public class DatabaseConstants {
+    public static final String INVOICE_DETAILS_COLLECTION = "invoice_details";
+
     private DatabaseConstants() {
         // Prevent instantiation
     }

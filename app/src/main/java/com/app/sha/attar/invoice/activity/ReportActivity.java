@@ -4,8 +4,11 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.InputType;
 import android.view.View;
 import android.view.Window;
@@ -18,20 +21,32 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
 import com.app.sha.attar.invoice.R;
+import com.app.sha.attar.invoice.model.BillingInvoiceModel;
+import com.app.sha.attar.invoice.model.BillingItemModel;
+import com.app.sha.attar.invoice.utils.DBUtil;
+import com.app.sha.attar.invoice.utils.FirestoreCallback;
+import com.app.sha.attar.invoice.utils.ReportGenerator;
 import com.app.sha.attar.invoice.utils.SharedConstants;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.IntStream;
 
 
 public class ReportActivity extends AppCompatActivity implements View.OnClickListener {
@@ -41,6 +56,32 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
     Button search_bt;
     Spinner typeSpinner;
+
+    Long prevStartTime,prevEndTime;
+    List<BillingInvoiceModel>billingInvoiceModelList;
+    DBUtil dbObj;
+
+    private void getBillingInvoiceModel(Long startTime,Long endTime){
+        if(!Objects.equals(startTime, prevStartTime) || !Objects.equals(endTime, prevEndTime) || billingInvoiceModelList.isEmpty()){
+
+            dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
+                @Override
+                public void onCallback(List<BillingInvoiceModel> result) {
+                    System.out.println("SabeekResultSize:"+result.size());
+                    billingInvoiceModelList.clear();
+                    billingInvoiceModelList=result;
+                }
+            },startTime,endTime);
+
+        }
+
+    }
+    public ReportActivity(){
+        this.prevEndTime=0L;
+        this.prevStartTime=0L;
+        billingInvoiceModelList = new ArrayList<>();
+        dbObj = new DBUtil();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,7 +168,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         } else if (R.id.report_search == view.getId()){
 
             LocalDate today = LocalDate.now();
-            OffsetDateTime startOfDay = today.atStartOfDay().atOffset(ZoneOffset.UTC);;
+            OffsetDateTime startOfDay = today.atStartOfDay().atOffset(ZoneOffset.UTC);
             OffsetDateTime endOfDay = today.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
 
             if(typeSpinner.getSelectedItemPosition() == 0){
@@ -146,10 +187,49 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
     private void processReport(OffsetDateTime startOfDay, OffsetDateTime endOfDay) {
         System.out.println(startOfDay+" --- "+endOfDay);
+        getBillingInvoiceModel(startOfDay.toEpochSecond(),endOfDay.toEpochSecond());
     }
 
     private void downloadReportStatus() {
+        if(billingInvoiceModelList.isEmpty()){
+            Toast.makeText(ReportActivity.this, "Since report not generated generate the report and download." , Toast.LENGTH_LONG).show();
 
+        }else {
+            //manojRet();
+            downloadProductReport();
+        }
 
+    }
+    private void downloadProductReport(){
+        System.out.println("Sabeek:length:"+billingInvoiceModelList.size());
+        try {
+            /*
+            List<BillingItemModel>bimodel=new ArrayList<>();
+            bimodel.add(new BillingItemModel("NON","SAHA","CODE1",25,10,250));
+            bimodel.add(new BillingItemModel("NON","GAKA","CODE1",25,10,250));
+            bimodel.add(new BillingItemModel("NON","OHAM","CODE1",25,10,250));
+            bimodel.add(new BillingItemModel("NON","AAHA","CODE1",25,10,250));
+
+            List<BillingInvoiceModel> invoices = new ArrayList<> ();
+            BillingInvoiceModel bilinmod=new BillingInvoiceModel( 122334L,620,10,"Guru","7904385250",730);
+
+            invoices.add(bilinmod);
+            */
+            File downloadsDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            if (!downloadsDirectory.exists()) {
+                downloadsDirectory.mkdirs();
+            }
+            Long timeStr = System.currentTimeMillis();
+            File file = new File(downloadsDirectory, "invoice_"+timeStr+".xls");
+            ReportGenerator.createExcelReport(billingInvoiceModelList, file);
+            Toast.makeText(ReportActivity.this, "Report exported in Downloads. " , Toast.LENGTH_LONG).show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(ReportActivity.this, "Error creating CSV file", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(ReportActivity.this, "Unexpected error occurred", Toast.LENGTH_SHORT).show();
+        }
     }
 }
