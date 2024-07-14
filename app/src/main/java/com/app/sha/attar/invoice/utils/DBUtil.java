@@ -93,25 +93,4 @@ public class DBUtil {
                     }
                 });
     }
-
-    public void getBillingItemModelDetail(FirestoreCallback<List<BillingItemModel>> callback, Long saleId) {
-
-        db.collection(DatabaseConstants.INVOICE_DETAILS_COLLECTION).whereEqualTo("invoiceId", saleId)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            List<BillingItemModel> billingItemModel = new ArrayList<>();
-                            for (DocumentSnapshot document : task.getResult()) {
-                                BillingItemModel model = document.toObject(BillingItemModel.class);
-                                billingItemModel.add(model);
-                            }
-                            callback.onCallback(billingItemModel);
-                        } else {
-                            System.err.println("Error fetching product details: " + task.getException());
-                        }
-                    }
-                });
-    }
 }

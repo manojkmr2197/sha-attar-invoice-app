@@ -230,7 +230,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_report) {
             i = new Intent(MainActivity.this, ReportActivity.class);
             startActivity(i);
-            overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right);
         } else if (item.getItemId() == R.id.nav_packaging) {
             i = new Intent(MainActivity.this, PackageActivity.class);
             startActivity(i);
@@ -239,6 +238,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startActivity(i);
         }
         return true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        sharedPrefHelper.setTotalProductItem();
+        sharedPrefHelper.setTotalAccessoriesItem();
+        productModelList.addAll(sharedPrefHelper.getTotalProductList());
+        accessoriesModelList.addAll(sharedPrefHelper.getTotalAccessoriesList());
     }
 
     @Override
@@ -300,6 +308,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         billingItemModelList.stream().forEach(item -> {
             item.setInvoiceId(billingInvoiceModel.getBillingDate());
         });
+        billingInvoiceModel.setBillingItemModelList(billingItemModelList);
         Toast.makeText(MainActivity.this, "Loading..!", Toast.LENGTH_LONG).show();
         db.collection(DatabaseConstants.INVOICE_COLLECTION)
                 .document(String.valueOf(billingInvoiceModel.getBillingDate()))
@@ -307,8 +316,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void unused) {
-                        Toast.makeText(MainActivity.this, "Loading..!", Toast.LENGTH_SHORT).show();
-                        insertBillingItems(billingItemModelList);
+                        Toast.makeText(MainActivity.this, "Submitted Successfully..!", Toast.LENGTH_LONG).show();
+                        billingItemModelList.clear();
+                        manageBillingLayout();
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -318,26 +328,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
     }
 
-    private void insertBillingItems(List<BillingItemModel> billingItemModelList) {
-        WriteBatch batch = db.batch();
-        billingItemModelList.stream().forEach(item ->{
-            batch.set(db.collection(DatabaseConstants.INVOICE_DETAILS_COLLECTION).document(SingleTon.generateInvoiceDetailDocument()), item);
-        });
-
-        batch.commit().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    Toast.makeText(MainActivity.this, "Submitted Successfully..!", Toast.LENGTH_LONG).show();
-                    billingItemModelList.clear();
-                    manageBillingLayout();
-                } else {
-                    Toast.makeText(MainActivity.this, "Internal server error..!", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-
-    }
 
     private void createDiscountDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);

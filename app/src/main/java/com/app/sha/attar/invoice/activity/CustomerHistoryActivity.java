@@ -118,7 +118,7 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
             Toast.makeText(context, "No Internet connection. Please try again .! ", Toast.LENGTH_LONG).show();
             return;
         }
-        billingInvoiceModelList.clear();
+
         Toast.makeText(CustomerHistoryActivity.this, "Loading..!", Toast.LENGTH_LONG).show();
 
         dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
@@ -126,25 +126,8 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
             public void onCallback(List<BillingInvoiceModel> aCustomerDetails) {
                 Toast.makeText(CustomerHistoryActivity.this, "Loading..!", Toast.LENGTH_LONG).show();
                 System.out.println("customerHistorySize: " + aCustomerDetails.size());
+                billingInvoiceModelList.clear();
                 billingInvoiceModelList.addAll(aCustomerDetails);
-                IntStream.range(0, billingInvoiceModelList.size()).forEach(i -> {
-                    dbObj.getBillingItemModelDetail(new FirestoreCallback<List<BillingItemModel>>() {
-                        @Override
-                        public void onCallback(List<BillingItemModel> billingItemModels) {
-                            // Directly set the billing item models list for the specific invoice model
-                            billingInvoiceModelList.get(i).setBillingItemModelList(billingItemModels);
-                            System.out.println("customeritemHistorySize: " + billingItemModels.size());
-                            if (billingInvoiceModelList != null) {
-                                data_ll.setVisibility(View.VISIBLE);
-                                no_data_ll.setVisibility(View.GONE);
-                                customerHistoryAdapter.notifyDataSetChanged();
-                            } else {
-                                no_data_ll.setVisibility(View.VISIBLE);
-                                data_ll.setVisibility(View.GONE);
-                            }
-                        }
-                    }, billingInvoiceModelList.get(i).getBillingDate());
-                });
             }
         }, phoneNo);
 
