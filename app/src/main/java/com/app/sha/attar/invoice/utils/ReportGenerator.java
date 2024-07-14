@@ -3,15 +3,15 @@ package com.app.sha.attar.invoice.utils;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
-import jxl.Workbook;
-import jxl.write.Label;
-import jxl.write.Number;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,8 +54,7 @@ public class ReportGenerator {
             double totalDiscount = invoice.getDiscount();
             for (BillingItemModel item : invoice.getBillingItemModelList()) {
 
-                if(!item.getType().equals("PRODUCT"))
-                {
+                if (!item.getType().equals("PRODUCT")) {
                     continue;
                 }
                 String productName = item.getName();
@@ -84,12 +83,11 @@ public class ReportGenerator {
             }
             for (BillingItemModel item : invoice.getBillingItemModelList()) {
 
-                if(!item.getType().equals("NON_PRODUCT"))
-                {
+                if (!item.getType().equals("NON_PRODUCT")) {
                     continue;
                 }
                 AccessoriesModel accessoriesModel = item.getAccessoriesModel();
-                if(accessoriesModel == null){
+                if (accessoriesModel == null) {
                     continue;
                 }
                 String productName = accessoriesModel.getName();
@@ -103,61 +101,79 @@ public class ReportGenerator {
         return aggregationMap;
     }
 
-    public static void createExcelReport(List<BillingInvoiceModel> invoices, File file) throws WriteException, IOException {
-        WritableWorkbook workbook = Workbook.createWorkbook(file);
-        try {
-            Map<String, AggregatedData> salesData = getSalesReportData(invoices);
-            Map<String, AccessoryAggregatedData> accessoryData = getAccessoriesReportData(invoices);
-            int sheetIndex=0;
-            System.out.println("SabeekDataReport:"+salesData.size());
-            System.out.println("SabeekAcceSize:"+accessoryData.size());
-            int row = 1;
-            if(!salesData.isEmpty())
-            {
-                WritableSheet salesSheet = workbook.createSheet("Sales_Report", sheetIndex++);
-                salesSheet.addCell(new Label(0, 0, "Product Name"));
-                salesSheet.addCell(new Label(1, 0, "Quantity"));
-                salesSheet.addCell(new Label(2, 0, "Sold Price"));
-                salesSheet.addCell(new Label(3, 0, "Actual Price"));
-                salesSheet.addCell(new Label(4, 0, "Profit"));
-                salesSheet.addCell(new Label(5, 0, "Total Discount"));
-                for (Map.Entry<String, AggregatedData> entry : salesData.entrySet()) {
-                    salesSheet.addCell(new Label(0, row, entry.getKey()));
-                    AggregatedData data = entry.getValue();
-                    salesSheet.addCell(new Number(1, row, data.quantity));
-                    salesSheet.addCell(new Number(2, row, data.soldPrice));
-                    salesSheet.addCell(new Number(3, row, data.actualPrice));
-                    salesSheet.addCell(new Number(4, row, data.profit));
-                    salesSheet.addCell(new Number(5, row, data.totalDiscount));
-                    row++;
-                }
-            }
-            if(!accessoryData.isEmpty())
-            {
-                WritableSheet accessorySheet = workbook.createSheet("Accessories_Report", sheetIndex++);
-                accessorySheet.addCell(new Label(0, 0, "Accessory Name"));
-                accessorySheet.addCell(new Label(1, 0, "Quantity"));
-                accessorySheet.addCell(new Label(2, 0, "Sold Price"));
+    public static void createExcelReport(List<BillingInvoiceModel> invoices, File file) throws Exception {
 
-                row = 1;
-                for (Map.Entry<String, AccessoryAggregatedData> entry : accessoryData.entrySet()) {
-                    accessorySheet.addCell(new Label(0, row, entry.getKey()));
-                    AccessoryAggregatedData data = entry.getValue();
-                    accessorySheet.addCell(new Number(1, row, data.quantity));
-                    accessorySheet.addCell(new Number(2, row, data.soldPrice));
-                    row++;
-                }
-            }
-            workbook.write();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            // Close the workbook
-            try {
-                workbook.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        Workbook workbook = new XSSFWorkbook();
+        prepareSalesSheet(workbook, invoices);
+        prepareAccessoriesSheet(workbook, invoices);
+
+        // Write the output to a file
+        FileOutputStream fileOut = new FileOutputStream(file.getAbsolutePath());
+        workbook.write(fileOut);
+        fileOut.close();
+        workbook.close();
+
+    }
+
+    private static void prepareAccessoriesSheet(Workbook workbook, List<BillingInvoiceModel> invoices) {
+        Map<String, AccessoryAggregatedData> accessoryData = getAccessoriesReportData(invoices);
+
+        Sheet sheet = workbook.createSheet("Accessories Report");
+        Row headerRow = sheet.createRow(0);
+        int cellIndex = 0;
+
+        String[] headers = {"Accessory Name", "Quantity", "Sold Price"};
+
+        for (String key : headers) {
+            Cell cell = headerRow.createCell(cellIndex++);
+            cell.setCellValue(key);
+        }
+
+        int rowCount = 0;
+        for (Map.Entry<String, AccessoryAggregatedData> entry : accessoryData.entrySet()) {
+            rowCount = rowCount + 1;
+            Row row = sheet.createRow(rowCount);
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(entry.getKey());
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(entry.getValue().quantity);
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue(entry.getValue().soldPrice);
+        }
+
+    }
+
+    private static void prepareSalesSheet(Workbook workbook, List<BillingInvoiceModel> invoices) {
+        Map<String, AggregatedData> salesData = getSalesReportData(invoices);
+
+        Sheet sheet = workbook.createSheet("Sales Report");
+        Row headerRow = sheet.createRow(0);
+        int cellIndex = 0;
+
+        String[] headers = {"Product Name", "Quantity", "Sold Price", "Actual Price", "Profit", "Total Discount"};
+
+        for (String key : headers) {
+            Cell cell = headerRow.createCell(cellIndex++);
+            cell.setCellValue(key);
+        }
+
+        int rowCount = 0;
+        for (Map.Entry<String, AggregatedData> entry : salesData.entrySet()) {
+            rowCount = rowCount + 1;
+            Row row = sheet.createRow(rowCount);
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(entry.getKey());
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(entry.getValue().quantity);
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue(entry.getValue().soldPrice);
+            Cell cell3 = row.createCell(3);
+            cell3.setCellValue(entry.getValue().actualPrice);
+            Cell cell4 = row.createCell(4);
+            cell4.setCellValue(entry.getValue().profit);
+            Cell cell5 = row.createCell(5);
+            cell5.setCellValue(entry.getValue().totalDiscount);
+
         }
     }
 }

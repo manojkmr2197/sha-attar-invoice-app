@@ -1,52 +1,46 @@
 package com.app.sha.attar.invoice.activity;
 
+import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.text.InputType;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
-import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.ReportGenerator;
-import com.app.sha.attar.invoice.utils.SharedConstants;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.IntStream;
+
 
 
 public class ReportActivity extends AppCompatActivity implements View.OnClickListener {
@@ -57,30 +51,22 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     Button search_bt;
     Spinner typeSpinner;
 
-    Long prevStartTime,prevEndTime;
-    List<BillingInvoiceModel>billingInvoiceModelList;
+    List<BillingInvoiceModel> billingInvoiceModelList= new ArrayList<>();;
     DBUtil dbObj;
 
-    private void getBillingInvoiceModel(Long startTime,Long endTime){
-        if(!Objects.equals(startTime, prevStartTime) || !Objects.equals(endTime, prevEndTime) || billingInvoiceModelList.isEmpty()){
+    private static final int REQUEST_WRITE_PERMISSION = 786;
 
-            dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
-                @Override
-                public void onCallback(List<BillingInvoiceModel> result) {
-                    System.out.println("SabeekResultSize:"+result.size());
-                    billingInvoiceModelList.clear();
-                    billingInvoiceModelList=result;
-                }
-            },startTime,endTime);
+    private void getBillingInvoiceModel(Long startTime, Long endTime) {
 
-        }
+        dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
+            @Override
+            public void onCallback(List<BillingInvoiceModel> result) {
+                billingInvoiceModelList.clear();
+                billingInvoiceModelList.addAll(result);
+                Toast.makeText(ReportActivity.this, "Report Data Loaded .!", Toast.LENGTH_LONG).show();
+            }
+        }, startTime, endTime);
 
-    }
-    public ReportActivity(){
-        this.prevEndTime=0L;
-        this.prevStartTime=0L;
-        billingInvoiceModelList = new ArrayList<>();
-        dbObj = new DBUtil();
     }
 
     @Override
@@ -114,49 +100,9 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         search_bt = (Button) findViewById(R.id.report_search);
         search_bt.setOnClickListener(this);
 
-        preAuthentication();
-
+        dbObj = new DBUtil();
     }
 
-    private void preAuthentication() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter Admin Credential");
-
-        // Set up the input
-        final EditText input = new EditText(this);
-        input.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        // Specify the type of input expected
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);
-        builder.setView(input);
-
-        // Set up the buttons
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String inputText = input.getText().toString();
-                if(StringUtils.isEmpty(inputText) || !SharedConstants.ADMIN_PASSWORD.equals(inputText)){
-                    Toast.makeText(ReportActivity.this, "Wrong Password. try again later.!", Toast.LENGTH_LONG).show();
-                    finish();
-                    dialog.cancel();
-                    return;
-                }
-                Toast.makeText(ReportActivity.this, "Login successful", Toast.LENGTH_LONG).show();
-                dialog.cancel();
-
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        builder.show();
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -165,71 +111,84 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
             finish();
         } else if (R.id.report_download_fab == view.getId()) {
             downloadReportStatus();
-        } else if (R.id.report_search == view.getId()){
-
+        } else if (R.id.report_search == view.getId()) {
             LocalDate today = LocalDate.now();
             OffsetDateTime startOfDay = today.atStartOfDay().atOffset(ZoneOffset.UTC);
             OffsetDateTime endOfDay = today.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
 
-            if(typeSpinner.getSelectedItemPosition() == 0){
-                System.out.println(startOfDay+" --- "+endOfDay);
-            }else if (typeSpinner.getSelectedItemPosition() == 1){
+            if (typeSpinner.getSelectedItemPosition() == 0) {
+                System.out.println(startOfDay + " --- " + endOfDay);
+            } else if (typeSpinner.getSelectedItemPosition() == 1) {
                 startOfDay = startOfDay.minusDays(1);
                 endOfDay = endOfDay.minusDays(1);
-            }else if (typeSpinner.getSelectedItemPosition() == 2){
+            } else if (typeSpinner.getSelectedItemPosition() == 2) {
                 startOfDay = startOfDay.minusWeeks(1);
-            }else if (typeSpinner.getSelectedItemPosition() == 3){
+            } else if (typeSpinner.getSelectedItemPosition() == 3) {
                 startOfDay = startOfDay.minusMonths(1);
             }
-            processReport(startOfDay,endOfDay);
+            processReport(startOfDay, endOfDay);
         }
     }
 
     private void processReport(OffsetDateTime startOfDay, OffsetDateTime endOfDay) {
-        System.out.println(startOfDay+" --- "+endOfDay);
-        getBillingInvoiceModel(startOfDay.toEpochSecond(),endOfDay.toEpochSecond());
+        System.out.println(startOfDay + " --- " + endOfDay);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getBillingInvoiceModel(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
+        }
     }
 
     private void downloadReportStatus() {
-        if(billingInvoiceModelList.isEmpty()){
-            Toast.makeText(ReportActivity.this, "Since report not generated generate the report and download." , Toast.LENGTH_LONG).show();
-
-        }else {
-            //manojRet();
-            downloadProductReport();
+        if (billingInvoiceModelList.isEmpty()) {
+            Toast.makeText(ReportActivity.this, "Since report not generated. generate the report and download.", Toast.LENGTH_LONG).show();
+        } else {
+            downloadReport();
         }
-
     }
-    private void downloadProductReport(){
-        System.out.println("Sabeek:length:"+billingInvoiceModelList.size());
-        try {
-            /*
-            List<BillingItemModel>bimodel=new ArrayList<>();
-            bimodel.add(new BillingItemModel("NON","SAHA","CODE1",25,10,250));
-            bimodel.add(new BillingItemModel("NON","GAKA","CODE1",25,10,250));
-            bimodel.add(new BillingItemModel("NON","OHAM","CODE1",25,10,250));
-            bimodel.add(new BillingItemModel("NON","AAHA","CODE1",25,10,250));
 
-            List<BillingInvoiceModel> invoices = new ArrayList<> ();
-            BillingInvoiceModel bilinmod=new BillingInvoiceModel( 122334L,620,10,"Guru","7904385250",730);
-
-            invoices.add(bilinmod);
-            */
-            File downloadsDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            if (!downloadsDirectory.exists()) {
-                downloadsDirectory.mkdirs();
+    private void downloadReport() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION);
+        } else {
+            try {
+                saveExcelFile(billingInvoiceModelList);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(ReportActivity.this, "Internal Server Error. Please try again later.!", Toast.LENGTH_LONG).show();
             }
-            Long timeStr = System.currentTimeMillis();
-            File file = new File(downloadsDirectory, "invoice_"+timeStr+".xls");
-            ReportGenerator.createExcelReport(billingInvoiceModelList, file);
-            Toast.makeText(ReportActivity.this, "Report exported in Downloads. " , Toast.LENGTH_LONG).show();
+        }
+    }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(ReportActivity.this, "Error creating CSV file", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(ReportActivity.this, "Unexpected error occurred", Toast.LENGTH_SHORT).show();
+    private void saveExcelFile(List<BillingInvoiceModel> billingInvoiceModelList) throws Exception {
+        String fileName = "report-"+System.currentTimeMillis()+".xlsx";
+        File file = new File(getExternalFilesDir(null), fileName);
+
+        ReportGenerator.createExcelReport(billingInvoiceModelList, file);
+
+        // Notify the user
+        Toast.makeText(this, "Report Generated: " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+
+        // Use FileProvider to get the URI
+        Uri fileUri = FileProvider.getUriForFile(this, "com.app.sha.attar.invoice.fileprovider" , file);
+
+        // Open the file using a file explorer
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(fileUri, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(intent);
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_WRITE_PERMISSION && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            // Permission granted, proceed with saving the file
+            try {
+                saveExcelFile(billingInvoiceModelList);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(ReportActivity.this, "Internal Server Error. Please try again later.!", Toast.LENGTH_LONG).show();
+            }
         }
     }
 }

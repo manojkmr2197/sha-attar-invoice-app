@@ -17,8 +17,8 @@
     <string-array name="spinner_report_type">
         <item>Today</item>
         <item>Yesterday</item>
-        <item>a week ago</item>
-        <item>a Month ago</item>
+        <item>Last Week</item>
+        <item>Last Month</item>
     </string-array>
 
 </resources>

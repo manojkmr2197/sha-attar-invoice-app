@@ -40,6 +40,7 @@ import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
+import com.app.sha.attar.invoice.utils.SharedConstants;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -228,8 +229,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             i = new Intent(MainActivity.this, AccessoriesActivity.class);
             startActivity(i);
         } else if (item.getItemId() == R.id.nav_report) {
-            i = new Intent(MainActivity.this, ReportActivity.class);
-            startActivity(i);
+            preAuthentication();
         } else if (item.getItemId() == R.id.nav_packaging) {
             i = new Intent(MainActivity.this, PackageActivity.class);
             startActivity(i);
@@ -245,6 +245,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onResume();
         sharedPrefHelper.setTotalProductItem();
         sharedPrefHelper.setTotalAccessoriesItem();
+        productModelList.clear();
+        accessoriesModelList.clear();
         productModelList.addAll(sharedPrefHelper.getTotalProductList());
         accessoriesModelList.addAll(sharedPrefHelper.getTotalAccessoriesList());
     }
@@ -627,5 +629,45 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
         dialog.show();
 
+    }
+
+    private void preAuthentication() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter Admin Credential");
+
+        // Set up the input
+        final EditText input = new EditText(this);
+        input.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        // Specify the type of input expected
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        builder.setView(input);
+
+        // Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String inputText = input.getText().toString();
+                if (StringUtils.isEmpty(inputText) || !SharedConstants.ADMIN_PASSWORD.equals(inputText)) {
+                    Toast.makeText(MainActivity.this, "Wrong Password. try again later.!", Toast.LENGTH_LONG).show();
+                    dialog.cancel();
+                    return;
+                }
+                Toast.makeText(MainActivity.this, "Login successful", Toast.LENGTH_LONG).show();
+                Intent i = new Intent(MainActivity.this, ReportActivity.class);
+                startActivity(i);
+                dialog.cancel();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
     }
 }

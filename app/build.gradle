@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.app.sha.attar.invoice"
-        minSdk 24
+        minSdk 26
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -51,9 +51,8 @@ dependencies {
 
     implementation 'com.google.code.gson:gson:2.8.8'
 
-    implementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
+    implementation 'org.apache.poi:poi:5.2.3'
+    implementation 'org.apache.poi:poi-ooxml:5.2.3'
 
-    //implementation 'org.apache.poi:poi:5.2.3'
-    //implementation libs.poi.ooxml
 
 }
