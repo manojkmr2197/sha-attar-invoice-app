@@ -8,6 +8,7 @@ public class BillingItemModel {
     Integer units;
     Integer unitPrice;
     Integer totalPrice;
+    Integer sellingItemPrice;
     ProductModel productModel;
     AccessoriesModel accessoriesModel;
     Long invoiceId;
@@ -94,5 +95,13 @@ public class BillingItemModel {
 
     public void setInvoiceId(Long invoiceId) {
         this.invoiceId = invoiceId;
+    }
+
+    public Integer getSellingItemPrice() {
+        return sellingItemPrice;
+    }
+
+    public void setSellingItemPrice(Integer sellingItemPrice) {
+        this.sellingItemPrice = sellingItemPrice;
     }
 }

@@ -13,7 +13,7 @@ import com.app.sha.attar.invoice.R;
 public class CustomerHistoryDetailViewHolder extends RecyclerView.ViewHolder {
 
 
-    public TextView product_name, product_code,product_units, product_unit_price, product_total_price;
+    public TextView product_name, product_code,product_units, product_total_price;
     public LinearLayout product_ll,accessories_ll;
     public TextView accessories_name,accessories_price;
 
@@ -25,7 +25,6 @@ public class CustomerHistoryDetailViewHolder extends RecyclerView.ViewHolder {
         product_name = (TextView) itemView.findViewById(R.id.cust_history_product_name);
         product_code = (TextView) itemView.findViewById(R.id.cust_history_product_code);
         product_units = (TextView) itemView.findViewById(R.id.cust_history_product_units);
-        product_unit_price = (TextView) itemView.findViewById(R.id.cust_history_product_unit_price);
         product_total_price = (TextView) itemView.findViewById(R.id.cust_history_product_total_price);
         accessories_name = (TextView) itemView.findViewById(R.id.cust_history_accessories_name);
         accessories_price = (TextView) itemView.findViewById(R.id.cust_history_accessories_price);

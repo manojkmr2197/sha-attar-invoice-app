@@ -23,24 +23,26 @@ public class ReportGenerator {
         double soldPrice;
         double actualPrice;
         double profit;
-        double totalDiscount;
 
-        public AggregatedData(int quantity, double soldPrice, double actualPrice, double profit, double totalDiscount) {
+        public AggregatedData(int quantity, double soldPrice, double actualPrice, double profit) {
             this.quantity = quantity;
             this.soldPrice = soldPrice;
             this.actualPrice = actualPrice;
             this.profit = profit;
-            this.totalDiscount = totalDiscount;
         }
     }
 
     public static class AccessoryAggregatedData {
         int quantity;
         double soldPrice;
+        double actualPrice;
+        double profit;
 
-        public AccessoryAggregatedData(int quantity, double soldPrice) {
+        public AccessoryAggregatedData(int quantity, double soldPrice,double actualPrice,double profit) {
             this.quantity = quantity;
             this.soldPrice = soldPrice;
+            this.actualPrice = actualPrice;
+            this.profit = profit;
         }
     }
 
@@ -51,7 +53,6 @@ public class ReportGenerator {
                 System.err.println("Null invoice encountered, skipping...");
                 continue;
             }
-            double totalDiscount = invoice.getDiscount();
             for (BillingItemModel item : invoice.getBillingItemModelList()) {
 
                 if (!item.getType().equals("PRODUCT")) {
@@ -59,16 +60,15 @@ public class ReportGenerator {
                 }
                 String productName = item.getName();
                 int quantity = item.getUnits();
-                double soldPrice = item.getTotalPrice();
+                double soldPrice = item.getSellingItemPrice();
                 double actualPrice = item.getUnitPrice() * quantity;
                 double profit = soldPrice - actualPrice;
-                aggregationMap.putIfAbsent(productName, new AggregatedData(0, 0, 0, 0, 0));
+                aggregationMap.putIfAbsent(productName, new AggregatedData(0,   0, 0,0));
                 AggregatedData aggregatedData = aggregationMap.get(productName);
                 aggregatedData.quantity += quantity;
                 aggregatedData.soldPrice += soldPrice;
                 aggregatedData.actualPrice += actualPrice;
                 aggregatedData.profit += profit;
-                aggregatedData.totalDiscount += totalDiscount;
             }
         }
         return aggregationMap;
@@ -91,11 +91,16 @@ public class ReportGenerator {
                     continue;
                 }
                 String productName = accessoriesModel.getName();
-                double soldPrice = accessoriesModel.getPrice();
-                aggregationMap.putIfAbsent(productName, new AccessoryAggregatedData(0, 0));
+                double soldPrice = item.getSellingItemPrice();
+                double actualPrice = accessoriesModel.getPrice();
+                double profit = soldPrice - actualPrice;
+                aggregationMap.putIfAbsent(productName, new AccessoryAggregatedData(0, 0,0,0));
                 AccessoryAggregatedData aggregatedData = aggregationMap.get(productName);
                 aggregatedData.quantity += 1;
                 aggregatedData.soldPrice += soldPrice;
+                aggregatedData.actualPrice += actualPrice;
+                aggregatedData.profit += profit;
+
             }
         }
         return aggregationMap;
@@ -122,7 +127,7 @@ public class ReportGenerator {
         Row headerRow = sheet.createRow(0);
         int cellIndex = 0;
 
-        String[] headers = {"Accessory Name", "Quantity", "Sold Price"};
+        String[] headers = {"Accessory Name", "Quantity", "Sold Price", "Actual Price", "Profit"};
 
         for (String key : headers) {
             Cell cell = headerRow.createCell(cellIndex++);
@@ -139,6 +144,10 @@ public class ReportGenerator {
             cell1.setCellValue(entry.getValue().quantity);
             Cell cell2 = row.createCell(2);
             cell2.setCellValue(entry.getValue().soldPrice);
+            Cell cell3 = row.createCell(3);
+            cell3.setCellValue(entry.getValue().actualPrice);
+            Cell cell4 = row.createCell(4);
+            cell4.setCellValue(entry.getValue().profit);
         }
 
     }
@@ -150,7 +159,7 @@ public class ReportGenerator {
         Row headerRow = sheet.createRow(0);
         int cellIndex = 0;
 
-        String[] headers = {"Product Name", "Quantity", "Sold Price", "Actual Price", "Profit", "Total Discount"};
+        String[] headers = {"Product Name", "Quantity", "Sold Price", "Actual Price", "Profit"};
 
         for (String key : headers) {
             Cell cell = headerRow.createCell(cellIndex++);
@@ -171,8 +180,6 @@ public class ReportGenerator {
             cell3.setCellValue(entry.getValue().actualPrice);
             Cell cell4 = row.createCell(4);
             cell4.setCellValue(entry.getValue().profit);
-            Cell cell5 = row.createCell(5);
-            cell5.setCellValue(entry.getValue().totalDiscount);
 
         }
     }

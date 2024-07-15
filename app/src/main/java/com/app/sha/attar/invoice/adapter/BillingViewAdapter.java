@@ -48,14 +48,13 @@ public class BillingViewAdapter extends RecyclerView.Adapter<BillingViewHolder> 
             holder.product_name.setText(contentList.get(index).getName());
             holder.product_code.setText(contentList.get(index).getCode());
             holder.product_units.setText(contentList.get(index).getUnits()+" ML");
-            holder.product_unit_price.setText("Rs. "+contentList.get(index).getUnitPrice());
-            holder.product_total_price.setText("Rs. "+contentList.get(index).getTotalPrice());
+            holder.product_total_price.setText("Rs. "+contentList.get(index).getSellingItemPrice());
 
         }else if("NON_PRODUCT".equalsIgnoreCase(contentList.get(index).getType())){
             holder.product_ll.setVisibility(View.GONE);
             holder.accessories_ll.setVisibility(View.VISIBLE);
             holder.accessories_name.setText(contentList.get(index).getName());
-            holder.accessories_price.setText("Rs. "+contentList.get(index).getTotalPrice());
+            holder.accessories_price.setText("Rs. "+contentList.get(index).getSellingItemPrice());
         }
 
         holder.product_close.setOnClickListener(new View.OnClickListener() {

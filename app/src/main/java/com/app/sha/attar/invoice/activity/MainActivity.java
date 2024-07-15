@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -114,11 +115,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    mDrawerLayout.openDrawer(GravityCompat.START);
-                } else {
-                    mDrawerLayout.closeDrawer(GravityCompat.START);
-                }
+                preAuthentication();
             }
         });
         dbObj = new DBUtil();
@@ -191,13 +188,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             empty_ll.setVisibility(View.VISIBLE);
             totalAmount = 0;
             discount = 0;
+            customer_name.setText("");
+            customer_phone.setText("");
             return;
         } else {
             content_ll.setVisibility(View.VISIBLE);
             empty_ll.setVisibility(View.GONE);
             totalAmount = 0;
             for (BillingItemModel billingItemModel : billingItemModelList) {
-                totalAmount += billingItemModel.getTotalPrice();
+                totalAmount += billingItemModel.getSellingItemPrice();
             }
         }
         sellingAmount = totalAmount - ((totalAmount * discount) / 100);
@@ -229,7 +228,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             i = new Intent(MainActivity.this, AccessoriesActivity.class);
             startActivity(i);
         } else if (item.getItemId() == R.id.nav_report) {
-            preAuthentication();
+            i = new Intent(MainActivity.this, ReportActivity.class);
+            startActivity(i);
         } else if (item.getItemId() == R.id.nav_packaging) {
             i = new Intent(MainActivity.this, PackageActivity.class);
             startActivity(i);
@@ -259,6 +259,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (R.id.billing_discount_ll == view.getId()) {
             createDiscountDialog();
         } else if (R.id.billing_submit_invoice == view.getId()) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             if (checkInternet())
                 submitInvoiceDetails();
         } else if (R.id.billing_customer_search == view.getId()) {
@@ -294,6 +296,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Toast.makeText(MainActivity.this, "Please Enter Customer Phone no..!", Toast.LENGTH_LONG).show();
             return;
         }
+
 
         BillingInvoiceModel billingInvoiceModel = new BillingInvoiceModel();
 
@@ -387,9 +390,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         LinearLayout product_detail_ll = dialog.findViewById(R.id.new_bill_detail_ll);
 
         TextView new_bill_owner = (TextView) dialog.findViewById(R.id.new_bill_item_owner);
-        TextView new_bill_unit_price = (TextView) dialog.findViewById(R.id.new_bill_unit_price);
         TextView new_bill_code = (TextView) dialog.findViewById(R.id.new_bill_item_code);
         TextInputEditText product_size = (TextInputEditText) dialog.findViewById(R.id.new_bill_item_size);
+        TextInputEditText product_selling_cost = (TextInputEditText) dialog.findViewById(R.id.new_bill_item_selling_price);
 
         RadioGroup typeRadioGroup = (RadioGroup) dialog.findViewById(R.id.new_bill_radio_group);
         final String[] type = {"PRODUCT"};
@@ -416,7 +419,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
         AutoCompleteTextView non_product_name = (AutoCompleteTextView) dialog.findViewById(R.id.new_bill_non_product_name);
-        TextView non_product_price = (TextView) dialog.findViewById(R.id.new_bill_non_product_price);
+        TextInputEditText non_product_price = (TextInputEditText) dialog.findViewById(R.id.new_bill_non_product_selling_price);
 
         List<String> accessories_items = accessoriesModelList.stream()
                 .map(AccessoriesModel::getName)
@@ -455,9 +458,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 if (resultModel.isPresent()) {
                     AccessoriesModel selectNonProductModel = resultModel.get();
                     non_product_name.setText(selectNonProductModel.getName());
-                    non_product_price.setText(String.valueOf(selectNonProductModel.getPrice()));
                     selectedNonProduct[0] = selectNonProductModel;
-
 
                 }
 
@@ -467,6 +468,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         AutoCompleteTextView product_name = (AutoCompleteTextView) dialog.findViewById(R.id.new_bill_name);
 
         List<String> items = productModelList.stream()
+                .filter(product -> "Y".equals(product.getStatus()))
                 .map(ProductModel::getName)
                 .collect(Collectors.toList());
 
@@ -505,8 +507,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     product_name.setText(selectProductModel.getName());
                     new_bill_owner.setText(selectProductModel.getOwner());
                     new_bill_code.setText(selectProductModel.getCode());
-                    Integer fullPrice = Integer.parseInt(selectProductModel.getPrice());
-                    new_bill_unit_price.setText(String.valueOf(fullPrice / 1000));
                     selectedProduct[0] = selectProductModel;
                     product_detail_ll.setVisibility(View.VISIBLE);
 
@@ -529,10 +529,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     product_name.setText(selectProductModel.getName());
                     new_bill_owner.setText(selectProductModel.getOwner());
                     new_bill_code.setText(selectProductModel.getCode());
-                    Integer fullPrice = Integer.parseInt(selectProductModel.getPrice());
-                    new_bill_unit_price.setText(String.valueOf(fullPrice / 1000));
                     selectedProduct[0] = selectProductModel;
                     product_size.setText(String.valueOf(billingItemModel.getUnits()));
+                    product_selling_cost.setText(String.valueOf(billingItemModel.getSellingItemPrice()));
                 }
             } else if ("NON_PRODUCT".equalsIgnoreCase(billingItemModel.getType())) {
                 nonProductRadioButton.setChecked(true);
@@ -540,7 +539,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 non_product_ll.setVisibility(View.VISIBLE);
                 product_ll.setVisibility(View.GONE);
                 non_product_name.setText(billingItemModel.getName());
-                non_product_price.setText(String.valueOf(billingItemModel.getTotalPrice()));
+                non_product_price.setText(String.valueOf(billingItemModel.getSellingItemPrice()));
                 selectedNonProduct[0] = billingItemModel.getAccessoriesModel();
 
             }
@@ -566,6 +565,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             Toast.makeText(MainActivity.this, "Please fill the Quantity..!", Toast.LENGTH_LONG).show();
                             return;
                         }
+                        if (StringUtils.isEmpty(product_selling_cost.getText().toString())) {
+                            Toast.makeText(MainActivity.this, "Please fill the Quantity..!", Toast.LENGTH_LONG).show();
+                            return;
+                        }
                         billingItemModel.setProductModel(selectedProduct[0]);
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedProduct[0].getName());
@@ -574,15 +577,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         Integer fullPrice = Integer.parseInt(selectedProduct[0].getPrice());
                         billingItemModel.setUnitPrice(fullPrice / 1000);
                         billingItemModel.setTotalPrice((Integer.parseInt(product_size.getText().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                        billingItemModel.setSellingItemPrice(Integer.valueOf(product_selling_cost.getText().toString()));
                     } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
                         if (selectedNonProduct[0] == null) {
                             Toast.makeText(MainActivity.this, "Please Choose the Accessories Name..!", Toast.LENGTH_LONG).show();
                             return;
                         }
+                        if (StringUtils.isEmpty(non_product_price.getText().toString())) {
+                            Toast.makeText(MainActivity.this, "Please fill the Price..!", Toast.LENGTH_LONG).show();
+                            return;
+                        }
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedNonProduct[0].getName());
                         billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice());
+                        billingItemModel.setSellingItemPrice(Integer.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
+
                     }
                     billingItemModelList.add(billingItemModel);
                     billingAdapter.notifyDataSetChanged();
@@ -607,17 +617,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         Integer fullPrice = Integer.parseInt(selectedProduct[0].getPrice());
                         newBillingItemModel.setUnitPrice(fullPrice / 1000);
                         newBillingItemModel.setTotalPrice((Integer.parseInt(product_size.getText().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                        newBillingItemModel.setSellingItemPrice(Integer.valueOf(product_selling_cost.getText().toString()));
                     } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
 
                         if (selectedNonProduct[0] == null) {
                             Toast.makeText(MainActivity.this, "Please Choose the Accessories Name..!", Toast.LENGTH_LONG).show();
                             return;
                         }
+                        if (StringUtils.isEmpty(non_product_price.getText().toString())) {
+                            Toast.makeText(MainActivity.this, "Please fill the Price..!", Toast.LENGTH_LONG).show();
+                            return;
+                        }
                         newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                         newBillingItemModel.setType(type[0]);
                         newBillingItemModel.setName(selectedNonProduct[0].getName());
                         newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice());
-
+                        newBillingItemModel.setSellingItemPrice(Integer.valueOf(non_product_price.getText().toString()));
                     }
                     billingItemModelList.add(newBillingItemModel);
                     billingAdapter.notifyDataSetChanged();
@@ -656,9 +671,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     return;
                 }
                 Toast.makeText(MainActivity.this, "Login successful", Toast.LENGTH_LONG).show();
-                Intent i = new Intent(MainActivity.this, ReportActivity.class);
-                startActivity(i);
                 dialog.cancel();
+                if (!mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    mDrawerLayout.openDrawer(GravityCompat.START);
+                } else {
+                    mDrawerLayout.closeDrawer(GravityCompat.START);
+                }
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

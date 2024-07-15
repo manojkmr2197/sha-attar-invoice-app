@@ -61,15 +61,6 @@
                     android:textColor="@color/app_color"
                     android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/cust_history_product_unit_price"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="10sp"
-                    android:text="Rs. 7"
-                    android:textColor="@color/app_color"
-                    android:textStyle="bold" />
-
             </LinearLayout>
 
 
@@ -84,7 +75,7 @@
                 android:id="@+id/cust_history_product_total_price"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.2"
+                android:layout_weight="0.3"
                 android:text="Rs. 50"
                 android:textColor="@color/app_color"
                 android:textStyle="bold" />
@@ -134,7 +125,7 @@
                 android:id="@+id/cust_history_accessories_price"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.2"
+                android:layout_weight="0.3"
                 android:text="Rs. 4000"
                 android:textColor="@color/app_color"
                 android:textStyle="bold" />

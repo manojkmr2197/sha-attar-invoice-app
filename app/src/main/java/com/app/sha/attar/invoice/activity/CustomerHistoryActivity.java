@@ -128,6 +128,7 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
                 System.out.println("customerHistorySize: " + aCustomerDetails.size());
                 billingInvoiceModelList.clear();
                 billingInvoiceModelList.addAll(aCustomerDetails);
+                customerHistoryAdapter.notifyDataSetChanged();
             }
         }, phoneNo);
 
