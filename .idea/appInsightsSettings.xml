@@ -9,9 +9,9 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.app.sha.attar.invoice" />
-                  <option name="mobileSdkAppId" value="1:696586330165:android:b2e6ea1b8b089bc286917c" />
-                  <option name="projectId" value="sahr-aththar" />
-                  <option name="projectNumber" value="696586330165" />
+                  <option name="mobileSdkAppId" value="1:193642071762:android:e289129f765925e6a98f0b" />
+                  <option name="projectId" value="sha-attar-invoice" />
+                  <option name="projectNumber" value="193642071762" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
