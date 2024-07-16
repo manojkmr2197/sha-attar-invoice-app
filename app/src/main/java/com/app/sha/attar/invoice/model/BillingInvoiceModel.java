@@ -10,6 +10,7 @@ public class BillingInvoiceModel {
     Integer discount;
     String customerName;
     String customerPhone;
+    String remarks;
     Integer sellingCost;
     List<BillingItemModel> billingItemModelList;
 
@@ -79,5 +80,11 @@ public class BillingInvoiceModel {
         this.billingItemModelList = billingItemModelList;
     }
 
+    public String getRemarks() {
+        return remarks;
+    }
 
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
+    }
 }

@@ -19,10 +19,10 @@ import java.util.Map;
 public class ReportGenerator {
 
     public static class AggregatedData {
-        int quantity;
-        double soldPrice;
-        double actualPrice;
-        double profit;
+        public int quantity;
+        public double soldPrice;
+        public double actualPrice;
+        public double profit;
 
         public AggregatedData(int quantity, double soldPrice, double actualPrice, double profit) {
             this.quantity = quantity;
@@ -33,10 +33,10 @@ public class ReportGenerator {
     }
 
     public static class AccessoryAggregatedData {
-        int quantity;
-        double soldPrice;
-        double actualPrice;
-        double profit;
+        public int quantity;
+        public double soldPrice;
+        public double actualPrice;
+        public double profit;
 
         public AccessoryAggregatedData(int quantity, double soldPrice,double actualPrice,double profit) {
             this.quantity = quantity;
@@ -46,7 +46,7 @@ public class ReportGenerator {
         }
     }
 
-    private static Map<String, AggregatedData> getSalesReportData(List<BillingInvoiceModel> invoices) {
+    public static Map<String, AggregatedData> getSalesReportData(List<BillingInvoiceModel> invoices) {
         Map<String, AggregatedData> aggregationMap = new HashMap<>();
         for (BillingInvoiceModel invoice : invoices) {
             if (invoice == null) {
@@ -74,7 +74,7 @@ public class ReportGenerator {
         return aggregationMap;
     }
 
-    private static Map<String, AccessoryAggregatedData> getAccessoriesReportData(List<BillingInvoiceModel> invoices) {
+    public static Map<String, AccessoryAggregatedData> getAccessoriesReportData(List<BillingInvoiceModel> invoices) {
         Map<String, AccessoryAggregatedData> aggregationMap = new HashMap<>();
         for (BillingInvoiceModel invoice : invoices) {
             if (invoice == null) {

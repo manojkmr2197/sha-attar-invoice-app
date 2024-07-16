@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     LinearLayout billing_discount_ll;
 
-    EditText customer_name, customer_phone;
+    EditText customer_name, customer_phone,remarks;
     TextView customer_search;
 
     Integer totalAmount = 0, sellingAmount = 0, discount = 0;
@@ -143,6 +143,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         customer_name = (EditText) findViewById(R.id.billing_customer_name);
         customer_phone = (EditText) findViewById(R.id.billing_customer_phone);
+        remarks = (EditText) findViewById(R.id.billing_customer_remarks);
         customer_search = (TextView) findViewById(R.id.billing_customer_search);
 
         customer_search.setOnClickListener(this);
@@ -306,6 +307,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         billingInvoiceModel.setCustomerName(customer_name.getText().toString());
         billingInvoiceModel.setCustomerPhone(customer_phone.getText().toString());
+        billingInvoiceModel.setRemarks(remarks.getText().toString());
         billingInvoiceModel.setDiscount(discount);
         billingInvoiceModel.setSellingCost(sellingAmount);
         billingInvoiceModel.setTotalCost(totalAmount);

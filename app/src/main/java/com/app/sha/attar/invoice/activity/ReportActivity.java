@@ -8,12 +8,14 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,18 +31,23 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.sha.attar.invoice.R;
+import com.app.sha.attar.invoice.adapter.ReportViewAdapter;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
+import com.app.sha.attar.invoice.model.ReportModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.ReportGenerator;
+import com.github.mikephil.charting.charts.BarChart;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Map;
 
 
 public class ReportActivity extends AppCompatActivity implements View.OnClickListener {
@@ -54,19 +61,79 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     List<BillingInvoiceModel> billingInvoiceModelList= new ArrayList<>();;
     DBUtil dbObj;
 
+    List<ReportModel> reportProductList = new ArrayList<>();
+    List<ReportModel> reportAccessoriesList = new ArrayList<>();
+    List<ReportModel> displayList = new ArrayList<>();
+
     private static final int REQUEST_WRITE_PERMISSION = 786;
+
+    RadioGroup reportRadioGroup;
+    RadioButton productRadio,nonProductRadio;
+    LinearLayout data_ll,no_data_ll;
+    RecyclerView reportRecyclerView;
+
+    ReportViewAdapter reportViewAdapter;
 
     private void getBillingInvoiceModel(Long startTime, Long endTime) {
 
         dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
             @Override
             public void onCallback(List<BillingInvoiceModel> result) {
+
+                if(result.isEmpty()){
+                    Toast.makeText(ReportActivity.this, "No bill Data found .!", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 billingInvoiceModelList.clear();
                 billingInvoiceModelList.addAll(result);
                 Toast.makeText(ReportActivity.this, "Report Data Loaded .!", Toast.LENGTH_LONG).show();
+
+                prepareProductReport(billingInvoiceModelList);
+                prepareNonProductReport(billingInvoiceModelList);
+                data_ll.setVisibility(View.VISIBLE);
+                no_data_ll.setVisibility(View.GONE);
+                productRadio.setChecked(true);
+                nonProductRadio.setChecked(false);
+
+                displayList.clear();
+                displayList.addAll(reportProductList);
+                reportViewAdapter.notifyDataSetChanged();
+
             }
         }, startTime, endTime);
 
+    }
+
+    private void prepareNonProductReport(List<BillingInvoiceModel> billingInvoiceModelList) {
+        reportAccessoriesList.clear();
+        Map<String, ReportGenerator.AggregatedData> reportData = ReportGenerator.getSalesReportData(billingInvoiceModelList);
+
+        reportData.entrySet().stream().forEach(entry->{
+            ReportModel report = new ReportModel();
+            report.setName(entry.getKey());
+            report.setActualPrice(entry.getValue().actualPrice);
+            report.setQuantity(entry.getValue().quantity);
+            report.setProfit(entry.getValue().profit);
+            report.setSoldPrice(entry.getValue().soldPrice);
+            reportProductList.add(report);
+        });
+
+    }
+
+    private void prepareProductReport(List<BillingInvoiceModel> billingInvoiceModelList) {
+        reportProductList.clear();
+
+        Map<String, ReportGenerator.AccessoryAggregatedData> reportData = ReportGenerator.getAccessoriesReportData(billingInvoiceModelList);
+
+        reportData.entrySet().stream().forEach(entry->{
+            ReportModel report = new ReportModel();
+            report.setName(entry.getKey());
+            report.setActualPrice(entry.getValue().actualPrice);
+            report.setQuantity(entry.getValue().quantity);
+            report.setProfit(entry.getValue().profit);
+            report.setSoldPrice(entry.getValue().soldPrice);
+            reportAccessoriesList.add(report);
+        });
     }
 
     @Override
@@ -101,6 +168,44 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         search_bt.setOnClickListener(this);
 
         dbObj = new DBUtil();
+
+        data_ll = (LinearLayout) findViewById(R.id.report_data_ll);
+        no_data_ll = (LinearLayout) findViewById(R.id.report_no_data_ll);
+
+        data_ll.setVisibility(View.GONE);
+        no_data_ll.setVisibility(View.VISIBLE);
+
+        reportRadioGroup = (RadioGroup) findViewById(R.id.report_radio_group);
+        productRadio = (RadioButton) findViewById(R.id.report_product_radio);
+        nonProductRadio = (RadioButton) findViewById(R.id.report_non_product_radio);
+
+        reportRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                // Find which radio button is selected
+                displayList.clear();
+                if (R.id.report_product_radio == checkedId) {
+                    if(reportProductList.isEmpty()){
+                        Toast.makeText(ReportActivity.this, "No Product bill Data found .!", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    displayList.addAll(reportProductList);
+                } else if (R.id.report_non_product_radio == checkedId) {
+                    if(reportProductList.isEmpty()){
+                        Toast.makeText(ReportActivity.this, "No Accessories bill Data found .!", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    displayList.addAll(reportAccessoriesList);
+                }
+                reportViewAdapter.notifyDataSetChanged();
+            }
+        });
+
+        reportRecyclerView = (RecyclerView) findViewById(R.id.report_recyclerView);
+        reportViewAdapter = new ReportViewAdapter(context,displayList);
+        reportRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        reportRecyclerView.setAdapter(reportViewAdapter);
+
     }
 
 
