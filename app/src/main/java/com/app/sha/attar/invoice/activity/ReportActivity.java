@@ -252,7 +252,9 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void downloadReport() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION);
+        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION);
         } else {
             try {
@@ -271,7 +273,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         ReportGenerator.createExcelReport(billingInvoiceModelList, file);
 
         // Notify the user
-        Toast.makeText(this, "Report Generated: " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Report Generated: " + fileName, Toast.LENGTH_LONG).show();
 
         // Use FileProvider to get the URI
         Uri fileUri = FileProvider.getUriForFile(this, "com.app.sha.attar.invoice.fileprovider" , file);
