@@ -6,16 +6,16 @@ import java.util.List;
 public class BillingInvoiceModel {
 
     Long billingDate;
-    Integer totalCost;
-    Integer discount;
+    Double totalCost;
+    Double discount;
     String customerName;
     String customerPhone;
     String remarks;
-    Integer sellingCost;
+    Double sellingCost;
     List<BillingItemModel> billingItemModelList;
 
     public BillingInvoiceModel(){}
-    public BillingInvoiceModel(Long billingDate,Integer totalCost,Integer discount,String customerName,String customerPhone,Integer sellingCost){
+    public BillingInvoiceModel(Long billingDate,Double totalCost,Double discount,String customerName,String customerPhone,Double sellingCost){
         this.billingDate=billingDate;
         this.totalCost=totalCost;
         this.discount=discount;
@@ -32,19 +32,19 @@ public class BillingInvoiceModel {
         this.billingDate = billingDate;
     }
 
-    public Integer getTotalCost() {
+    public Double getTotalCost() {
         return totalCost;
     }
 
-    public void setTotalCost(Integer totalCost) {
+    public void setTotalCost(Double totalCost) {
         this.totalCost = totalCost;
     }
 
-    public Integer getDiscount() {
+    public Double getDiscount() {
         return discount;
     }
 
-    public void setDiscount(Integer discount) {
+    public void setDiscount(Double discount) {
         this.discount = discount;
     }
 
@@ -64,11 +64,11 @@ public class BillingInvoiceModel {
         this.customerPhone = customerPhone;
     }
 
-    public Integer getSellingCost() {
+    public Double getSellingCost() {
         return sellingCost;
     }
 
-    public void setSellingCost(Integer sellingCost) {
+    public void setSellingCost(Double sellingCost) {
         this.sellingCost = sellingCost;
     }
 

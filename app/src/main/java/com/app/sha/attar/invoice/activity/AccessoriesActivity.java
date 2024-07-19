@@ -202,7 +202,7 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                 Toast.makeText(context, "Loading .! ", Toast.LENGTH_LONG).show();
                 if (accessoriesModel != null) {
                     accessoriesModel.setName(name.getText().toString());
-                    accessoriesModel.setPrice(Integer.valueOf(price.getText().toString()));
+                    accessoriesModel.setPrice(Double.valueOf(price.getText().toString()));
 
                     db.collection(DatabaseConstants.ACCESSORIES_COLLECTION)
                             .document(accessoriesModel.getDocumentId())
@@ -224,7 +224,7 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                 } else {
                     AccessoriesModel accessoriesModel = new AccessoriesModel();
                     accessoriesModel.setName(name.getText().toString());
-                    accessoriesModel.setPrice(Integer.valueOf(price.getText().toString()));
+                    accessoriesModel.setPrice(Double.valueOf(price.getText().toString()));
                     accessoriesModel.setId(getLatestProductID());
                     accessoriesModel.setDocumentId(SingleTon.generateAccessoriesDocument());
 

@@ -4,13 +4,13 @@ public class AccessoriesModel {
 
     private Integer id;
     private String name;
-    private Integer price;
+    private Double price;
     private String documentId;
 
     public AccessoriesModel() {
     }
 
-    public AccessoriesModel(Integer id, String name, Integer price, String documentId) {
+    public AccessoriesModel(Integer id, String name, Double price, String documentId) {
         this.id = id;
         this.name = name;
 
@@ -34,11 +34,11 @@ public class AccessoriesModel {
         this.name = name;
     }
 
-    public Integer getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(Integer price) {
+    public void setPrice(Double price) {
         this.price = price;
     }
 

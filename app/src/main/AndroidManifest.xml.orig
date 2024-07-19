@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -15,6 +17,8 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.ShaAttarInvoice"
+        android:requestLegacyExternalStorage="true"
+        android:forceDarkAllowed="false"
         tools:targetApi="31">
         <activity
             android:name=".activity.CustomerHistoryActivity"
@@ -40,14 +44,19 @@
         </activity>
         <activity
             android:name=".activity.MainActivity"
-<<<<<<< HEAD
-            android:exported="true"/>
+            android:exported="true" />
         <activity android:name=".activity.PackageActivity"
             android:exported="false"/>
 
-=======
-            android:exported="true" />
->>>>>>> 7c0a9e78be1deebf4b362b3aeeb62f1a45baebda
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     EditText customer_name, customer_phone,remarks;
     TextView customer_search;
 
-    Integer totalAmount = 0, sellingAmount = 0, discount = 0;
+    Double totalAmount =  0.0, sellingAmount = 0.0, discount = 0.0;
 
     SharedPrefHelper sharedPrefHelper;
     DBUtil dbObj;
@@ -187,8 +187,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (billingItemModelList.isEmpty()) {
             content_ll.setVisibility(View.GONE);
             empty_ll.setVisibility(View.VISIBLE);
-            totalAmount = 0;
-            discount = 0;
+            totalAmount = 0.0;
+            discount = 0.0;
             customer_name.setText("");
             customer_phone.setText("");
             remarks.setText("");
@@ -196,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else {
             content_ll.setVisibility(View.VISIBLE);
             empty_ll.setVisibility(View.GONE);
-            totalAmount = 0;
+            totalAmount = 0.0;
             for (BillingItemModel billingItemModel : billingItemModelList) {
                 totalAmount += billingItemModel.getSellingItemPrice();
             }
@@ -361,7 +361,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     dialog.cancel();
                     return;
                 }
-                discount = Integer.parseInt(inputText);
+                discount = Double.parseDouble(inputText);
                 billing_discount.setText(inputText);
                 manageBillingLayout();
                 dialog.cancel();
@@ -577,10 +577,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         billingItemModel.setName(selectedProduct[0].getName());
                         billingItemModel.setCode(selectedProduct[0].getCode());
                         billingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
-                        Integer fullPrice = Integer.parseInt(selectedProduct[0].getPrice());
+                        Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                         billingItemModel.setUnitPrice(fullPrice / 1000);
-                        billingItemModel.setTotalPrice((Integer.parseInt(product_size.getText().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
-                        billingItemModel.setSellingItemPrice(Integer.valueOf(product_selling_cost.getText().toString()));
+                        billingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                        billingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                     } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
                         if (selectedNonProduct[0] == null) {
                             Toast.makeText(MainActivity.this, "Please Choose the Accessories Name..!", Toast.LENGTH_LONG).show();
@@ -593,7 +593,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedNonProduct[0].getName());
                         billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice());
-                        billingItemModel.setSellingItemPrice(Integer.valueOf(non_product_price.getText().toString()));
+                        billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
 
                     }
@@ -617,10 +617,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         newBillingItemModel.setName(selectedProduct[0].getName());
                         newBillingItemModel.setCode(selectedProduct[0].getCode());
                         newBillingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
-                        Integer fullPrice = Integer.parseInt(selectedProduct[0].getPrice());
+                        Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                         newBillingItemModel.setUnitPrice(fullPrice / 1000);
-                        newBillingItemModel.setTotalPrice((Integer.parseInt(product_size.getText().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
-                        newBillingItemModel.setSellingItemPrice(Integer.valueOf(product_selling_cost.getText().toString()));
+                        newBillingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                        newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                     } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
 
                         if (selectedNonProduct[0] == null) {
@@ -635,7 +635,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         newBillingItemModel.setType(type[0]);
                         newBillingItemModel.setName(selectedNonProduct[0].getName());
                         newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice());
-                        newBillingItemModel.setSellingItemPrice(Integer.valueOf(non_product_price.getText().toString()));
+                        newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                     }
                     billingItemModelList.add(newBillingItemModel);
                     billingAdapter.notifyDataSetChanged();

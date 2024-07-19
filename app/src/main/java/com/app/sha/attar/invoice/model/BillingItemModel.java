@@ -6,9 +6,9 @@ public class BillingItemModel {
     String name;
     String code;
     Integer units;
-    Integer unitPrice;
-    Integer totalPrice;
-    Integer sellingItemPrice;
+    Double unitPrice;
+    Double totalPrice;
+    Double sellingItemPrice;
     ProductModel productModel;
     AccessoriesModel accessoriesModel;
     Long invoiceId;
@@ -16,7 +16,7 @@ public class BillingItemModel {
     public BillingItemModel() {
     }
 
-    public BillingItemModel(String type, String name, String code, Integer units, Integer unitPrice, Integer totalPrice) {
+    public BillingItemModel(String type, String name, String code, Integer units, Double unitPrice, Double totalPrice) {
         this.type = type;
         this.name = name;
         this.code = code;
@@ -57,19 +57,19 @@ public class BillingItemModel {
         this.units = units;
     }
 
-    public Integer getUnitPrice() {
+    public Double getUnitPrice() {
         return unitPrice;
     }
 
-    public void setUnitPrice(Integer unitPrice) {
+    public void setUnitPrice(Double unitPrice) {
         this.unitPrice = unitPrice;
     }
 
-    public Integer getTotalPrice() {
+    public Double getTotalPrice() {
         return totalPrice;
     }
 
-    public void setTotalPrice(Integer totalPrice) {
+    public void setTotalPrice(Double totalPrice) {
         this.totalPrice = totalPrice;
     }
 
@@ -97,11 +97,11 @@ public class BillingItemModel {
         this.invoiceId = invoiceId;
     }
 
-    public Integer getSellingItemPrice() {
+    public Double getSellingItemPrice() {
         return sellingItemPrice;
     }
 
-    public void setSellingItemPrice(Integer sellingItemPrice) {
+    public void setSellingItemPrice(Double sellingItemPrice) {
         this.sellingItemPrice = sellingItemPrice;
     }
 }
