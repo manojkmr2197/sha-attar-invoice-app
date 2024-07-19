@@ -35,7 +35,7 @@ public class ReportViewAdapter extends RecyclerView.Adapter<ReportViewHolder> {
         int index = holder.getAdapterPosition();
 
         holder.name.setText(displayList.get(index).getName());
-        holder.quantity.setText(String.valueOf(displayList.get(index).getQuantity())+" ML");
+        holder.quantity.setText(String.valueOf(displayList.get(index).getQuantity()));
         holder.actual_amt.setText("Rs. "+String.valueOf((int)displayList.get(index).getActualPrice()));
         holder.selling_amount.setText("Rs. "+String.valueOf((int)displayList.get(index).getSoldPrice()));
         holder.profit.setText("Rs. "+String.valueOf((int)displayList.get(index).getProfit()));

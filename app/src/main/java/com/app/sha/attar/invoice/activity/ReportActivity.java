@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -105,7 +106,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void prepareNonProductReport(List<BillingInvoiceModel> billingInvoiceModelList) {
-        reportAccessoriesList.clear();
+        reportProductList.clear();
         Map<String, ReportGenerator.AggregatedData> reportData = ReportGenerator.getSalesReportData(billingInvoiceModelList);
 
         reportData.entrySet().stream().forEach(entry->{
@@ -121,7 +122,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void prepareProductReport(List<BillingInvoiceModel> billingInvoiceModelList) {
-        reportProductList.clear();
+        reportAccessoriesList.clear();
 
         Map<String, ReportGenerator.AccessoryAggregatedData> reportData = ReportGenerator.getAccessoriesReportData(billingInvoiceModelList);
 
@@ -265,7 +266,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
     private void saveExcelFile(List<BillingInvoiceModel> billingInvoiceModelList) throws Exception {
         String fileName = "report-"+System.currentTimeMillis()+".xlsx";
-        File file = new File(getExternalFilesDir(null), fileName);
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
 
         ReportGenerator.createExcelReport(billingInvoiceModelList, file);
 
@@ -277,7 +278,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
         // Open the file using a file explorer
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(fileUri, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        intent.setDataAndType(fileUri, "application/vnd.ms-excel");
         intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         startActivity(intent);
     }

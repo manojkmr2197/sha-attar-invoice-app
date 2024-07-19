@@ -191,6 +191,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             discount = 0;
             customer_name.setText("");
             customer_phone.setText("");
+            remarks.setText("");
             return;
         } else {
             content_ll.setVisibility(View.VISIBLE);
