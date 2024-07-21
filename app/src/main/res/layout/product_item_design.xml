@@ -85,6 +85,16 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/product_item_dealer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3sp"
+                android:text="Dealer Name"
+                android:textAllCaps="true"
+                android:textColor="@color/app_color"
+                android:textSize="15sp" />
+
 
         </LinearLayout>
 

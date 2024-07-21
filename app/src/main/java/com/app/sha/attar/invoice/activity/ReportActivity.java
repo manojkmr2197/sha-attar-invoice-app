@@ -105,7 +105,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
     }
 
-    private void prepareNonProductReport(List<BillingInvoiceModel> billingInvoiceModelList) {
+    private void prepareProductReport(List<BillingInvoiceModel> billingInvoiceModelList) {
         reportProductList.clear();
         Map<String, ReportGenerator.AggregatedData> reportData = ReportGenerator.getSalesReportData(billingInvoiceModelList);
 
@@ -118,10 +118,27 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
             report.setSoldPrice(entry.getValue().soldPrice);
             reportProductList.add(report);
         });
+        double totalActual = 0.0;
+        double totalSold = 0.0;
+        double totalProfit = 0.0;
+        int totalQuantity =0;
+        for(ReportModel data : reportProductList){
+            totalActual+=data.getActualPrice();
+            totalSold+=data.getSoldPrice();
+            totalProfit+=data.getProfit();
+            totalQuantity+=data.getQuantity();
+        }
+        ReportModel report = new ReportModel();
+        report.setName("Total");
+        report.setActualPrice(totalActual);
+        report.setQuantity(totalQuantity);
+        report.setProfit(totalProfit);
+        report.setSoldPrice(totalSold);
+        reportProductList.add(report);
 
     }
 
-    private void prepareProductReport(List<BillingInvoiceModel> billingInvoiceModelList) {
+    private void  prepareNonProductReport(List<BillingInvoiceModel> billingInvoiceModelList) {
         reportAccessoriesList.clear();
 
         Map<String, ReportGenerator.AccessoryAggregatedData> reportData = ReportGenerator.getAccessoriesReportData(billingInvoiceModelList);
@@ -135,6 +152,24 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
             report.setSoldPrice(entry.getValue().soldPrice);
             reportAccessoriesList.add(report);
         });
+
+        double totalActual = 0.0;
+        double totalSold = 0.0;
+        double totalProfit = 0.0;
+        int totalQuantity =0;
+        for(ReportModel data : reportAccessoriesList){
+            totalActual+=data.getActualPrice();
+            totalSold+=data.getSoldPrice();
+            totalProfit+=data.getProfit();
+            totalQuantity+=data.getQuantity();
+        }
+        ReportModel report = new ReportModel();
+        report.setName("Total");
+        report.setActualPrice(totalActual);
+        report.setQuantity(totalQuantity);
+        report.setProfit(totalProfit);
+        report.setSoldPrice(totalSold);
+        reportAccessoriesList.add(report);
     }
 
     @Override

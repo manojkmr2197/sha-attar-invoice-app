@@ -197,6 +197,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         dialog.setCanceledOnTouchOutside(false);
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         TextInputEditText name = (TextInputEditText) dialog.findViewById(R.id.product_add_name);
+        TextInputEditText dealer = (TextInputEditText) dialog.findViewById(R.id.product_dealer_name);
         TextInputEditText price = (TextInputEditText) dialog.findViewById(R.id.product_add_price);
         Spinner owner = (Spinner) dialog.findViewById(R.id.product_add_owner);
         CheckBox available = (CheckBox) dialog.findViewById(R.id.product_add_checkbox);
@@ -214,6 +215,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         if (productModel != null) {
             name.setText(productModel.getName());
             price.setText(productModel.getPrice());
+            dealer.setText(productModel.getDealer());
             if ("MTS".equalsIgnoreCase(productModel.getOwner())) {
                 owner.setSelection(0);
             } else if ("IK".equalsIgnoreCase(productModel.getOwner())) {
@@ -278,6 +280,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                 if (productModel != null) {
                     productModel.setName(name.getText().toString());
                     productModel.setPrice(price.getText().toString());
+                    productModel.setDealer(dealer.getText().toString());
                     productModel.setOwner(owner.getSelectedItem().toString());
                     productModel.setStatus(available.isChecked() ? "Y" : "N");
 
@@ -302,6 +305,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     ProductModel newProductModel = new ProductModel();
                     newProductModel.setName(name.getText().toString());
                     newProductModel.setPrice(price.getText().toString());
+                    newProductModel.setDealer(dealer.getText().toString());
                     newProductModel.setOwner(owner.getSelectedItem().toString());
                     newProductModel.setStatus(available.isChecked() ? "Y" : "N");
                     newProductModel.setCode(prepareProductCode(newProductModel.getName()));

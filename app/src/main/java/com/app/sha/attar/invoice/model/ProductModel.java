@@ -9,6 +9,7 @@ public class ProductModel {
     private String owner;
     private String status;
     private String documentId;
+    private String dealer;
 
     public ProductModel(){}
     //        productModelList.add(new ProductModel(1,"Apple","A1",15000,"MTS","Y"));
@@ -83,4 +84,12 @@ public class ProductModel {
     public void setDocumentId(String a_DocumentId){this.documentId = a_DocumentId;}
 
     public String getDocumentId(){return documentId;}
+
+    public String getDealer() {
+        return dealer;
+    }
+
+    public void setDealer(String dealer) {
+        this.dealer = dealer;
+    }
 }

@@ -40,6 +40,7 @@ public class ProductViewAdapter extends RecyclerView.Adapter<ProductViewHolder> 
         int index = holder.getAdapterPosition();
 
         holder.name.setText(contentList.get(index).getName());
+        holder.dealer.setText(contentList.get(index).getDealer());
         holder.code.setText(contentList.get(index).getCode());
         holder.price.setText(contentList.get(index).getPrice());
         holder.owner.setText(contentList.get(index).getOwner());

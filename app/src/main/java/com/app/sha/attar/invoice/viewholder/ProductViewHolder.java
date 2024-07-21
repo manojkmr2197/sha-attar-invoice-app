@@ -14,7 +14,7 @@ import com.app.sha.attar.invoice.R;
 public class ProductViewHolder extends RecyclerView.ViewHolder {
 
     public Button edit;
-    public TextView name,code,price,owner;
+    public TextView name,code,price,owner,dealer;
 
     public ProductViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -24,6 +24,7 @@ public class ProductViewHolder extends RecyclerView.ViewHolder {
         code =(TextView) itemView.findViewById(R.id.product_item_code);
         price =(TextView) itemView.findViewById(R.id.product_item_price);
         owner =(TextView) itemView.findViewById(R.id.product_item_owner);
+        dealer =(TextView) itemView.findViewById(R.id.product_item_dealer);
 
 
     }
