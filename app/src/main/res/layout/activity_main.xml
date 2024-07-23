@@ -261,6 +261,7 @@
                                                     android:layout_height="wrap_content"
                                                     android:layout_marginStart="5dp"
                                                     android:layout_weight="0.7"
+                                                    android:inputType="number"
                                                     android:hint="eg. 9876543210"
                                                     android:textColor="@color/app_color"
                                                     android:textSize="13sp" />

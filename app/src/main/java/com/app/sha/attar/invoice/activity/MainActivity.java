@@ -7,7 +7,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -42,6 +45,7 @@ import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
+import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.SharedConstants;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
@@ -99,7 +103,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+
+        if (AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
         setContentView(R.layout.activity_main);
 
         context = MainActivity.this;
@@ -167,12 +174,51 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         };
 
+        customer_phone.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (editable.length() == 10) {
+                    Toast.makeText(context, "Searching .! ", Toast.LENGTH_LONG).show();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(customer_phone.getWindowToken(), 0);
+                    searchContactInfo();
+
+                }
+            }
+        });
+
+
         billingAdapter = new BillingViewAdapter(context, billingItemModelList, listener);
         bill_recycler.setLayoutManager(new LinearLayoutManager(this));
         bill_recycler.setAdapter(billingAdapter);
 
         manageBillingLayout();
 
+    }
+
+    private void searchContactInfo() {
+
+        dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
+            @Override
+            public void onCallback(List<BillingInvoiceModel> aCustomerDetails) {
+                System.out.println("customerHistorySize: " + aCustomerDetails.size());
+                if(aCustomerDetails.size() >0){
+                    customer_name.setText(aCustomerDetails.get(0).getCustomerName());
+                }else{
+                    Toast.makeText(context, "It's a new Customer .! ", Toast.LENGTH_LONG).show();
+                }
+            }
+        }, customer_phone.getText().toString());
     }
 
     private boolean checkInternet() {

@@ -2,6 +2,7 @@ package com.app.sha.attar.invoice.model;
 
 public class ReportModel {
 
+    String date;
     String name;
     int quantity;
     double soldPrice;
@@ -46,5 +47,13 @@ public class ReportModel {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
     }
 }

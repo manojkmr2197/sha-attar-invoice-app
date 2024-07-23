@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
@@ -39,6 +40,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.ReportViewAdapter;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
+import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.ReportModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
@@ -47,9 +49,9 @@ import com.app.sha.attar.invoice.utils.ReportGenerator;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 
 public class ReportActivity extends AppCompatActivity implements View.OnClickListener {
@@ -108,17 +110,16 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
     private void prepareProductReport(List<BillingInvoiceModel> billingInvoiceModelList) {
         reportProductList.clear();
-        Map<String, ReportGenerator.AggregatedData> reportData = ReportGenerator.getSalesReportData(billingInvoiceModelList);
+        
+        for (BillingInvoiceModel invoice : billingInvoiceModelList){
+            for (BillingItemModel item : invoice.getBillingItemModelList()) {
+                if (!item.getType().equals("PRODUCT")) {
+                    continue;
+                }
+                reportProductList.add(getReportModel(item,invoice));
+            }
+        }
 
-        reportData.entrySet().stream().forEach(entry->{
-            ReportModel report = new ReportModel();
-            report.setName(entry.getKey());
-            report.setActualPrice(entry.getValue().actualPrice);
-            report.setQuantity(entry.getValue().quantity);
-            report.setProfit(entry.getValue().profit);
-            report.setSoldPrice(entry.getValue().soldPrice);
-            reportProductList.add(report);
-        });
         double totalActual = 0.0;
         double totalSold = 0.0;
         double totalProfit = 0.0;
@@ -142,17 +143,14 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     private void  prepareNonProductReport(List<BillingInvoiceModel> billingInvoiceModelList) {
         reportAccessoriesList.clear();
 
-        Map<String, ReportGenerator.AccessoryAggregatedData> reportData = ReportGenerator.getAccessoriesReportData(billingInvoiceModelList);
-
-        reportData.entrySet().stream().forEach(entry->{
-            ReportModel report = new ReportModel();
-            report.setName(entry.getKey());
-            report.setActualPrice(entry.getValue().actualPrice);
-            report.setQuantity(entry.getValue().quantity);
-            report.setProfit(entry.getValue().profit);
-            report.setSoldPrice(entry.getValue().soldPrice);
-            reportAccessoriesList.add(report);
-        });
+        for (BillingInvoiceModel invoice : billingInvoiceModelList){
+            for (BillingItemModel item : invoice.getBillingItemModelList()) {
+                if (!item.getType().equals("NON_PRODUCT")) {
+                    continue;
+                }
+                reportAccessoriesList.add(getReportModel(item, invoice));
+            }
+        }
 
         double totalActual = 0.0;
         double totalSold = 0.0;
@@ -173,10 +171,32 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         reportAccessoriesList.add(report);
     }
 
+    private ReportModel getReportModel(BillingItemModel item, BillingInvoiceModel invoice) {
+        double soldPrice = item.getSellingItemPrice();
+        double actualPrice = item.getTotalPrice();
+        double profit = soldPrice - actualPrice;
+        ReportModel report = new ReportModel();
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            ZoneOffset istOffset = ZoneOffset.ofHoursMinutes(5, 30);
+            OffsetDateTime offsetDateTime = Instant.ofEpochSecond(invoice.getBillingDate()).atOffset(istOffset);
+            report.setDate(offsetDateTime.format(formatter));
+        }
+        report.setName(item.getName());
+        report.setActualPrice(actualPrice);
+        report.setQuantity((item.getUnits()!=null)?item.getUnits():1);
+        report.setProfit(profit);
+        report.setSoldPrice(item.getSellingItemPrice());
+        return report;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        if (AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
         setContentView(R.layout.activity_report);
 
         context = ReportActivity.this;
@@ -306,8 +326,8 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     private void saveExcelFile(List<BillingInvoiceModel> billingInvoiceModelList) throws Exception {
         String fileName = "report-"+System.currentTimeMillis()+".xlsx";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
-
-        ReportGenerator.createExcelReport(billingInvoiceModelList, file);
+        ReportGenerator reportGenerator  = new ReportGenerator();
+        reportGenerator.createExcelReport(billingInvoiceModelList, file);
 
         // Notify the user
         Toast.makeText(this, "Report Generated: " + fileName, Toast.LENGTH_LONG).show();

@@ -10,9 +10,10 @@ import com.app.sha.attar.invoice.R;
 
 public class ReportViewHolder extends RecyclerView.ViewHolder {
 
-    public TextView name,quantity,actual_amt,selling_amount,profit;
+    public TextView date,name,quantity,actual_amt,selling_amount,profit;
     public ReportViewHolder(@NonNull View itemView) {
         super(itemView);
+        date = (TextView) itemView.findViewById(R.id.report_item_date);
         name = (TextView) itemView.findViewById(R.id.report_item_name);
         quantity = (TextView) itemView.findViewById(R.id.report_item_quantity);
         actual_amt = (TextView) itemView.findViewById(R.id.report_item_actual_amt);

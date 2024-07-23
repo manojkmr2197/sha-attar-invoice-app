@@ -117,11 +117,20 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="3dp">
 
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.25"
+                    android:text="Date"
+                    android:textAllCaps="true"
+                    android:textColor="@color/app_color"
+                    android:textSize="9sp" />
+
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
+                    android:layout_weight="0.4"
                     android:text="Name"
                     android:textColor="@color/app_color"
                     android:textSize="11sp" />
