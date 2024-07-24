@@ -62,7 +62,8 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     Button search_bt;
     Spinner typeSpinner;
 
-    List<BillingInvoiceModel> billingInvoiceModelList= new ArrayList<>();;
+    List<BillingInvoiceModel> billingInvoiceModelList = new ArrayList<>();
+    ;
     DBUtil dbObj;
 
     List<ReportModel> reportProductList = new ArrayList<>();
@@ -72,8 +73,8 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     private static final int REQUEST_WRITE_PERMISSION = 786;
 
     RadioGroup reportRadioGroup;
-    RadioButton productRadio,nonProductRadio;
-    LinearLayout data_ll,no_data_ll;
+    RadioButton productRadio, nonProductRadio;
+    LinearLayout data_ll, no_data_ll;
     RecyclerView reportRecyclerView;
 
     ReportViewAdapter reportViewAdapter;
@@ -84,7 +85,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
             @Override
             public void onCallback(List<BillingInvoiceModel> result) {
 
-                if(result.isEmpty()){
+                if (result.isEmpty()) {
                     Toast.makeText(ReportActivity.this, "No bill Data found .!", Toast.LENGTH_LONG).show();
                     return;
                 }
@@ -110,25 +111,25 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
     private void prepareProductReport(List<BillingInvoiceModel> billingInvoiceModelList) {
         reportProductList.clear();
-        
-        for (BillingInvoiceModel invoice : billingInvoiceModelList){
+
+        for (BillingInvoiceModel invoice : billingInvoiceModelList) {
             for (BillingItemModel item : invoice.getBillingItemModelList()) {
                 if (!item.getType().equals("PRODUCT")) {
                     continue;
                 }
-                reportProductList.add(getReportModel(item,invoice));
+                reportProductList.add(getReportModel(item, invoice));
             }
         }
 
         double totalActual = 0.0;
         double totalSold = 0.0;
         double totalProfit = 0.0;
-        int totalQuantity =0;
-        for(ReportModel data : reportProductList){
-            totalActual+=data.getActualPrice();
-            totalSold+=data.getSoldPrice();
-            totalProfit+=data.getProfit();
-            totalQuantity+=data.getQuantity();
+        int totalQuantity = 0;
+        for (ReportModel data : reportProductList) {
+            totalActual += data.getActualPrice();
+            totalSold += data.getSoldPrice();
+            totalProfit += data.getProfit();
+            totalQuantity += data.getQuantity();
         }
         ReportModel report = new ReportModel();
         report.setName("Total");
@@ -140,10 +141,10 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
     }
 
-    private void  prepareNonProductReport(List<BillingInvoiceModel> billingInvoiceModelList) {
+    private void prepareNonProductReport(List<BillingInvoiceModel> billingInvoiceModelList) {
         reportAccessoriesList.clear();
 
-        for (BillingInvoiceModel invoice : billingInvoiceModelList){
+        for (BillingInvoiceModel invoice : billingInvoiceModelList) {
             for (BillingItemModel item : invoice.getBillingItemModelList()) {
                 if (!item.getType().equals("NON_PRODUCT")) {
                     continue;
@@ -155,12 +156,12 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         double totalActual = 0.0;
         double totalSold = 0.0;
         double totalProfit = 0.0;
-        int totalQuantity =0;
-        for(ReportModel data : reportAccessoriesList){
-            totalActual+=data.getActualPrice();
-            totalSold+=data.getSoldPrice();
-            totalProfit+=data.getProfit();
-            totalQuantity+=data.getQuantity();
+        int totalQuantity = 0;
+        for (ReportModel data : reportAccessoriesList) {
+            totalActual += data.getActualPrice();
+            totalSold += data.getSoldPrice();
+            totalProfit += data.getProfit();
+            totalQuantity += data.getQuantity();
         }
         ReportModel report = new ReportModel();
         report.setName("Total");
@@ -185,7 +186,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         }
         report.setName(item.getName());
         report.setActualPrice(actualPrice);
-        report.setQuantity((item.getUnits()!=null)?item.getUnits():1);
+        report.setQuantity((item.getUnits() != null) ? item.getUnits() : 1);
         report.setProfit(profit);
         report.setSoldPrice(item.getSellingItemPrice());
         return report;
@@ -243,13 +244,13 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
                 // Find which radio button is selected
                 displayList.clear();
                 if (R.id.report_product_radio == checkedId) {
-                    if(reportProductList.isEmpty()){
+                    if (reportProductList.isEmpty()) {
                         Toast.makeText(ReportActivity.this, "No Product bill Data found .!", Toast.LENGTH_LONG).show();
                         return;
                     }
                     displayList.addAll(reportProductList);
                 } else if (R.id.report_non_product_radio == checkedId) {
-                    if(reportProductList.isEmpty()){
+                    if (reportProductList.isEmpty()) {
                         Toast.makeText(ReportActivity.this, "No Accessories bill Data found .!", Toast.LENGTH_LONG).show();
                         return;
                     }
@@ -260,9 +261,31 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         });
 
         reportRecyclerView = (RecyclerView) findViewById(R.id.report_recyclerView);
-        reportViewAdapter = new ReportViewAdapter(context,displayList);
+        reportViewAdapter = new ReportViewAdapter(context, displayList);
         reportRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         reportRecyclerView.setAdapter(reportViewAdapter);
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+
+            // Request the necessary permissions
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO, Manifest.permission.READ_MEDIA_AUDIO},
+                    REQUEST_WRITE_PERMISSION);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_WRITE_PERMISSION);
+        }
 
     }
 
@@ -309,31 +332,26 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void downloadReport() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION);
-        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION);
-        } else {
-            try {
-                saveExcelFile(billingInvoiceModelList);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(ReportActivity.this, "Internal Server Error. Please try again later.!", Toast.LENGTH_LONG).show();
-            }
+        try {
+            Toast.makeText(ReportActivity.this, "Loading.!", Toast.LENGTH_LONG).show();
+            saveExcelFile(billingInvoiceModelList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(ReportActivity.this, "Internal Server Error. Please try again later.!", Toast.LENGTH_LONG).show();
         }
     }
 
     private void saveExcelFile(List<BillingInvoiceModel> billingInvoiceModelList) throws Exception {
-        String fileName = "report-"+System.currentTimeMillis()+".xlsx";
+        String fileName = "report-" + System.currentTimeMillis() + ".xlsx";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
-        ReportGenerator reportGenerator  = new ReportGenerator();
+        ReportGenerator reportGenerator = new ReportGenerator();
         reportGenerator.createExcelReport(billingInvoiceModelList, file);
 
         // Notify the user
         Toast.makeText(this, "Report Generated: " + fileName, Toast.LENGTH_LONG).show();
 
         // Use FileProvider to get the URI
-        Uri fileUri = FileProvider.getUriForFile(this, "com.app.sha.attar.invoice.fileprovider" , file);
+        Uri fileUri = FileProvider.getUriForFile(this, "com.app.sha.attar.invoice.fileprovider", file);
 
         // Open the file using a file explorer
         Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -347,13 +365,14 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_WRITE_PERMISSION && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(ReportActivity.this, "Permission Granted .!", Toast.LENGTH_SHORT).show();
             // Permission granted, proceed with saving the file
-            try {
-                saveExcelFile(billingInvoiceModelList);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(ReportActivity.this, "Internal Server Error. Please try again later.!", Toast.LENGTH_LONG).show();
-            }
+//            try {
+//                saveExcelFile(billingInvoiceModelList);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//                Toast.makeText(ReportActivity.this, "Internal Server Error. Please try again later.!", Toast.LENGTH_LONG).show();
+//            }
         }
     }
 }
