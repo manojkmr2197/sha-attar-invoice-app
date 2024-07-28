@@ -13,8 +13,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class AccessoriesActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -146,6 +149,15 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         TextInputEditText name = (TextInputEditText) dialog.findViewById(R.id.accessories_add_name);
         TextInputEditText price = (TextInputEditText) dialog.findViewById(R.id.accessories_add_price);
+        TextInputEditText dealer = (TextInputEditText) dialog.findViewById(R.id.accessories_dealer_name);
+        Spinner owner = (Spinner) dialog.findViewById(R.id.accessories_add_owner);
+
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.spinner_owners, android.R.layout.simple_spinner_item);
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        owner.setAdapter(adapter);
 
         Button submit = (Button) dialog.findViewById(R.id.accessories_add_submit);
         TextView close = (TextView) dialog.findViewById(R.id.accessories_add_close);
@@ -153,6 +165,12 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         if (accessoriesModel != null) {
             name.setText(accessoriesModel.getName());
             price.setText(String.valueOf(accessoriesModel.getPrice()));
+            dealer.setText(accessoriesModel.getDealer());
+            if ("MTS".equalsIgnoreCase(accessoriesModel.getOwner())) {
+                owner.setSelection(0);
+            } else if ("IK".equalsIgnoreCase(accessoriesModel.getOwner())) {
+                owner.setSelection(1);
+            }
 
             delete.setVisibility(View.VISIBLE);
             delete.setOnClickListener(new View.OnClickListener() {
@@ -207,6 +225,8 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                 if (accessoriesModel != null) {
                     accessoriesModel.setName(name.getText().toString());
                     accessoriesModel.setPrice(Double.valueOf(price.getText().toString()));
+                    accessoriesModel.setOwner(owner.getSelectedItem().toString());
+                    accessoriesModel.setDealer(dealer.getText().toString());
 
                     db.collection(DatabaseConstants.ACCESSORIES_COLLECTION)
                             .document(accessoriesModel.getDocumentId())
@@ -226,11 +246,22 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                                 }
                             });
                 } else {
+                    List<AccessoriesModel> filteredProducts = itemList.stream()
+                            .filter(product -> name.getText().toString().equalsIgnoreCase(product.getName()))
+                            .collect(Collectors.toList());
+
+                    if(!filteredProducts.isEmpty()){
+                        Toast.makeText(context,"Accessories Already Added .!",Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
                     AccessoriesModel accessoriesModel = new AccessoriesModel();
                     accessoriesModel.setName(name.getText().toString());
                     accessoriesModel.setPrice(Double.valueOf(price.getText().toString()));
                     accessoriesModel.setId(getLatestProductID());
                     accessoriesModel.setDocumentId(SingleTon.generateAccessoriesDocument());
+                    accessoriesModel.setOwner(owner.getSelectedItem().toString());
+                    accessoriesModel.setDealer(dealer.getText().toString());
 
                     db.collection(DatabaseConstants.ACCESSORIES_COLLECTION)
                             .document(accessoriesModel.getDocumentId())

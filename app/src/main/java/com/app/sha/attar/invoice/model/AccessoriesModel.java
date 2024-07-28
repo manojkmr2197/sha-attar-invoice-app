@@ -6,6 +6,8 @@ public class AccessoriesModel {
     private String name;
     private Double price;
     private String documentId;
+    private String owner;
+    private String dealer;
 
     public AccessoriesModel() {
     }
@@ -48,5 +50,21 @@ public class AccessoriesModel {
 
     public void setDocumentId(String documentId) {
         this.documentId = documentId;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    public String getDealer() {
+        return dealer;
+    }
+
+    public void setDealer(String dealer) {
+        this.dealer = dealer;
     }
 }

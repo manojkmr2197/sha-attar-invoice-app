@@ -35,6 +35,7 @@ public class DBUtil {
     public void getProductDetails(FirestoreCallback<List<ProductModel>> callback) {
         // Fetch data from Firestore
         db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
+                .orderBy("name")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -56,6 +57,7 @@ public class DBUtil {
     public void getAllAccessories(FirestoreCallback<List<AccessoriesModel>> callback) {
         // Fetch data from Firestore
         db.collection(DatabaseConstants.ACCESSORIES_COLLECTION)
+                .orderBy("name")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override

@@ -40,7 +40,11 @@ public class AccessoriesViewAdapter  extends RecyclerView.Adapter<AccessoriesVie
         int index = holder.getAdapterPosition();
 
         holder.name.setText(contentList.get(index).getName());
+        holder.dealer.setText(contentList.get(index).getDealer());
+        holder.owner.setText(contentList.get(index).getOwner());
         holder.price.setText("Rs. "+String.valueOf(contentList.get(index).getPrice()));
+
+
 
         holder.edit.setOnClickListener(new View.OnClickListener() {
             @Override

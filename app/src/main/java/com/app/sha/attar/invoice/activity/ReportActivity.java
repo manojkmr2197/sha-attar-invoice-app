@@ -79,6 +79,8 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
     ReportViewAdapter reportViewAdapter;
 
+    OffsetDateTime startOfDay,endOfDay;
+
     private void getBillingInvoiceModel(Long startTime, Long endTime) {
 
         dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
@@ -299,8 +301,8 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
             downloadReportStatus();
         } else if (R.id.report_search == view.getId()) {
             LocalDate today = LocalDate.now();
-            OffsetDateTime startOfDay = today.atStartOfDay().atOffset(ZoneOffset.UTC);
-            OffsetDateTime endOfDay = today.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+             startOfDay = today.atStartOfDay().atOffset(ZoneOffset.UTC);
+             endOfDay = today.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
 
             if (typeSpinner.getSelectedItemPosition() == 0) {
                 System.out.println(startOfDay + " --- " + endOfDay);
@@ -345,7 +347,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         String fileName = "report-" + System.currentTimeMillis() + ".xlsx";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
         ReportGenerator reportGenerator = new ReportGenerator();
-        reportGenerator.createExcelReport(billingInvoiceModelList, file);
+        reportGenerator.createExcelReport(billingInvoiceModelList, file,startOfDay,endOfDay);
 
         // Notify the user
         Toast.makeText(this, "Report Generated: " + fileName, Toast.LENGTH_LONG).show();

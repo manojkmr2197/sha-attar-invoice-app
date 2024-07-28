@@ -8,6 +8,7 @@ public class ReportModel {
     double soldPrice;
     double actualPrice;
     double profit;
+    String customerInfo;
 
     public int getQuantity() {
         return quantity;
@@ -55,5 +56,13 @@ public class ReportModel {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public String getCustomerInfo() {
+        return customerInfo;
+    }
+
+    public void setCustomerInfo(String customerInfo) {
+        this.customerInfo = customerInfo;
     }
 }

@@ -640,7 +640,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedNonProduct[0].getName());
-                        billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice());
+                        billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
 
@@ -682,7 +682,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                         newBillingItemModel.setType(type[0]);
                         newBillingItemModel.setName(selectedNonProduct[0].getName());
-                        newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice());
+                        newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                     }
                     billingItemModelList.add(newBillingItemModel);

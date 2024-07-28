@@ -12,7 +12,7 @@ import com.app.sha.attar.invoice.R;
 public class AccessoriesViewHolder extends RecyclerView.ViewHolder {
 
     public Button edit;
-    public TextView name,price;
+    public TextView name,price,owner,dealer;
 
     public AccessoriesViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -20,5 +20,8 @@ public class AccessoriesViewHolder extends RecyclerView.ViewHolder {
         edit =(Button)itemView.findViewById(R.id.accessories_item_edit);
         name =(TextView) itemView.findViewById(R.id.accessories_item_name);
         price =(TextView) itemView.findViewById(R.id.accessories_item_price);
+        owner =(TextView) itemView.findViewById(R.id.accessories_item_owner);
+        dealer =(TextView) itemView.findViewById(R.id.accessories_item_dealer);
+
     }
 }

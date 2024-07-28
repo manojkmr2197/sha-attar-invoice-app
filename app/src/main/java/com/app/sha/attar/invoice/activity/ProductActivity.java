@@ -10,10 +10,13 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -70,7 +73,6 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
 
     TextInputEditText search_et;
     Spinner ownerSpinner;
-    Button search_bt;
 
     String searchText, searchOwner;
     DBUtil dbObj;
@@ -104,8 +106,48 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
 
         search_et = (TextInputEditText) findViewById(R.id.product_search_et);
         ownerSpinner = (Spinner) findViewById(R.id.product_spinner);
-        search_bt = (Button) findViewById(R.id.product_search);
-        search_bt.setOnClickListener(this);
+
+        search_et.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                Log.v("data1 -- >", search_et.getText().toString());
+                Log.v("data2 -- >", ownerSpinner.getSelectedItem().toString());
+
+                searchText = search_et.getText().toString();
+                searchOwner = ownerSpinner.getSelectedItem().toString();
+                if (searchOwner.equalsIgnoreCase("ALL")) {
+                    searchOwner = "";
+                }
+                filter(searchText, searchOwner);
+            }
+        });
+
+        ownerSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                searchText = search_et.getText().toString();
+                searchOwner = adapterView.getItemAtPosition(i).toString();
+                if (searchOwner.equalsIgnoreCase("ALL")) {
+                    searchOwner = "";
+                }
+                filter(searchText, searchOwner);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
 
         recyclerView = (RecyclerView) findViewById(R.id.product_recyclerView);
         TextView back = (TextView) findViewById(R.id.product_back);
@@ -164,7 +206,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             no_data_fl.setVisibility(View.VISIBLE);
             data_fl.setVisibility(View.GONE);
             return;
-        }else{
+        } else {
             data_fl.setVisibility(View.VISIBLE);
             no_data_fl.setVisibility(View.GONE);
         }
@@ -180,17 +222,6 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             finish();
         } else if (R.id.product_add_fab == view.getId()) {
             createDialogBox(ProductActivity.this, null);
-        } else if (R.id.product_search == view.getId()) {
-            Log.v("data1 -- >", search_et.getText().toString());
-            Log.v("data2 -- >", ownerSpinner.getSelectedItem().toString());
-
-            searchText = search_et.getText().toString();
-            searchOwner = ownerSpinner.getSelectedItem().toString();
-            if (searchOwner.equalsIgnoreCase("ALL")) {
-                searchOwner = "";
-            }
-            filter(searchText, searchOwner);
-
         }
     }
 
@@ -306,6 +337,16 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                                 }
                             });
                 } else {
+
+                    List<ProductModel> filteredProducts = itemList.stream()
+                            .filter(product -> name.getText().toString().equalsIgnoreCase(product.getName()))
+                            .collect(Collectors.toList());
+
+                    if (!filteredProducts.isEmpty()) {
+                        Toast.makeText(context, "Product Already Added .!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
                     ProductModel newProductModel = new ProductModel();
                     newProductModel.setName(name.getText().toString());
                     newProductModel.setPrice(price.getText().toString());
@@ -366,11 +407,22 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             Map<Character, List<ProductModel>> groupedByFirstLetter = products.stream()
                     .collect(Collectors.groupingBy(productModel -> productModel.getName().charAt(0)));
 
-            return (groupedByFirstLetter.containsKey(name.charAt(0)) && groupedByFirstLetter.get(name.charAt(0)) != null) ?
-                    String.valueOf(name.charAt(0)) + (groupedByFirstLetter.get(name.charAt(0)).size() + 1) :
-                    String.valueOf(name.charAt(0)) + 1;
+            return String.valueOf(name.charAt(0)) +
+                    ((groupedByFirstLetter.containsKey(name.charAt(0)) && groupedByFirstLetter.get(name.charAt(0)) != null) ?
+                            verifyNewCode(groupedByFirstLetter.get(name.charAt(0)).size(), products, String.valueOf(name.charAt(0))) :
+                            1);
         }
 
+    }
+
+    private int verifyNewCode(int i, List<ProductModel> products, String firstChar) {
+        i = i + 1;
+        for (ProductModel data : products) {
+            if (data.getCode().equalsIgnoreCase(firstChar + i)) {
+                i = verifyNewCode(i, products, firstChar);
+            }
+        }
+        return i;
     }
 
     public void filter(String text, String owner) {
@@ -412,7 +464,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         productAdapter.notifyDataSetChanged();
     }
 
-    public void setTotalProductItem(){
+    public void setTotalProductItem() {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         dbObj.getProductDetails(new FirestoreCallback<List<ProductModel>>() {
             @Override
