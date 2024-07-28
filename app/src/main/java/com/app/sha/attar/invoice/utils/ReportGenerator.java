@@ -224,12 +224,18 @@ public class ReportGenerator {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         Row dateRow = sheet.createRow(0);
-        Cell start_cell = dateRow.createCell(0);
+        Cell start_Text = dateRow.createCell(0);
+        start_Text.setCellValue("Starting Date");
+        Cell start_cell = dateRow.createCell(1);
         start_cell.setCellValue(startOfDay.format(formatter));
-        Cell end_cell = dateRow.createCell(1);
+
+        Row dateRow1 = sheet.createRow(1);
+        Cell end_Text = dateRow1.createCell(0);
+        end_Text.setCellValue("End Date");
+        Cell end_cell = dateRow1.createCell(1);
         end_cell.setCellValue(endOfDay.format(formatter));
 
-        Row headerRow = sheet.createRow(1);
+        Row headerRow = sheet.createRow(2);
         int cellIndex = 0;
 
         String[] headers = {"Product Name", "Quantity", "Sold Price", "Actual Price", "Profit"};
@@ -243,7 +249,7 @@ public class ReportGenerator {
 
         itemsList.sort((entry1, entry2) -> Double.compare(entry2.getValue().profit, entry1.getValue().profit));
 
-        int rowCount = 1;
+        int rowCount = 2;
         for (Map.Entry<String, AccessoryAggregatedData> entry : itemsList) {
             rowCount = rowCount + 1;
             Row row = sheet.createRow(rowCount);
@@ -271,12 +277,18 @@ public class ReportGenerator {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         Row dateRow = sheet.createRow(0);
-        Cell start_cell = dateRow.createCell(0);
+        Cell start_Text = dateRow.createCell(0);
+        start_Text.setCellValue("Starting Date");
+        Cell start_cell = dateRow.createCell(1);
         start_cell.setCellValue(startOfDay.format(formatter));
-        Cell end_cell = dateRow.createCell(1);
+
+        Row dateRow1 = sheet.createRow(1);
+        Cell end_Text = dateRow1.createCell(0);
+        end_Text.setCellValue("End Date");
+        Cell end_cell = dateRow1.createCell(1);
         end_cell.setCellValue(endOfDay.format(formatter));
 
-        Row headerRow = sheet.createRow(1);
+        Row headerRow = sheet.createRow(2);
         int cellIndex = 0;
 
         String[] headers = {"Product Name", "Quantity", "Sold Price", "Actual Price", "Profit"};
@@ -290,7 +302,7 @@ public class ReportGenerator {
 
         itemsList.sort((entry1, entry2) -> Double.compare(entry2.getValue().profit, entry1.getValue().profit));
 
-        int rowCount = 1;
+        int rowCount = 2;
         for (Map.Entry<String, AggregatedData> entry : itemsList) {
             rowCount = rowCount + 1;
             Row row = sheet.createRow(rowCount);
