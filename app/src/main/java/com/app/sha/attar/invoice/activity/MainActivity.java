@@ -66,6 +66,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
@@ -445,6 +446,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         TextInputEditText product_size = (TextInputEditText) dialog.findViewById(R.id.new_bill_item_size);
         TextInputEditText product_selling_cost = (TextInputEditText) dialog.findViewById(R.id.new_bill_item_selling_price);
 
+
         RadioGroup typeRadioGroup = (RadioGroup) dialog.findViewById(R.id.new_bill_radio_group);
         final String[] type = {"PRODUCT"};
         RadioButton productRadioButton = (RadioButton) dialog.findViewById(R.id.new_bill_product);
@@ -566,9 +568,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
+
+        TextInputEditText occurance = (TextInputEditText) dialog.findViewById(R.id.new_bill_occurance);
         TextView submit = (TextView) dialog.findViewById(R.id.new_bill_add_submit);
         TextView close = (TextView) dialog.findViewById(R.id.new_bill_close);
         if (billingItemModel != null) {
+            occurance.setVisibility(View.GONE);
             if ("PRODUCT".equalsIgnoreCase(billingItemModel.getType())) {
                 productRadioButton.setChecked(true);
                 nonProductRadioButton.setChecked(false);
@@ -649,43 +654,50 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     billingAdapter.notifyDataSetChanged();
                     manageBillingLayout();
                 } else {
-                    BillingItemModel newBillingItemModel = new BillingItemModel();
-
-                    if ("PRODUCT".equalsIgnoreCase(type[0])) {
-                        if (selectedProduct[0] == null) {
-                            Toast.makeText(MainActivity.this, "Please Choose the Product Name..!", Toast.LENGTH_LONG).show();
-                            return;
-                        }
-                        if (StringUtils.isEmpty(product_size.getText().toString())) {
-                            Toast.makeText(MainActivity.this, "Please fill the Quantity..!", Toast.LENGTH_LONG).show();
-                            return;
-                        }
-                        newBillingItemModel.setProductModel(selectedProduct[0]);
-                        newBillingItemModel.setType(type[0]);
-                        newBillingItemModel.setName(selectedProduct[0].getName());
-                        newBillingItemModel.setCode(selectedProduct[0].getCode());
-                        newBillingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
-                        Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
-                        newBillingItemModel.setUnitPrice(fullPrice / 1000);
-                        newBillingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
-                        newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
-                    } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
-
-                        if (selectedNonProduct[0] == null) {
-                            Toast.makeText(MainActivity.this, "Please Choose the Accessories Name..!", Toast.LENGTH_LONG).show();
-                            return;
-                        }
-                        if (StringUtils.isEmpty(non_product_price.getText().toString())) {
-                            Toast.makeText(MainActivity.this, "Please fill the Price..!", Toast.LENGTH_LONG).show();
-                            return;
-                        }
-                        newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
-                        newBillingItemModel.setType(type[0]);
-                        newBillingItemModel.setName(selectedNonProduct[0].getName());
-                        newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
-                        newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
+                    int iterCount =0;
+                    if(StringUtils.isBlank(occurance.getText().toString())){
+                        occurance.setText("1");
                     }
-                    billingItemModelList.add(newBillingItemModel);
+                    iterCount = Integer.valueOf(occurance.getText().toString());
+                    for (int i=0;i<iterCount;i++) {
+                        BillingItemModel newBillingItemModel = new BillingItemModel();
+
+                        if ("PRODUCT".equalsIgnoreCase(type[0])) {
+                            if (selectedProduct[0] == null) {
+                                Toast.makeText(MainActivity.this, "Please Choose the Product Name..!", Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                            if (StringUtils.isEmpty(product_size.getText().toString())) {
+                                Toast.makeText(MainActivity.this, "Please fill the Quantity..!", Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                            newBillingItemModel.setProductModel(selectedProduct[0]);
+                            newBillingItemModel.setType(type[0]);
+                            newBillingItemModel.setName(selectedProduct[0].getName());
+                            newBillingItemModel.setCode(selectedProduct[0].getCode());
+                            newBillingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
+                            Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
+                            newBillingItemModel.setUnitPrice(fullPrice / 1000);
+                            newBillingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
+                        } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
+
+                            if (selectedNonProduct[0] == null) {
+                                Toast.makeText(MainActivity.this, "Please Choose the Accessories Name..!", Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                            if (StringUtils.isEmpty(non_product_price.getText().toString())) {
+                                Toast.makeText(MainActivity.this, "Please fill the Price..!", Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                            newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
+                            newBillingItemModel.setType(type[0]);
+                            newBillingItemModel.setName(selectedNonProduct[0].getName());
+                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
+                        }
+                        billingItemModelList.add(newBillingItemModel);
+                    }
                     billingAdapter.notifyDataSetChanged();
                     manageBillingLayout();
 
@@ -716,7 +728,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String inputText = input.getText().toString();
-                if (StringUtils.isEmpty(inputText) || !SharedConstants.ADMIN_PASSWORD.equals(inputText)) {
+                if (StringUtils.isEmpty(inputText) || !sharedPrefHelper.getPassword().equals(inputText)) {
                     Toast.makeText(MainActivity.this, "Wrong Password. try again later.!", Toast.LENGTH_LONG).show();
                     dialog.cancel();
                     return;

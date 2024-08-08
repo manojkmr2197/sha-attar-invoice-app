@@ -9,6 +9,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,7 +24,7 @@ public class PackageActivity extends AppCompatActivity implements View.OnClickLi
     Context context;
     Activity activity;
 
-    TextInputEditText amount_et;
+    TextInputEditText amount_et,update_password;
 
     SharedPrefHelper helper;
 
@@ -46,6 +47,10 @@ public class PackageActivity extends AppCompatActivity implements View.OnClickLi
 
         amount_et = (TextInputEditText) findViewById(R.id.packaging_amount_et);
         amount_et.setText(String.valueOf(helper.getPackageCost()));
+
+        update_password = (TextInputEditText) findViewById(R.id.update_password);
+        update_password.setText(helper.getPassword());
+
         Button submit = (Button) findViewById(R.id.packaging_save);
         submit.setOnClickListener(this);
         TextView back = (TextView) findViewById(R.id.packaging_back);
@@ -58,6 +63,8 @@ public class PackageActivity extends AppCompatActivity implements View.OnClickLi
             finish();
         }else if(R.id.packaging_save == v.getId()){
             helper.setPackageCost(Integer.parseInt(amount_et.getText().toString()));
+            helper.setPassword(update_password.getText().toString());
+            Toast.makeText(this,"Updated..!",Toast.LENGTH_SHORT).show();
             finish();
         }
     }
