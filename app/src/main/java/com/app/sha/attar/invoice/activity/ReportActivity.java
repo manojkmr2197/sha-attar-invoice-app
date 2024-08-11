@@ -190,7 +190,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         report.setActualPrice(actualPrice);
         report.setQuantity((item.getUnits() != null) ? item.getUnits() : 1);
         report.setProfit(profit);
-        report.setSoldPrice(item.getSellingItemPrice());
+        report.setSoldPrice(item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount()/100)));
         return report;
     }
 

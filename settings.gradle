@@ -22,5 +22,5 @@ dependencyResolutionManagement {
 }
 
 
-rootProject.name = "Sha Attar - Invoice"
+rootProject.name = "Sha's Attar - Invoice"
 include ':app'

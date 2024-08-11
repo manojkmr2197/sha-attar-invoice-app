@@ -164,7 +164,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         listener = new ClickListener() {
             @Override
             public void click(int index) {
-                createDialogBox(context, itemList.get(index));
+                createDialogBox(context, filteredList.get(index));
             }
         };
 

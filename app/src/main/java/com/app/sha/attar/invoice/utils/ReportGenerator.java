@@ -6,6 +6,7 @@ import com.app.sha.attar.invoice.model.ReportModel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -30,12 +31,14 @@ public class ReportGenerator {
         public double soldPrice;
         public double actualPrice;
         public double profit;
+        public String owner;
 
-        public AggregatedData(int quantity, double soldPrice, double actualPrice, double profit) {
+        public AggregatedData(int quantity, double soldPrice, double actualPrice, double profit,String owner) {
             this.quantity = quantity;
             this.soldPrice = soldPrice;
             this.actualPrice = actualPrice;
             this.profit = profit;
+            this.owner = owner;
         }
     }
 
@@ -44,12 +47,14 @@ public class ReportGenerator {
         public double soldPrice;
         public double actualPrice;
         public double profit;
+        public String owner;
 
-        public AccessoryAggregatedData(int quantity, double soldPrice, double actualPrice, double profit) {
+        public AccessoryAggregatedData(int quantity, double soldPrice, double actualPrice, double profit,String owner) {
             this.quantity = quantity;
             this.soldPrice = soldPrice;
             this.actualPrice = actualPrice;
             this.profit = profit;
+            this.owner = owner;
         }
     }
 
@@ -67,15 +72,16 @@ public class ReportGenerator {
                 }
                 String productName = item.getName();
                 int quantity = item.getUnits();
-                double soldPrice = item.getSellingItemPrice();
+                double soldPrice = item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount()/100));
                 double actualPrice = item.getUnitPrice() * quantity;
                 double profit = soldPrice - actualPrice;
-                aggregationMap.putIfAbsent(productName, new AggregatedData(0, 0, 0, 0));
+                aggregationMap.putIfAbsent(productName, new AggregatedData(0, 0, 0, 0,""));
                 AggregatedData aggregatedData = aggregationMap.get(productName);
                 aggregatedData.quantity += quantity;
                 aggregatedData.soldPrice += soldPrice;
                 aggregatedData.actualPrice += actualPrice;
                 aggregatedData.profit += profit;
+                aggregatedData.owner = item.getProductModel().getOwner();
             }
         }
         return aggregationMap;
@@ -95,15 +101,16 @@ public class ReportGenerator {
                 }
 
                 String productName = item.getName();
-                double soldPrice = item.getSellingItemPrice();
+                double soldPrice = item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount()/100));
                 double actualPrice = item.getTotalPrice();
                 double profit = soldPrice - actualPrice;
-                aggregationMap.putIfAbsent(productName, new AccessoryAggregatedData(0, 0, 0, 0));
+                aggregationMap.putIfAbsent(productName, new AccessoryAggregatedData(0, 0, 0, 0,""));
                 AccessoryAggregatedData aggregatedData = aggregationMap.get(productName);
                 aggregatedData.quantity += 1;
                 aggregatedData.soldPrice += soldPrice;
                 aggregatedData.actualPrice += actualPrice;
                 aggregatedData.profit += profit;
+                aggregatedData.owner = item.getAccessoriesModel().getOwner();
 
             }
         }
@@ -123,11 +130,17 @@ public class ReportGenerator {
             OffsetDateTime offsetDateTime = Instant.ofEpochSecond(invoice.getBillingDate()).atOffset(istOffset);
             report.setDate(offsetDateTime.format(formatter));
         }
+        if(item.getType().equals("PRODUCT")){
+            report.setOwner(item.getProductModel().getOwner());
+        }else if(item.getType().equals("NON_PRODUCT")){
+            report.setOwner(item.getAccessoriesModel().getOwner());
+        }
+
         report.setName(item.getName());
         report.setActualPrice(actualPrice);
         report.setQuantity((item.getUnits() != null) ? item.getUnits() : 1);
         report.setProfit(profit);
-        report.setSoldPrice(item.getSellingItemPrice());
+        report.setSoldPrice(item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount()/100)));
         if (!StringUtils.isBlank(invoice.getRemarks()))
             report.setCustomerInfo(invoice.getRemarks() + "(" + invoice.getCustomerPhone() + ")");
         return report;
@@ -202,6 +215,7 @@ public class ReportGenerator {
     public void createExcelReport(List<BillingInvoiceModel> invoices, File file, OffsetDateTime startOfDay, OffsetDateTime endOfDay) throws Exception {
 
         Workbook workbook = new XSSFWorkbook();
+
         prepareSalesSheet(workbook, invoices);
         prepareAccessoriesSheet(workbook, invoices);
         prepareConsolidatedSaleReport(workbook, invoices, startOfDay, endOfDay);
@@ -219,6 +233,8 @@ public class ReportGenerator {
 
         Map<String, AccessoryAggregatedData> salesData = getAggregatedAccessoriesReportData(invoices);
 
+        CellStyle wrapStyle = workbook.createCellStyle();
+        wrapStyle.setWrapText(true);
         Sheet sheet = workbook.createSheet("Consolidated Accessory Report");
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -238,7 +254,7 @@ public class ReportGenerator {
         Row headerRow = sheet.createRow(2);
         int cellIndex = 0;
 
-        String[] headers = {"Product Name", "Quantity", "Sold Price", "Actual Price", "Profit"};
+        String[] headers = {"Product Name","Owner", "Quantity", "Sold Price", "Actual Price", "Profit"};
 
         for (String key : headers) {
             Cell cell = headerRow.createCell(cellIndex++);
@@ -255,21 +271,30 @@ public class ReportGenerator {
             Row row = sheet.createRow(rowCount);
             Cell cell0 = row.createCell(0);
             cell0.setCellValue(entry.getKey());
+            cell0.setCellStyle(wrapStyle);
             Cell cell1 = row.createCell(1);
-            cell1.setCellValue(entry.getValue().quantity);
+            cell1.setCellValue(entry.getValue().owner);
+            cell1.setCellStyle(wrapStyle);
             Cell cell2 = row.createCell(2);
-            cell2.setCellValue(entry.getValue().soldPrice);
+            cell2.setCellValue(entry.getValue().quantity);
+            cell2.setCellStyle(wrapStyle);
             Cell cell3 = row.createCell(3);
-            cell3.setCellValue(entry.getValue().actualPrice);
+            cell3.setCellValue(entry.getValue().soldPrice);
+            cell3.setCellStyle(wrapStyle);
             Cell cell4 = row.createCell(4);
-            cell4.setCellValue(entry.getValue().profit);
+            cell4.setCellValue(entry.getValue().actualPrice);
+            cell4.setCellStyle(wrapStyle);
+            Cell cell5 = row.createCell(5);
+            cell5.setCellValue(entry.getValue().profit);
+            cell5.setCellStyle(wrapStyle);
 
         }
 
     }
 
     private void prepareConsolidatedSaleReport(Workbook workbook, List<BillingInvoiceModel> invoices, OffsetDateTime startOfDay, OffsetDateTime endOfDay) {
-
+        CellStyle wrapStyle = workbook.createCellStyle();
+        wrapStyle.setWrapText(true);
         Map<String, AggregatedData> salesData = getAggregatedSalesReportData(invoices);
 
         Sheet sheet = workbook.createSheet("Consolidated Sale Report");
@@ -291,7 +316,7 @@ public class ReportGenerator {
         Row headerRow = sheet.createRow(2);
         int cellIndex = 0;
 
-        String[] headers = {"Product Name", "Quantity", "Sold Price", "Actual Price", "Profit"};
+        String[] headers = {"Product Name","Owner", "Quantity", "Sold Price", "Actual Price", "Profit"};
 
         for (String key : headers) {
             Cell cell = headerRow.createCell(cellIndex++);
@@ -308,29 +333,40 @@ public class ReportGenerator {
             Row row = sheet.createRow(rowCount);
             Cell cell0 = row.createCell(0);
             cell0.setCellValue(entry.getKey());
+            cell0.setCellStyle(wrapStyle);
             Cell cell1 = row.createCell(1);
-            cell1.setCellValue(entry.getValue().quantity);
+            cell1.setCellValue(entry.getValue().owner);
+            cell1.setCellStyle(wrapStyle);
             Cell cell2 = row.createCell(2);
-            cell2.setCellValue(entry.getValue().soldPrice);
+            cell2.setCellValue(entry.getValue().quantity);
+            cell2.setCellStyle(wrapStyle);
             Cell cell3 = row.createCell(3);
-            cell3.setCellValue(entry.getValue().actualPrice);
+            cell3.setCellValue(entry.getValue().soldPrice);
+            cell3.setCellStyle(wrapStyle);
             Cell cell4 = row.createCell(4);
-            cell4.setCellValue(entry.getValue().profit);
+            cell4.setCellValue(entry.getValue().actualPrice);
+            cell4.setCellStyle(wrapStyle);
+            Cell cell5 = row.createCell(5);
+            cell5.setCellValue(entry.getValue().profit);
+            cell5.setCellStyle(wrapStyle);
 
         }
+
+
 
     }
 
     private void prepareAccessoriesSheet(Workbook workbook, List<BillingInvoiceModel> invoices) {
 
-
         List<ReportModel> accessoryData = getAccessoriesReportData(invoices);
 
+        CellStyle wrapStyle = workbook.createCellStyle();
+        wrapStyle.setWrapText(true);
         Sheet sheet = workbook.createSheet("Accessories Report");
         Row headerRow = sheet.createRow(0);
         int cellIndex = 0;
 
-        String[] headers = {"Date", "Accessory Name", "Quantity", "Sold Price", "Actual Price", "Profit", "Customer Remarks"};
+        String[] headers = {"Date", "Accessory Name","Owner", "Quantity", "Sold Price", "Actual Price", "Profit", "Customer Remarks"};
 
         for (String key : headers) {
             Cell cell = headerRow.createCell(cellIndex++);
@@ -343,34 +379,48 @@ public class ReportGenerator {
             Row row = sheet.createRow(rowCount);
             Cell cell0 = row.createCell(0);
             cell0.setCellValue(entry.getDate());
+            cell0.setCellStyle(wrapStyle);
             Cell cell1 = row.createCell(1);
             cell1.setCellValue(entry.getName());
+            cell1.setCellStyle(wrapStyle);
             Cell cell2 = row.createCell(2);
-            cell2.setCellValue(entry.getQuantity());
+            cell2.setCellValue(entry.getOwner());
+            cell2.setCellStyle(wrapStyle);
             Cell cell3 = row.createCell(3);
-            cell3.setCellValue(entry.getSoldPrice());
+            cell3.setCellValue(entry.getQuantity());
+            cell3.setCellStyle(wrapStyle);
             Cell cell4 = row.createCell(4);
-            cell4.setCellValue(entry.getActualPrice());
+            cell4.setCellValue(entry.getSoldPrice());
+            cell4.setCellStyle(wrapStyle);
             Cell cell5 = row.createCell(5);
-            cell5.setCellValue(entry.getProfit());
+            cell5.setCellValue(entry.getActualPrice());
+            cell5.setCellStyle(wrapStyle);
             Cell cell6 = row.createCell(6);
-            cell6.setCellValue(entry.getCustomerInfo());
+            cell6.setCellValue(entry.getProfit());
+            cell6.setCellStyle(wrapStyle);
+            Cell cell7 = row.createCell(7);
+            cell7.setCellValue(entry.getCustomerInfo());
+            cell7.setCellStyle(wrapStyle);
         }
+
 
     }
 
     private void prepareSalesSheet(Workbook workbook, List<BillingInvoiceModel> invoices) {
         List<ReportModel> reportData = getSalesReportData(invoices);
 
+        CellStyle wrapStyle = workbook.createCellStyle();
+        wrapStyle.setWrapText(true);
         Sheet sheet = workbook.createSheet("Sales Report");
         Row headerRow = sheet.createRow(0);
         int cellIndex = 0;
 
-        String[] headers = {"Date", "Product Name", "Quantity", "Sold Price", "Actual Price", "Profit", "Customer Remarks"};
+        String[] headers = {"Date", "Product Name","Owner", "Quantity", "Sold Price", "Actual Price", "Profit", "Customer Remarks"};
 
         for (String key : headers) {
             Cell cell = headerRow.createCell(cellIndex++);
             cell.setCellValue(key);
+            cell.setCellStyle(wrapStyle);
         }
 
         int rowCount = 0;
@@ -379,19 +429,30 @@ public class ReportGenerator {
             Row row = sheet.createRow(rowCount);
             Cell cell0 = row.createCell(0);
             cell0.setCellValue(entry.getDate());
+            cell0.setCellStyle(wrapStyle);
             Cell cell1 = row.createCell(1);
             cell1.setCellValue(entry.getName());
+            cell1.setCellStyle(wrapStyle);
             Cell cell2 = row.createCell(2);
-            cell2.setCellValue(entry.getQuantity());
+            cell2.setCellValue(entry.getOwner());
+            cell2.setCellStyle(wrapStyle);
             Cell cell3 = row.createCell(3);
-            cell3.setCellValue(entry.getSoldPrice());
+            cell3.setCellValue(entry.getQuantity());
+            cell3.setCellStyle(wrapStyle);
             Cell cell4 = row.createCell(4);
-            cell4.setCellValue(entry.getActualPrice());
+            cell4.setCellValue(entry.getSoldPrice());
+            cell4.setCellStyle(wrapStyle);
             Cell cell5 = row.createCell(5);
-            cell5.setCellValue(entry.getProfit());
+            cell5.setCellValue(entry.getActualPrice());
+            cell5.setCellStyle(wrapStyle);
             Cell cell6 = row.createCell(6);
-            cell6.setCellValue(entry.getCustomerInfo());
+            cell6.setCellValue(entry.getProfit());
+            cell6.setCellStyle(wrapStyle);
+            Cell cell7 = row.createCell(7);
+            cell7.setCellValue(entry.getCustomerInfo());
+            cell7.setCellStyle(wrapStyle);
 
         }
+
     }
 }

@@ -2,6 +2,7 @@ package com.app.sha.attar.invoice.model;
 
 public class ReportModel {
 
+    String owner;
     String date;
     String name;
     int quantity;
@@ -64,5 +65,13 @@ public class ReportModel {
 
     public void setCustomerInfo(String customerInfo) {
         this.customerInfo = customerInfo;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 }
