@@ -75,15 +75,6 @@
                         android:textStyle="bold" />
 
 
-                    <TextView
-                        android:id="@+id/billing_product_unit_price"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="10sp"
-                        android:text="Rs. 7"
-                        android:textColor="@color/app_color"
-                        android:textStyle="bold" />
-
                 </LinearLayout>
 
                 <View

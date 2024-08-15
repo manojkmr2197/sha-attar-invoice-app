@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@android:color/transparent"
+    android:background="@color/white"
     app:cardCornerRadius="5dp">
 
     <LinearLayout
@@ -85,7 +85,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:visibility="gone">
+                    android:visibility="visible">
 
 
                     <AutoCompleteTextView
@@ -93,12 +93,12 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:drawableEnd="@drawable/baseline_arrow_drop_down_24"
-                        android:hint="Search eg. ATTAR" />
+                        android:hint="Search Product Name" />
 
                     <LinearLayout
+                        android:id="@+id/new_bill_detail_ll"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:id="@+id/new_bill_detail_ll"
                         android:gravity="center_vertical">
 
                         <TextView
@@ -111,7 +111,7 @@
                             android:id="@+id/new_bill_item_owner"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text=" MTS "
+                            android:text=""
                             android:textColor="@color/app_color" />
 
                         <View
@@ -120,31 +120,13 @@
                             android:layout_weight="1" />
 
                         <TextView
-
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Rs. " />
-
-                        <TextView
-                            android:id="@+id/new_bill_unit_price"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="8" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="6dp"
-                            android:text=" /ml" />
-
-                        <TextView
                             android:id="@+id/new_bill_item_code"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="end"
                             android:background="@color/app_color"
                             android:padding="5dp"
-                            android:text="A12"
+                            android:text=""
                             android:textColor="@color/white" />
                     </LinearLayout>
 
@@ -153,10 +135,15 @@
                         android:layout_height="wrap_content"
                         android:gravity="center">
 
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="1" />
+
                         <com.google.android.material.textfield.TextInputLayout
-                            android:layout_width="100dp"
+                            android:layout_width="120dp"
                             android:layout_height="wrap_content"
-                            android:hint="eg. 4 ">
+                            android:hint="Quantity *">
 
                             <!--this is the actual edit text which takes the input-->
                             <com.google.android.material.textfield.TextInputEditText
@@ -172,8 +159,40 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="bottom"
+                            android:layout_gravity="center"
                             android:text="  ml" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="1" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="Rs   " />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"
+                            android:hint="Price *">
+
+                            <!--this is the actual edit text which takes the input-->
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/new_bill_item_selling_price"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="number"
+                                android:singleLine="true"
+                                android:textAllCaps="true" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="1" />
                     </LinearLayout>
 
                 </LinearLayout>
@@ -189,20 +208,68 @@
                         android:id="@+id/new_bill_non_product_name"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:drawableEnd="@drawable/baseline_arrow_drop_down_24"
+                        android:hint="Search Accessories Name "
                         android:inputType="text"
                         android:singleLine="true"
-                        android:textAllCaps="true"
-                        android:drawableEnd="@drawable/baseline_arrow_drop_down_24"
-                        android:hint="Name (eg. Glass bottle 10 ml )" />
+                        android:textAllCaps="true" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="1" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="Rs   " />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"
+                            android:hint="Price *">
+
+                            <!--this is the actual edit text which takes the input-->
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/new_bill_non_product_selling_price"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="number"
+                                android:singleLine="true"
+                                android:textAllCaps="true" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginBottom="10sp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="150dp"
                         android:layout_height="wrap_content"
-                        android:id="@+id/new_bill_non_product_price"
-                        android:textColor="@color/app_color"
-                        android:layout_gravity="end"
-                        android:text="Rs. 100"/>
+                        android:hint="Occurance *">
 
+                        <!--this is the actual edit text which takes the input-->
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/new_bill_occurance"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:text="1"
+                            android:singleLine="true"
+                            android:textAllCaps="true" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
 
@@ -211,7 +278,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
-                    android:layout_margin="5sp"
+                    android:layout_marginTop="5sp"
                     android:background="@color/app_color"
                     android:gravity="center"
                     android:padding="10sp"
@@ -223,11 +290,6 @@
             </LinearLayout>
 
         </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="100dp"/>
-
 
     </LinearLayout>
 

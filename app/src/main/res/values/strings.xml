@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Sha Attar - Invoice</string>
+    <string name="app_name">Sha\'s Attar - Invoice</string>
     <string name="action_settings">Settings</string>
     <!-- Strings used for fragments for navigation -->
     <string name="next">Next</string>
@@ -13,6 +13,12 @@
     <string-array name="spinner_owners">
         <item>MTS</item>
         <item>IK</item>
+    </string-array>
+    <string-array name="spinner_report_type">
+        <item>Today</item>
+        <item>Yesterday</item>
+        <item>Last Week</item>
+        <item>Last Month</item>
     </string-array>
 
 </resources>

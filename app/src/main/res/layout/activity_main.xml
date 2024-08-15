@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/home_drawer_layout"
     android:layout_width="match_parent"
+    android:background="@color/white"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".activity.MainActivity">
@@ -249,7 +250,7 @@
                                                     android:layout_marginEnd="10sp"
                                                     android:layout_weight="0.3"
                                                     android:gravity="end"
-                                                    android:text="Phone No "
+                                                    android:text="Phone No *"
                                                     android:textAllCaps="true"
                                                     android:textColor="@color/app_color"
                                                     android:textSize="13sp" />
@@ -260,6 +261,7 @@
                                                     android:layout_height="wrap_content"
                                                     android:layout_marginStart="5dp"
                                                     android:layout_weight="0.7"
+                                                    android:inputType="number"
                                                     android:hint="eg. 9876543210"
                                                     android:textColor="@color/app_color"
                                                     android:textSize="13sp" />
@@ -285,7 +287,7 @@
                                                     android:layout_marginEnd="10sp"
                                                     android:layout_weight="0.3"
                                                     android:gravity="end"
-                                                    android:text="Name "
+                                                    android:text="Name *"
                                                     android:textAllCaps="true"
                                                     android:textColor="@color/app_color"
                                                     android:textSize="13sp" />
@@ -297,6 +299,40 @@
                                                     android:layout_marginStart="5dp"
                                                     android:layout_weight="0.7"
                                                     android:hint="eg. Rajinikanth"
+                                                    android:textColor="@color/app_color"
+                                                    android:textSize="13sp" />
+
+                                                <View
+                                                    android:layout_width="30sp"
+                                                    android:layout_height="30sp"/>
+
+
+                                            </LinearLayout>
+
+                                            <!--customer Phone-->
+                                            <LinearLayout
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:gravity="center">
+
+                                                <TextView
+                                                    android:layout_width="0dp"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_marginEnd="10sp"
+                                                    android:layout_weight="0.3"
+                                                    android:gravity="end"
+                                                    android:text="Remarks "
+                                                    android:textAllCaps="true"
+                                                    android:textColor="@color/app_color"
+                                                    android:textSize="13sp" />
+
+                                                <EditText
+                                                    android:id="@+id/billing_customer_remarks"
+                                                    android:layout_width="0dp"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_marginStart="5dp"
+                                                    android:layout_weight="0.7"
+                                                    android:hint="eg. Frequent Customers"
                                                     android:textColor="@color/app_color"
                                                     android:textSize="13sp" />
 

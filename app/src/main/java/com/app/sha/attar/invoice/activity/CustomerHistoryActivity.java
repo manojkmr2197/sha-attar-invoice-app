@@ -11,12 +11,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,16 +28,24 @@ import com.app.sha.attar.invoice.adapter.CustomerHistoryAdapter;
 import com.app.sha.attar.invoice.adapter.CustomerHistoryDetailViewAdapter;
 import com.app.sha.attar.invoice.listener.BillingClickListener;
 import com.app.sha.attar.invoice.listener.ClickListener;
+import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
-import com.app.sha.attar.invoice.model.CustomerDetails;
-import com.app.sha.attar.invoice.model.CustomerHistoryModel;
+import com.app.sha.attar.invoice.utils.DBUtil;
+import com.app.sha.attar.invoice.utils.DatabaseConstants;
+import com.app.sha.attar.invoice.utils.FirestoreCallback;
+import com.app.sha.attar.invoice.utils.SingleTon;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class CustomerHistoryActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -42,20 +53,25 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
     Activity activity;
 
     CustomerHistoryAdapter customerHistoryAdapter;
-    List<CustomerHistoryModel> customerHistoryModelList =new ArrayList<>();
+    List<BillingInvoiceModel> billingInvoiceModelList = new ArrayList<>();
     RecyclerView recyclerView;
     ClickListener listener;
 
     TextInputEditText search_et;
-    TextView name;
     Button search;
     TextView back;
 
-    LinearLayout data_ll,no_data_ll;
+    LinearLayout data_ll, no_data_ll;
+    DBUtil dbObj;
+
+    FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
         setContentView(R.layout.activity_customer_history);
 
         context = CustomerHistoryActivity.this;
@@ -74,23 +90,23 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
         search = (Button) findViewById(R.id.customer_history_search);
         search.setOnClickListener(this);
         search_et = (TextInputEditText) findViewById(R.id.customer_history_search_et);
-        name = (TextView) findViewById(R.id.customer_history_name);
 
         data_ll = (LinearLayout) findViewById(R.id.customer_history_data_ll);
         no_data_ll = (LinearLayout) findViewById(R.id.customer_history_no_data_ll);
-
-        listener =new ClickListener() {
+        dbObj = new DBUtil();
+        db = DBUtil.getInstance();
+        listener = new ClickListener() {
             @Override
             public void click(int index) {
-                if(customerHistoryModelList.get(index) != null && !customerHistoryModelList.get(index).getBillingItemModelList().isEmpty()) {
-                    createDetailDialogView(customerHistoryModelList.get(index));
+                if (billingInvoiceModelList.get(index) != null && !billingInvoiceModelList.get(index).getBillingItemModelList().isEmpty()) {
+                    createDetailDialogView(billingInvoiceModelList.get(index));
                 }
             }
         };
 
         recyclerView = (RecyclerView) findViewById(R.id.customer_history_recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
-        customerHistoryAdapter = new CustomerHistoryAdapter(context,customerHistoryModelList,listener);
+        customerHistoryAdapter = new CustomerHistoryAdapter(context, billingInvoiceModelList, listener);
         recyclerView.setAdapter(customerHistoryAdapter);
 
         Intent intent = getIntent();
@@ -102,28 +118,27 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
     }
 
     private void searchCustomerDetails(String phoneNo) {
-        List<BillingItemModel> billingItemModelList = new ArrayList<>();
-        billingItemModelList.add(new BillingItemModel("PRODUCT","ATTAR","A12",12,23,1200));
-        billingItemModelList.add(new BillingItemModel("NON_PRODUCT","ATTAR","",0,0,80));
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            customerHistoryModelList.add(new CustomerHistoryModel(2300,10, OffsetDateTime.now(),billingItemModelList));
-            customerHistoryModelList.add(new CustomerHistoryModel(300,10, OffsetDateTime.now(),billingItemModelList));
+        if (!SingleTon.isNetworkConnected(activity)) {
+            Toast.makeText(context, "No Internet connection. Please try again .! ", Toast.LENGTH_LONG).show();
+            return;
         }
-        CustomerDetails customerDetails = new CustomerDetails(phoneNo,"Bavani",customerHistoryModelList);
 
-        if(customerDetails != null){
-            data_ll.setVisibility(View.VISIBLE);
-            no_data_ll.setVisibility(View.GONE);
-            name.setText(customerDetails.getName());
-            customerHistoryAdapter.notifyDataSetChanged();
-        }else{
-            no_data_ll.setVisibility(View.VISIBLE);
-            data_ll.setVisibility(View.GONE);
-        }
+        Toast.makeText(CustomerHistoryActivity.this, "Loading..!", Toast.LENGTH_LONG).show();
+
+        dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
+            @Override
+            public void onCallback(List<BillingInvoiceModel> aCustomerDetails) {
+                Toast.makeText(CustomerHistoryActivity.this, "Loading..!", Toast.LENGTH_LONG).show();
+                System.out.println("customerHistorySize: " + aCustomerDetails.size());
+                billingInvoiceModelList.clear();
+                billingInvoiceModelList.addAll(aCustomerDetails);
+                customerHistoryAdapter.notifyDataSetChanged();
+            }
+        }, phoneNo);
+
     }
 
-    public void createDetailDialogView(CustomerHistoryModel customerHistoryModel) {
+    public void createDetailDialogView(BillingInvoiceModel billingInvoiceModel) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
@@ -134,14 +149,14 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
         RecyclerView recyclerView = dialogView.findViewById(R.id.customer_dialog_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        BillingClickListener listener1 =new BillingClickListener() {
+        BillingClickListener listener1 = new BillingClickListener() {
             @Override
             public void click(int index, String type) {
 
             }
         };
 
-        CustomerHistoryDetailViewAdapter adapter = new CustomerHistoryDetailViewAdapter(dialogView.getContext(),customerHistoryModel.getBillingItemModelList(),listener1);
+        CustomerHistoryDetailViewAdapter adapter = new CustomerHistoryDetailViewAdapter(dialogView.getContext(), billingInvoiceModel.getBillingItemModelList(), listener1);
         recyclerView.setAdapter(adapter);
 
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -165,13 +180,15 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
 
     @Override
     public void onClick(View view) {
-        if(R.id.customer_history_search == view.getId()){
-            if(StringUtils.isEmpty(search_et.getText().toString())){
+        if (R.id.customer_history_search == view.getId()) {
+            if (StringUtils.isEmpty(search_et.getText().toString())) {
                 Toast.makeText(CustomerHistoryActivity.this, "Please Enter Phone Number ..! ", Toast.LENGTH_LONG).show();
                 return;
             }
+            InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             searchCustomerDetails(search_et.getText().toString());
-        }else if (R.id.customer_history_back == view.getId()){
+        } else if (R.id.customer_history_back == view.getId()) {
             finish();
         }
     }
