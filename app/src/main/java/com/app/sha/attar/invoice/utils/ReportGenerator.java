@@ -119,7 +119,7 @@ public class ReportGenerator {
 
 
     private ReportModel getReportModel(BillingItemModel item, BillingInvoiceModel invoice) {
-        double soldPrice = item.getSellingItemPrice();
+        double soldPrice = item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount()/100));
         double actualPrice = item.getTotalPrice();
         double profit = soldPrice - actualPrice;
         ReportModel report = new ReportModel();
