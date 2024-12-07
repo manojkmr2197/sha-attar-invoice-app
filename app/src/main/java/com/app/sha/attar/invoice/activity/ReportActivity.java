@@ -2,6 +2,7 @@ package com.app.sha.attar.invoice.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -14,18 +15,13 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.File;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -45,13 +41,21 @@ import com.app.sha.attar.invoice.model.ReportModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.ReportGenerator;
-//import com.github.mikephil.charting.charts.BarChart;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 
 public class ReportActivity extends AppCompatActivity implements View.OnClickListener {
@@ -61,6 +65,9 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
     Button search_bt;
     Spinner typeSpinner;
+
+    TextView startDatetv, endDatetv;
+    OffsetDateTime customStartDt = null, customEndDt = null;
 
     List<BillingInvoiceModel> billingInvoiceModelList = new ArrayList<>();
     ;
@@ -79,7 +86,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
     ReportViewAdapter reportViewAdapter;
 
-    OffsetDateTime startOfDay,endOfDay;
+    OffsetDateTime startOfDay, endOfDay;
 
     private void getBillingInvoiceModel(Long startTime, Long endTime) {
 
@@ -175,7 +182,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private ReportModel getReportModel(BillingItemModel item, BillingInvoiceModel invoice) {
-        double soldPrice = item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount()/100));
+        double soldPrice = item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount() / 100));
         double actualPrice = item.getTotalPrice();
         double profit = soldPrice - actualPrice;
         ReportModel report = new ReportModel();
@@ -190,7 +197,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         report.setActualPrice(actualPrice);
         report.setQuantity((item.getUnits() != null) ? item.getUnits() : 1);
         report.setProfit(profit);
-        report.setSoldPrice(item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount()/100)));
+        report.setSoldPrice(item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount() / 100)));
         return report;
     }
 
@@ -224,6 +231,13 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         typeSpinner.setAdapter(adapter);
+
+        startDatetv = findViewById(R.id.start_date_tv);
+        endDatetv = findViewById(R.id.end_date_tv);
+
+        startDatetv.setOnClickListener(view -> showStartDatePickerDialog());
+        endDatetv.setOnClickListener(view -> showEndDatePickerDialog());
+
 
         search_bt = (Button) findViewById(R.id.report_search);
         search_bt.setOnClickListener(this);
@@ -291,6 +305,69 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
     }
 
+    private void showStartDatePickerDialog() {
+
+        // Get the current date
+        final Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        // Show DatePickerDialog
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                ReportActivity.this,
+                (DatePicker view, int selectedYear, int selectedMonth, int selectedDay) -> {
+                    // Update the TextView with the selected date
+                    calendar.set(selectedYear, selectedMonth, selectedDay);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                    startDatetv.setText(dateFormat.format(calendar.getTime()));
+                    LocalDate localDate = calendar.toInstant()
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate();
+
+                    // Create OffsetDateTime with 00:00 time
+                    customStartDt = localDate.atTime(LocalTime.MIN).atOffset(ZoneOffset.UTC);
+                },
+                year,
+                month,
+                day
+        );
+        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        datePickerDialog.show();
+
+    }
+
+    private void showEndDatePickerDialog() {
+
+        // Get the current date
+        final Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        // Show DatePickerDialog
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                ReportActivity.this,
+                (DatePicker view, int selectedYear, int selectedMonth, int selectedDay) -> {
+                    // Update the TextView with the selected date
+                    calendar.set(selectedYear, selectedMonth, selectedDay);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                    endDatetv.setText(dateFormat.format(calendar.getTime()));
+                    LocalDate localDate = calendar.toInstant()
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate();
+
+                    customEndDt = localDate.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+                },
+                year,
+                month,
+                day
+        );
+        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        datePickerDialog.show();
+
+    }
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -300,19 +377,29 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         } else if (R.id.report_download_fab == view.getId()) {
             downloadReportStatus();
         } else if (R.id.report_search == view.getId()) {
-            LocalDate today = LocalDate.now();
-             startOfDay = today.atStartOfDay().atOffset(ZoneOffset.UTC);
-             endOfDay = today.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
 
-            if (typeSpinner.getSelectedItemPosition() == 0) {
-                System.out.println(startOfDay + " --- " + endOfDay);
-            } else if (typeSpinner.getSelectedItemPosition() == 1) {
-                startOfDay = startOfDay.minusDays(1);
-                endOfDay = endOfDay.minusDays(1);
-            } else if (typeSpinner.getSelectedItemPosition() == 2) {
-                startOfDay = startOfDay.minusWeeks(1);
-            } else if (typeSpinner.getSelectedItemPosition() == 3) {
-                startOfDay = startOfDay.minusMonths(1);
+            if((customStartDt != null && customEndDt ==null) || (customStartDt == null && customEndDt !=null)){
+                Toast.makeText(ReportActivity.this, "Please choose proper custom date range .!", Toast.LENGTH_LONG).show();
+                return;
+            }
+            if (customStartDt != null && customEndDt != null) {
+                startOfDay = customStartDt;
+                endOfDay = customEndDt;
+            } else {
+                LocalDate today = LocalDate.now();
+                startOfDay = today.atStartOfDay().atOffset(ZoneOffset.UTC);
+                endOfDay = today.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+
+                if (typeSpinner.getSelectedItemPosition() == 0) {
+                    System.out.println(startOfDay + " --- " + endOfDay);
+                } else if (typeSpinner.getSelectedItemPosition() == 1) {
+                    startOfDay = startOfDay.minusDays(1);
+                    endOfDay = endOfDay.minusDays(1);
+                } else if (typeSpinner.getSelectedItemPosition() == 2) {
+                    startOfDay = startOfDay.minusWeeks(1);
+                } else if (typeSpinner.getSelectedItemPosition() == 3) {
+                    startOfDay = startOfDay.minusMonths(1);
+                }
             }
             processReport(startOfDay, endOfDay);
         }
@@ -347,7 +434,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         String fileName = "report-" + System.currentTimeMillis() + ".xlsx";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
         ReportGenerator reportGenerator = new ReportGenerator();
-        reportGenerator.createExcelReport(billingInvoiceModelList, file,startOfDay,endOfDay);
+        reportGenerator.createExcelReport(billingInvoiceModelList, file, startOfDay, endOfDay);
 
         // Notify the user
         Toast.makeText(this, "Report Generated: " + fileName, Toast.LENGTH_LONG).show();

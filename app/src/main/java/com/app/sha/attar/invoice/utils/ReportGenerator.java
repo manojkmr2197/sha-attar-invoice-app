@@ -2,6 +2,7 @@ package com.app.sha.attar.invoice.utils;
 
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
+import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.model.ReportModel;
 
 import org.apache.commons.lang3.StringUtils;
@@ -455,4 +456,62 @@ public class ReportGenerator {
         }
 
     }
+
+
+    public void createProductExcelReport(List<ProductModel> productModelList, File file) throws Exception {
+
+        Workbook workbook = new XSSFWorkbook();
+
+        prepareProductSheet(workbook, productModelList);
+
+        // Write the output to a file
+        FileOutputStream fileOut = new FileOutputStream(file.getAbsolutePath());
+        workbook.write(fileOut);
+        fileOut.close();
+        workbook.close();
+
+    }
+
+    private void prepareProductSheet(Workbook workbook, List<ProductModel> productList) {
+
+        CellStyle wrapStyle = workbook.createCellStyle();
+        wrapStyle.setWrapText(true);
+        Sheet sheet = workbook.createSheet("Product Details");
+        Row headerRow = sheet.createRow(0);
+        int cellIndex = 0;
+
+        String[] headers = { "Name","Code", "Price", "Owner", "Status", "Dealer"};
+
+        for (String key : headers) {
+            Cell cell = headerRow.createCell(cellIndex++);
+            cell.setCellValue(key);
+            cell.setCellStyle(wrapStyle);
+        }
+
+        int rowCount = 0;
+        for (ProductModel entry : productList) {
+            rowCount = rowCount + 1;
+            Row row = sheet.createRow(rowCount);
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(entry.getName());
+            cell0.setCellStyle(wrapStyle);
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(entry.getCode());
+            cell1.setCellStyle(wrapStyle);
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue("Rs. "+entry.getPrice());
+            cell2.setCellStyle(wrapStyle);
+            Cell cell3 = row.createCell(3);
+            cell3.setCellValue(entry.getOwner());
+            cell3.setCellStyle(wrapStyle);
+            Cell cell4 = row.createCell(4);
+            cell4.setCellValue((entry.getStatus().equalsIgnoreCase("Y")?"Available":"Out-Of-Stock"));
+            cell4.setCellStyle(wrapStyle);
+            Cell cell5 = row.createCell(5);
+            cell5.setCellValue(entry.getDealer());
+            cell5.setCellStyle(wrapStyle);
+        }
+
+    }
+
 }

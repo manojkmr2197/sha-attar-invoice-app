@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "193642071762",
     "project_id": "sha-attar-invoice",
-    "storage_bucket": "sha-attar-invoice.appspot.com"
+    "storage_bucket": "sha-attar-invoice.firebasestorage.app"
   },
   "client": [
     {
