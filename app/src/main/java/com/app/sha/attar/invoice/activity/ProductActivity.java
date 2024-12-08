@@ -271,9 +271,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         Set<String> data = new TreeSet<>();
         itemList.forEach(items ->{
             if(items.getDealer() != null){
-                int hyphenIndex = items.getDealer().indexOf('-');
-                // Check if the hyphen exists and extract the substring before it
-                data.add((hyphenIndex != -1 ? items.getDealer().substring(0, hyphenIndex) : items.getDealer()).toUpperCase());
+                data.add(SingleTon.getDealerName(items.getDealer()));
             }
         });
 

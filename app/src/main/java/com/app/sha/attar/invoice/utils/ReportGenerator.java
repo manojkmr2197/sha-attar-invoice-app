@@ -1,5 +1,6 @@
 package com.app.sha.attar.invoice.utils;
 
+import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.ProductModel;
@@ -14,6 +15,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ReportGenerator {
+
 
 
     public static class AggregatedData {
@@ -508,8 +511,58 @@ public class ReportGenerator {
             cell4.setCellValue((entry.getStatus().equalsIgnoreCase("Y")?"Available":"Out-Of-Stock"));
             cell4.setCellStyle(wrapStyle);
             Cell cell5 = row.createCell(5);
-            cell5.setCellValue(entry.getDealer());
+            cell5.setCellValue(SingleTon.getDealerName(entry.getDealer()));
             cell5.setCellStyle(wrapStyle);
+        }
+
+    }
+
+    public void createAccessoriesExcelReport(List<AccessoriesModel> accessoriesModelList, File file) throws Exception {
+
+        Workbook workbook = new XSSFWorkbook();
+
+        prepareAccessoriesListSheet(workbook, accessoriesModelList);
+
+        // Write the output to a file
+        FileOutputStream fileOut = new FileOutputStream(file.getAbsolutePath());
+        workbook.write(fileOut);
+        fileOut.close();
+        workbook.close();
+    }
+
+    private void prepareAccessoriesListSheet(Workbook workbook, List<AccessoriesModel> accessoriesModelList) {
+
+        CellStyle wrapStyle = workbook.createCellStyle();
+        wrapStyle.setWrapText(true);
+        Sheet sheet = workbook.createSheet("Accessories Details");
+        Row headerRow = sheet.createRow(0);
+        int cellIndex = 0;
+
+        String[] headers = { "Name", "Price", "Owner",  "Dealer"};
+
+        for (String key : headers) {
+            Cell cell = headerRow.createCell(cellIndex++);
+            cell.setCellValue(key);
+            cell.setCellStyle(wrapStyle);
+        }
+
+        int rowCount = 0;
+        for (AccessoriesModel entry : accessoriesModelList) {
+            rowCount = rowCount + 1;
+            Row row = sheet.createRow(rowCount);
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(entry.getName());
+            cell0.setCellStyle(wrapStyle);
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue("Rs. "+entry.getPrice());
+            cell1.setCellStyle(wrapStyle);
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue(entry.getOwner());
+            cell2.setCellStyle(wrapStyle);
+            Cell cell3 = row.createCell(3);
+            cell3.setCellValue(SingleTon.getDealerName(entry.getDealer()));
+            cell3.setCellStyle(wrapStyle);
+
         }
 
     }

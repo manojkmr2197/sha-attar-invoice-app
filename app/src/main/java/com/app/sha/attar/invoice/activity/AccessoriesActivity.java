@@ -7,12 +7,19 @@ import static java.lang.Boolean.TRUE;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -23,6 +30,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -34,6 +42,7 @@ import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
+import com.app.sha.attar.invoice.utils.ReportGenerator;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -46,10 +55,14 @@ import com.google.gson.Gson;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class AccessoriesActivity extends AppCompatActivity implements View.OnClickListener {
@@ -59,15 +72,24 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
     Activity activity;
 
     List<AccessoriesModel> itemList = new ArrayList<>();
-
+    List<AccessoriesModel> filteredList = new ArrayList<>();
     RecyclerView recyclerView;
     ClickListener listener;
 
     AccessoriesViewAdapter adapter;
 
+    TextInputEditText search_et;
+    Spinner ownerSpinner,dealerSpinner;
+
+    List<String> dealerList = new ArrayList<>();
+
+    String searchText, searchOwner,searchDealer;
+
     DBUtil dbObj;
     SharedPrefHelper sharedPrefHelper;
     FirebaseFirestore db;
+
+    ArrayAdapter<String> dealerAdapter;
 
     private SharedPreferences sharedPreferences;
     private Gson gson;
@@ -101,9 +123,16 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         TextView back = (TextView) findViewById(R.id.accessories_back);
         back.setOnClickListener(this);
 
+        search_et = (TextInputEditText) findViewById(R.id.accessories_search_et);
+        ownerSpinner = (Spinner) findViewById(R.id.accessories_spinner);
+        dealerSpinner = (Spinner) findViewById(R.id.accessories_spinner_dealer);
+
         dbObj = new DBUtil();
         sharedPrefHelper = new SharedPrefHelper(context);
         db = DBUtil.getInstance();
+
+        TextView download = (TextView) findViewById(R.id.accessories_download);
+        download.setOnClickListener(this);
 
         sharedPreferences = context.getSharedPreferences(SHA_ATTAR, Context.MODE_PRIVATE);
         gson = new Gson();
@@ -111,12 +140,147 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         listener = new ClickListener() {
             @Override
             public void click(int index) {
-                createDialogBox(context, itemList.get(index));
+                createDialogBox(context, filteredList.get(index));
             }
         };
 
+        adapter = new AccessoriesViewAdapter(context, filteredList, listener);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
+
+        search_et.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                Log.v("data1 -- >", search_et.getText().toString());
+                Log.v("data2 -- >", ownerSpinner.getSelectedItem().toString());
+                Log.v("data3 -- >", dealerSpinner.getSelectedItem().toString());
+
+                searchText = search_et.getText().toString();
+                searchOwner = ownerSpinner.getSelectedItem().toString();
+                if (searchOwner.equalsIgnoreCase("ALL")) {
+                    searchOwner = "";
+                }
+                searchDealer = dealerSpinner.getSelectedItem().toString();
+                if (searchDealer.equalsIgnoreCase("ALL")) {
+                    searchDealer = "";
+                }
+
+                filter(searchText, searchOwner,searchDealer);
+            }
+        });
+
+        ownerSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                searchText = search_et.getText().toString();
+                searchOwner = adapterView.getItemAtPosition(i).toString();
+                if (searchOwner.equalsIgnoreCase("ALL")) {
+                    searchOwner = "";
+                }
+                searchDealer = dealerSpinner.getSelectedItem().toString();
+                if (searchDealer.equalsIgnoreCase("ALL")) {
+                    searchDealer = "";
+                }
+                filter(searchText, searchOwner,searchDealer);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+        dealerSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                Log.v("data1 -- >", search_et.getText().toString());
+                Log.v("data2 -- >", ownerSpinner.getSelectedItem().toString());
+                Log.v("data3 -- >", dealerSpinner.getSelectedItem().toString());
+                searchText = search_et.getText().toString();
+                searchOwner = ownerSpinner.getSelectedItem().toString();
+                if (searchOwner.equalsIgnoreCase("ALL")) {
+                    searchOwner = "";
+                }
+                searchDealer = adapterView.getItemAtPosition(i).toString();
+                if (searchDealer.equalsIgnoreCase("ALL")) {
+                    searchDealer = "";
+                }
+                filter(searchText, searchOwner,searchDealer);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.spinner_items, android.R.layout.simple_spinner_item);
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        ownerSpinner.setAdapter(adapter);
+
         checkInternet();
 
+    }
+
+    public void filter(String text, String owner,String dealer) {
+        filteredList.clear();
+        text = (text == null) ? "" : text;
+        owner = (owner == null) ? "" : owner;
+        dealer = (dealer == null) ? "" : dealer;
+        if (text.isEmpty() && owner.isEmpty()) {
+            filteredList.addAll(itemList);
+        } else if (!text.isEmpty() && owner.isEmpty()) {
+            text = text.toLowerCase();
+            for (AccessoriesModel item : itemList) {
+                if (item.getName().toLowerCase().contains(text)) {
+                    filteredList.add(item);
+                }
+            }
+        } else if (text.isEmpty() && !owner.isEmpty()) {
+            owner = owner.toLowerCase();
+            for (AccessoriesModel item : itemList) {
+                if (item.getOwner().toLowerCase().contains(owner)) {
+                    filteredList.add(item);
+                }
+            }
+        } else if (!text.isEmpty() && !owner.isEmpty()) {
+            text = text.toLowerCase();
+            owner = owner.toLowerCase();
+            for (AccessoriesModel item : itemList) {
+                if (item.getName().toLowerCase().contains(text) && item.getOwner().toLowerCase().contains(owner)) {
+                    filteredList.add(item);
+                }
+            }
+        }
+        if(!filteredList.isEmpty() && !dealer.isEmpty()){
+            for (int i = filteredList.size() - 1; i >= 0; i--) {
+                if (!filteredList.get(i).getDealer().toLowerCase().contains(dealer.toLowerCase())) {
+                    filteredList.remove(i);
+                }
+            }
+        }
+
+        if (filteredList.isEmpty()) {
+            data_fl.setVisibility(View.GONE);
+            no_data_fl.setVisibility(View.VISIBLE);
+        } else {
+            data_fl.setVisibility(View.VISIBLE);
+            no_data_fl.setVisibility(View.GONE);
+        }
+        adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -125,7 +289,36 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
             finish();
         } else if (R.id.accessories_add_fab == view.getId()) {
             createDialogBox(context, null);
+        } else if (R.id.accessories_download == view.getId()){
+            downloadAccessoriesList();
         }
+    }
+
+    private void downloadAccessoriesList() {
+        try {
+            saveExcelFile(itemList);
+        } catch (Exception e) {
+            Toast.makeText(this, "Report Generation failed ..!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void saveExcelFile(List<AccessoriesModel> accessoriesModelList) throws Exception {
+        String fileName = "accessories-" + LocalDateTime.now().toString() + ".xlsx";
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+        ReportGenerator reportGenerator = new ReportGenerator();
+        reportGenerator.createAccessoriesExcelReport(accessoriesModelList, file);
+
+        // Notify the user
+        Toast.makeText(this, "Report Generated: " + fileName, Toast.LENGTH_LONG).show();
+
+        // Use FileProvider to get the URI
+        Uri fileUri = FileProvider.getUriForFile(this, "com.app.sha.attar.invoice.fileprovider", file);
+
+        // Open the file using a file explorer
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(fileUri, "application/vnd.ms-excel");
+        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(intent);
     }
 
     private void checkInternet() {
@@ -316,9 +509,30 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
             data_fl.setVisibility(View.VISIBLE);
             no_data_fl.setVisibility(View.GONE);
         }
-        adapter = new AccessoriesViewAdapter(context, itemList, listener);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
+
+        filteredList.clear();
+        filteredList.addAll(itemList);
+        adapter.notifyDataSetChanged();
+
+        dealerList.clear();
+        Set<String> data = new TreeSet<>();
+        itemList.forEach(items ->{
+            if(items.getDealer() != null){
+                data.add(SingleTon.getDealerName(items.getDealer()));
+            }
+        });
+
+        dealerList.add("ALL");
+        dealerList.addAll(data);
+        dealerAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,  // Layout for the items
+                dealerList  // The custom list of strings
+        );
+
+        dealerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        dealerSpinner.setAdapter(dealerAdapter);
+
 
     }
 

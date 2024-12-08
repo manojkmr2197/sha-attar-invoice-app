@@ -43,4 +43,10 @@ public class SingleTon {
         return "INVOICE-"+ UUID.randomUUID().toString();
     }
 
+    public static final String getDealerName(String name){
+        int hyphenIndex = name.indexOf('-');
+        // Check if the hyphen exists and extract the substring before it
+        return (hyphenIndex != -1 ? name.substring(0, hyphenIndex) : name).toUpperCase();
+    }
+
 }
