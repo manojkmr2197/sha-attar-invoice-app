@@ -268,6 +268,14 @@
             android:layout_marginBottom="16dp"
             android:src="@drawable/baseline_cloud_download_24" />
 
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/report_history_delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|bottom"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16sp"
+            android:src="@drawable/baseline_auto_delete_24" />
     </FrameLayout>
 
 

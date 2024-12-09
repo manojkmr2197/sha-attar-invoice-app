@@ -168,6 +168,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         bill_recycler = (RecyclerView) findViewById(R.id.home_recyclerView);
 
+        TextView home_invoice_tv = (TextView) findViewById(R.id.home_invoice_history);
+
+        home_invoice_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(MainActivity.this, InvoiceHistoryActivity.class);
+                i.putExtra("owner",false);
+                startActivity(i);
+            }
+        });
+
         listener = new BillingClickListener() {
             @Override
             public void click(int index, String type) {
@@ -314,6 +325,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startActivity(i);
         } else if (item.getItemId() == R.id.nav_customer) {
             i = new Intent(MainActivity.this, CustomerHistoryActivity.class);
+            startActivity(i);
+        } else if (item.getItemId() == R.id.nav_invoice) {
+            i = new Intent(MainActivity.this, InvoiceHistoryActivity.class);
+            i.putExtra("owner",true);
             startActivity(i);
         }
         return true;

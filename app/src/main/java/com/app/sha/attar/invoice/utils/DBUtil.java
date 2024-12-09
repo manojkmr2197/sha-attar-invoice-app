@@ -142,4 +142,17 @@ public class DBUtil {
                 });
     }
 
+    public void deleteRecordsBefore(FirestoreCallback<List<DocumentSnapshot>> callback,long beforeTimestamp) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Query Firestore for documents with IDs (timestamps) before the given timestamp
+        db.collection(DatabaseConstants.INVOICE_COLLECTION)
+                .whereLessThan("billingDate", beforeTimestamp)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    callback.onCallback(querySnapshot.getDocuments());
+                })
+                .addOnFailureListener(e -> System.err.println("Error fetching documents: " + e.getMessage()));
+    }
+
 }

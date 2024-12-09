@@ -2,6 +2,7 @@ package com.app.sha.attar.invoice.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -37,11 +39,22 @@ import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.ReportViewAdapter;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
+import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.model.ReportModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
+import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.ReportGenerator;
+import com.app.sha.attar.invoice.utils.SingleTon;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -56,6 +69,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 
 public class ReportActivity extends AppCompatActivity implements View.OnClickListener {
@@ -66,8 +80,8 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     Button search_bt;
     Spinner typeSpinner;
 
-    TextView startDatetv, endDatetv;
-    OffsetDateTime customStartDt = null, customEndDt = null;
+    TextView startDatetv, endDatetv, history_start_date;
+    OffsetDateTime customStartDt = null, customEndDt = null, historyStartDt = null;
 
     List<BillingInvoiceModel> billingInvoiceModelList = new ArrayList<>();
     ;
@@ -193,6 +207,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
             OffsetDateTime offsetDateTime = Instant.ofEpochSecond(invoice.getBillingDate()).atOffset(istOffset);
             report.setDate(offsetDateTime.format(formatter));
         }
+        report.setInvoiceId(invoice.getBillingDate());
         report.setName(item.getName());
         report.setActualPrice(actualPrice);
         report.setQuantity((item.getUnits() != null) ? item.getUnits() : 1);
@@ -224,6 +239,9 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
         FloatingActionButton download_fab = (FloatingActionButton) findViewById(R.id.report_download_fab);
         download_fab.setOnClickListener(this);
+
+        FloatingActionButton history_delete_fab = (FloatingActionButton) findViewById(R.id.report_history_delete);
+        history_delete_fab.setOnClickListener(this);
 
         typeSpinner = (Spinner) findViewById(R.id.report_type_owner);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -363,6 +381,39 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
                 month,
                 day
         );
+        datePickerDialog.getDatePicker().setMinDate((customStartDt != null)?customStartDt.toInstant().toEpochMilli():System.currentTimeMillis());
+        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        datePickerDialog.show();
+
+    }
+
+    private void showHistoryPickerDialog() {
+
+        // Get the current date
+        final Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        // Show DatePickerDialog
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                ReportActivity.this,
+                (DatePicker view, int selectedYear, int selectedMonth, int selectedDay) -> {
+                    // Update the TextView with the selected date
+                    calendar.set(selectedYear, selectedMonth, selectedDay);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                    history_start_date.setText(dateFormat.format(calendar.getTime()));
+                    LocalDate localDate = calendar.toInstant()
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate();
+
+                    // Create OffsetDateTime with 00:00 time
+                    historyStartDt = localDate.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+                },
+                year,
+                month,
+                day
+        );
         datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
         datePickerDialog.show();
 
@@ -376,9 +427,11 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
             finish();
         } else if (R.id.report_download_fab == view.getId()) {
             downloadReportStatus();
+        } else if (R.id.report_history_delete == view.getId()) {
+            deleteHistoryRecords();
         } else if (R.id.report_search == view.getId()) {
 
-            if((customStartDt != null && customEndDt ==null) || (customStartDt == null && customEndDt !=null)){
+            if ((customStartDt != null && customEndDt == null) || (customStartDt == null && customEndDt != null)) {
                 Toast.makeText(ReportActivity.this, "Please choose proper custom date range .!", Toast.LENGTH_LONG).show();
                 return;
             }
@@ -403,6 +456,89 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
             }
             processReport(startOfDay, endOfDay);
         }
+    }
+
+    private void deleteHistoryRecords() {
+        BottomSheetDialog dialog = new BottomSheetDialog(context);
+        dialog.setContentView(R.layout.dialog_report_history_delete);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
+        history_start_date = dialog.findViewById(R.id.report_history_delete_start_date_tv);
+        history_start_date.setOnClickListener(view -> showHistoryPickerDialog());
+
+        Button delete = (Button) dialog.findViewById(R.id.report_history_delete_submit);
+        TextView close = (TextView) dialog.findViewById(R.id.report_history_delete_close);
+
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(historyStartDt == null){
+                    Toast.makeText(ReportActivity.this, "Choose the date range.!", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                askDeleteConfirmation();
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+
+    }
+
+    private void askDeleteConfirmation() {
+        // Create and configure the AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Confirmation");
+        builder.setMessage("Are you sure you want to proceed?");
+        builder.setCancelable(true);
+
+        // Set positive button
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            Toast.makeText(ReportActivity.this, "History records deleting.!", Toast.LENGTH_LONG).show();
+            deleteDBHistoryRecords();
+            dialog.dismiss();
+        });
+
+        // Set negative button
+        builder.setNegativeButton("No", (dialog, which) -> {
+            dialog.dismiss();
+        });
+
+        // Create and show the dialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+
+    }
+
+    private void deleteDBHistoryRecords() {
+        dbObj.deleteRecordsBefore(new FirestoreCallback<List<DocumentSnapshot>>() {
+            @Override
+            public void onCallback(List<DocumentSnapshot> result) {
+
+                if (result.isEmpty()) {
+                    Toast.makeText(ReportActivity.this, "No records found before the given date..!", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                FirebaseFirestore db = DBUtil.getInstance();
+                for (DocumentSnapshot document : result) {
+                    db.collection(DatabaseConstants.INVOICE_COLLECTION)
+                            .document(document.getId())
+                            .delete()
+                            .addOnSuccessListener(aVoid -> System.out.println("Document deleted: " + document.getId()))
+                            .addOnFailureListener(e -> System.err.println("Failed to delete document: " + document.getId()));
+                }
+                Toast.makeText(ReportActivity.this, "Records deleted successfully..!", Toast.LENGTH_LONG).show();
+            }
+        },historyStartDt.toEpochSecond());
     }
 
     private void processReport(OffsetDateTime startOfDay, OffsetDateTime endOfDay) {

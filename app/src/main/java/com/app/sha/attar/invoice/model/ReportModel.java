@@ -2,6 +2,7 @@ package com.app.sha.attar.invoice.model;
 
 public class ReportModel {
 
+    long invoiceId;
     String owner;
     String date;
     String name;
@@ -10,6 +11,14 @@ public class ReportModel {
     double actualPrice;
     double profit;
     String customerInfo;
+
+    public long getInvoiceId() {
+        return invoiceId;
+    }
+
+    public void setInvoiceId(long invoiceId) {
+        this.invoiceId = invoiceId;
+    }
 
     public int getQuantity() {
         return quantity;
