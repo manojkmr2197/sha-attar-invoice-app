@@ -267,7 +267,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                             .toLocalDate();
 
                     // Create OffsetDateTime with 00:00 time
-                    startOfDay = localDate.atTime(LocalTime.MIN).atOffset(ZoneOffset.UTC);
+                    startOfDay = localDate.atTime(LocalTime.MIN).atZone(ZoneId.of("Asia/Kolkata")).toOffsetDateTime();
                 },
                 year,
                 month,
@@ -298,7 +298,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                             .atZone(ZoneId.systemDefault())
                             .toLocalDate();
 
-                    endOfDay = localDate.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+                    endOfDay = localDate.atTime(LocalTime.MAX).atZone(ZoneId.of("Asia/Kolkata")).toOffsetDateTime();
                 },
                 year,
                 month,

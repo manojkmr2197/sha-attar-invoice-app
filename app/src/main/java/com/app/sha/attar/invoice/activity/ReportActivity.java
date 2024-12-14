@@ -354,7 +354,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
                             .toLocalDate();
 
                     // Create OffsetDateTime with 00:00 time
-                    customStartDt = localDate.atTime(LocalTime.MIN).atOffset(ZoneOffset.UTC);
+                    customStartDt = localDate.atTime(LocalTime.MIN).atZone(ZoneId.of("Asia/Kolkata")).toOffsetDateTime();
                 },
                 year,
                 month,
@@ -385,7 +385,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
                             .atZone(ZoneId.systemDefault())
                             .toLocalDate();
 
-                    customEndDt = localDate.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+                    customEndDt = localDate.atTime(LocalTime.MAX).atZone(ZoneId.of("Asia/Kolkata")).toOffsetDateTime();
                 },
                 year,
                 month,
@@ -418,7 +418,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
                             .toLocalDate();
 
                     // Create OffsetDateTime with 00:00 time
-                    historyStartDt = localDate.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+                    historyStartDt = localDate.atTime(LocalTime.MAX).atZone(ZoneId.of("Asia/Kolkata")).toOffsetDateTime();
                 },
                 year,
                 month,
@@ -451,8 +451,8 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
                 endOfDay = customEndDt;
             } else {
                 LocalDate today = LocalDate.now();
-                startOfDay = today.atStartOfDay().atOffset(ZoneOffset.UTC);
-                endOfDay = today.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+                startOfDay = today.atStartOfDay().atZone(ZoneId.of("Asia/Kolkata")).toOffsetDateTime();
+                endOfDay = today.atTime(LocalTime.MAX).atZone(ZoneId.of("Asia/Kolkata")).toOffsetDateTime();
 
                 if (typeSpinner.getSelectedItemPosition() == 0) {
                     System.out.println(startOfDay + " --- " + endOfDay);
