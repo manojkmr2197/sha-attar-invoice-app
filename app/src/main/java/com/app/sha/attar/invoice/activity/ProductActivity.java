@@ -56,12 +56,16 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -331,12 +335,13 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         try {
             saveExcelFile(itemList);
         } catch (Exception e) {
+            e.printStackTrace();
             Toast.makeText(this, "Report Generation failed ..!", Toast.LENGTH_LONG).show();
         }
     }
 
     private void saveExcelFile(List<ProductModel> productModelList) throws Exception {
-        String fileName = "product-" + LocalDateTime.now().toString() + ".xlsx";
+        String fileName = "product-" + System.currentTimeMillis() + ".xlsx";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
         ReportGenerator reportGenerator = new ReportGenerator();
         reportGenerator.createProductExcelReport(productModelList, file);

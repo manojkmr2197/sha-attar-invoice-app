@@ -61,6 +61,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -331,7 +333,8 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void saveExcelFile(List<AccessoriesModel> accessoriesModelList) throws Exception {
-        String fileName = "accessories-" + LocalDateTime.now().toString() + ".xlsx";
+
+        String fileName = "accessories-" + System.currentTimeMillis() + ".xlsx";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
         ReportGenerator reportGenerator = new ReportGenerator();
         reportGenerator.createAccessoriesExcelReport(accessoriesModelList, file);
