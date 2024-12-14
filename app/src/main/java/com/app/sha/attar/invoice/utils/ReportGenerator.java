@@ -22,6 +22,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -219,6 +221,8 @@ public class ReportGenerator {
     public void createExcelReport(List<BillingInvoiceModel> invoices, File file, OffsetDateTime startOfDay, OffsetDateTime endOfDay) throws Exception {
 
         Workbook workbook = new XSSFWorkbook();
+
+        Collections.sort(invoices, Comparator.comparingLong(BillingInvoiceModel::getBillingDate));
 
         prepareSalesSheet(workbook, invoices);
         prepareAccessoriesSheet(workbook, invoices);

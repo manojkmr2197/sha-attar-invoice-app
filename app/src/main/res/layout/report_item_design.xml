@@ -106,6 +106,14 @@
             android:textColor="@color/white"
             android:textSize="9sp"
             android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/report_item_edit"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_gravity="center"
+            android:background="@drawable/ic_baseline_edit_24" />
+
     </LinearLayout>
 
 

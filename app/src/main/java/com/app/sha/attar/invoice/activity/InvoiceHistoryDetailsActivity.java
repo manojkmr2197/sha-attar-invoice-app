@@ -1,5 +1,6 @@
 package com.app.sha.attar.invoice.activity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -9,7 +10,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -140,6 +143,29 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         customerPhone = (EditText) findViewById(R.id.invoice_history_detail_customer_phone);
         customerRemarks = (EditText) findViewById(R.id.invoice_history_detail_remarks);
 
+        customerPhone.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (editable.length() == 10) {
+                    Toast.makeText(context, "Searching .! ", Toast.LENGTH_SHORT).show();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(customerPhone.getWindowToken(), 0);
+                    searchContactInfo();
+
+                }
+            }
+        });
+
         itemRecyclerview = (RecyclerView) findViewById(R.id.invoice_history_detail_recycler_view);
         clickListener =new BillingClickListener() {
             @Override
@@ -176,6 +202,20 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             offsetDateTime = OffsetDateTime.now();
         }
 
+    }
+
+    private void searchContactInfo() {
+        dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
+            @Override
+            public void onCallback(List<BillingInvoiceModel> aCustomerDetails) {
+                System.out.println("customerHistorySize: " + aCustomerDetails.size());
+                if(aCustomerDetails.size() >0){
+                    customerName.setText(aCustomerDetails.get(0).getCustomerName());
+                }else{
+                    Toast.makeText(context, "It's a new Customer .! ", Toast.LENGTH_LONG).show();
+                }
+            }
+        }, customerPhone.getText().toString());
     }
 
 
@@ -623,14 +663,14 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                                 // Display selected date and time
                                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.getDefault());
 
-                                invoiceDtTv.setText(dateFormat.format(calendar.getTime()));
                                 LocalDateTime localDatetime = calendar.toInstant()
                                         .atZone(ZoneId.systemDefault())
                                         .toLocalDateTime();
 
                                 // Create OffsetDateTime with 00:00 time
-                                offsetDateTime = localDatetime.atOffset(ZoneOffset.UTC);
+                                offsetDateTime = localDatetime.atZone(ZoneId.of("Asia/Kolkata")).toOffsetDateTime();
                                 billingInvoiceModel.setBillingDate(offsetDateTime.toEpochSecond());
+                                invoiceDtTv.setText(offsetDateTime.format(formatter));
                             },
                             calendar.get(Calendar.HOUR_OF_DAY),
                             calendar.get(Calendar.MINUTE),
@@ -644,6 +684,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
 
     }
 
+    @SuppressLint("MissingSuperCall")
     @Override
     public void onBackPressed() {
         closeConfirmationPopup();
@@ -675,17 +716,17 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
 
     private void submitInvoiceDetails() {
 
+        if(billingInvoiceModel.getBillingDate() == null){
+            Toast.makeText(context, "Please Select Invoice Date..!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         if (StringUtils.isEmpty(customerName.getText().toString())) {
             Toast.makeText(context, "Please Enter Customer Name..!", Toast.LENGTH_LONG).show();
             return;
         }
         if (StringUtils.isEmpty(customerPhone.getText().toString())) {
             Toast.makeText(context, "Please Enter Customer Phone no..!", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        if(billingInvoiceModel == null){
-            Toast.makeText(context, "Please Select Invoice Date..!", Toast.LENGTH_LONG).show();
             return;
         }
 

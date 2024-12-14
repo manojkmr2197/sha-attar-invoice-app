@@ -37,6 +37,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.ReportViewAdapter;
+import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.ProductModel;
@@ -294,8 +295,17 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
             }
         });
 
+        ClickListener listener = new ClickListener() {
+            @Override
+            public void click(int index) {
+                Intent i = new Intent(ReportActivity.this, InvoiceHistoryDetailsActivity.class);
+                i.putExtra("invoiceId", String.valueOf(displayList.get(index).getInvoiceId()));
+                startActivity(i);
+            }
+        };
+
         reportRecyclerView = (RecyclerView) findViewById(R.id.report_recyclerView);
-        reportViewAdapter = new ReportViewAdapter(context, displayList);
+        reportViewAdapter = new ReportViewAdapter(context, displayList,listener);
         reportRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         reportRecyclerView.setAdapter(reportViewAdapter);
 
@@ -610,6 +620,14 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 //                e.printStackTrace();
 //                Toast.makeText(ReportActivity.this, "Internal Server Error. Please try again later.!", Toast.LENGTH_LONG).show();
 //            }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(startOfDay != null && endOfDay != null && checkInternet()){
+            processReport(startOfDay, endOfDay);
         }
     }
 }

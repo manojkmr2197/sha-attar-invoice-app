@@ -2,12 +2,14 @@ package com.app.sha.attar.invoice.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.sha.attar.invoice.R;
+import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.ReportModel;
 import com.app.sha.attar.invoice.viewholder.ProductViewHolder;
 import com.app.sha.attar.invoice.viewholder.ReportViewHolder;
@@ -18,10 +20,12 @@ public class ReportViewAdapter extends RecyclerView.Adapter<ReportViewHolder> {
 
     Context context;
     List<ReportModel> displayList;
+    ClickListener listener;
 
-    public ReportViewAdapter(Context context, List<ReportModel> displayList) {
+    public ReportViewAdapter(Context context, List<ReportModel> displayList, ClickListener listener) {
         this.context = context;
         this.displayList = displayList;
+        this.listener =listener;
     }
 
     @NonNull
@@ -40,6 +44,13 @@ public class ReportViewAdapter extends RecyclerView.Adapter<ReportViewHolder> {
         holder.actual_amt.setText("Rs. "+String.format("%.1f", displayList.get(index).getActualPrice()));
         holder.selling_amount.setText("Rs. "+String.format("%.1f", displayList.get(index).getSoldPrice()));
         holder.profit.setText("Rs. "+String.format("%.1f", displayList.get(index).getProfit()));
+
+        holder.edit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                listener.click(index);
+            }
+        });
 
     }
 

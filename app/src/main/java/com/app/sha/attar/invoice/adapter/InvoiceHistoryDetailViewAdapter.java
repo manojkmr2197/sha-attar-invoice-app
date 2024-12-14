@@ -16,6 +16,8 @@ import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.viewholder.InvoiceHistoryDetailViewHolder;
 import com.app.sha.attar.invoice.viewholder.InvoiceHistoryViewHolder;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +53,11 @@ public class InvoiceHistoryDetailViewAdapter extends RecyclerView.Adapter<Invoic
         }
 
         holder.itemName.setText(contentList.get(index).getName());
-        holder.itemCode.setText(contentList.get(index).getCode());
+        if(StringUtils.isNoneBlank(contentList.get(index).getCode())) {
+            holder.itemCode.setText(contentList.get(index).getCode());
+        }else{
+            holder.itemCode.setVisibility(View.GONE);
+        }
         holder.itemSellingPrice.setText(df.format(contentList.get(index).getSellingItemPrice()));
 
         holder.edit.setOnClickListener(new View.OnClickListener() {
