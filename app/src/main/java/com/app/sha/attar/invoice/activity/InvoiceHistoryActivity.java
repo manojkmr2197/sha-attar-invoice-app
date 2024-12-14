@@ -1,6 +1,7 @@
 package com.app.sha.attar.invoice.activity;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -22,11 +23,20 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.sha.attar.invoice.R;
+import com.app.sha.attar.invoice.adapter.InvoiceHistoryViewAdapter;
+import com.app.sha.attar.invoice.listener.BillingClickListener;
+import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
+import com.app.sha.attar.invoice.utils.DBUtil;
+import com.app.sha.attar.invoice.utils.DatabaseConstants;
+import com.app.sha.attar.invoice.utils.FirestoreCallback;
+import com.app.sha.attar.invoice.utils.SingleTon;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -58,6 +68,11 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
     RecyclerView data_recycler_view;
 
     List<BillingInvoiceModel> contentList =new ArrayList<>();
+    InvoiceHistoryViewAdapter adapter;
+    BillingClickListener listener;
+
+    DBUtil dbObj;
+    FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +89,8 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         }
         context = InvoiceHistoryActivity.this;
         activity = InvoiceHistoryActivity.this;
-
+        dbObj = new DBUtil();
+        db  = DBUtil.getInstance();
         back = (TextView) findViewById(R.id.invoice_history_back);
         back.setOnClickListener(this);
 
@@ -92,35 +108,106 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
 
         add_fab = (FloatingActionButton) findViewById(R.id.invoice_history_add_fab);
         add_fab.setOnClickListener(this);
-        data_recycler_view = (RecyclerView) findViewById(R.id.invoice_history_recyclerView);
 
         Intent intent = getIntent();
         boolean owner = intent.getBooleanExtra("owner",false);
+
+        listener = new BillingClickListener() {
+            @Override
+            public void click(int index,String type) {
+
+                if(checkInternet() && type.equalsIgnoreCase("EDIT")) {
+                    //callDetailActivity(context, filteredList.get(index));
+                    System.out.println("clicked item : " + index);
+                    Intent i = new Intent(InvoiceHistoryActivity.this, InvoiceHistoryDetailsActivity.class);
+                    i.putExtra("invoiceId", String.valueOf(contentList.get(index).getBillingDate()));
+                    startActivity(i);
+                }else if(checkInternet() && type.equalsIgnoreCase("DELETE")){
+                    deleteConfirmationPopup(index);
+                }
+            }
+        };
+
+        data_recycler_view = (RecyclerView) findViewById(R.id.invoice_history_recyclerView);
+        adapter = new InvoiceHistoryViewAdapter(context,contentList,listener,owner);
+        data_recycler_view.setLayoutManager(new LinearLayoutManager(this));
+        data_recycler_view.setAdapter(adapter);
+
         if(!owner){
             filter_ll.setVisibility(View.GONE);
             LocalDate today = LocalDate.now();
             startOfDay = today.atStartOfDay().atOffset(ZoneOffset.UTC).minusDays(1);
             endOfDay = today.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
-            getInvoiceRecords(startOfDay, endOfDay);
+            getInvoiceRecords(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
         }
+    }
+
+    private void deleteConfirmationPopup(int index) {
+        // Create and configure the AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Confirmation");
+        builder.setMessage("Are you sure you want to delete?");
+        builder.setCancelable(true);
+
+        // Set positive button
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            deleteInvoiceDetail(index);
+            dialog.dismiss();
+        });
+
+        // Set negative button
+        builder.setNegativeButton("No", (dialog, which) -> {
+            dialog.dismiss();
+        });
+
+        // Create and show the dialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
 
     }
 
-    private void getInvoiceRecords(OffsetDateTime startOfDay, OffsetDateTime endOfDay) {
+    private void deleteInvoiceDetail(int index) {
+        db.collection(DatabaseConstants.INVOICE_COLLECTION)
+                .document(String.valueOf(contentList.get(index).getBillingDate()))
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(InvoiceHistoryActivity.this, "Invoice item deleted .!", Toast.LENGTH_LONG).show();
+                    contentList.remove(index);
+                    adapter.notifyDataSetChanged();
+                })
+                .addOnFailureListener(e ->  Toast.makeText(InvoiceHistoryActivity.this, "Invoice deleted failed..!", Toast.LENGTH_LONG).show());
+    }
 
-        //Invoice DB call
-
-        if (contentList.isEmpty()) {
-            Toast.makeText(context, "Products is empty. Please try again .! ", Toast.LENGTH_LONG).show();
-            no_data_ll.setVisibility(View.VISIBLE);
-            data_ll.setVisibility(View.GONE);
-            return;
-        } else {
-            data_ll.setVisibility(View.VISIBLE);
-            no_data_ll.setVisibility(View.GONE);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(startOfDay != null && endOfDay != null){
+            getInvoiceRecords(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
         }
+    }
 
 
+    private void getInvoiceRecords(long startOfDay, long endOfDay) {
+        dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
+            @Override
+            public void onCallback(List<BillingInvoiceModel> result) {
+
+                if (result.isEmpty()) {
+                    Toast.makeText(InvoiceHistoryActivity.this, "No Invoice Data found .!", Toast.LENGTH_LONG).show();
+                    no_data_ll.setVisibility(View.VISIBLE);
+                    data_ll.setVisibility(View.GONE);
+                    return;
+                }
+                contentList.clear();
+                contentList.addAll(result);
+                data_ll.setVisibility(View.VISIBLE);
+                no_data_ll.setVisibility(View.GONE);
+                Toast.makeText(InvoiceHistoryActivity.this, "Invoice Data Loaded .!", Toast.LENGTH_LONG).show();
+
+                adapter.notifyDataSetChanged();
+
+            }
+        }, startOfDay, endOfDay);
     }
 
     @Override
@@ -140,10 +227,23 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                 Toast.makeText(context, "Select End date ..!", Toast.LENGTH_LONG).show();
                 return;
             }
-            getInvoiceRecords(startOfDay, endOfDay);
+            if (checkInternet())
+                getInvoiceRecords(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
         } else if(R.id.invoice_history_add_fab == view.getId()){
             //call intent to  invoice detail activity
+            Intent i = new Intent(InvoiceHistoryActivity.this, InvoiceHistoryDetailsActivity.class);
+            startActivity(i);
         }
+    }
+
+    private boolean checkInternet() {
+        if (SingleTon.isNetworkConnected(activity)) {
+            return true;
+        } else {
+            Toast.makeText(context, "No Internet connection. Please try again .! ", Toast.LENGTH_LONG).show();
+            return false;
+        }
+
     }
 
     private void showStartDatePickerDialog() {

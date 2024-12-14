@@ -84,7 +84,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     OffsetDateTime customStartDt = null, customEndDt = null, historyStartDt = null;
 
     List<BillingInvoiceModel> billingInvoiceModelList = new ArrayList<>();
-    ;
+
     DBUtil dbObj;
 
     List<ReportModel> reportProductList = new ArrayList<>();
@@ -428,7 +428,8 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         } else if (R.id.report_download_fab == view.getId()) {
             downloadReportStatus();
         } else if (R.id.report_history_delete == view.getId()) {
-            deleteHistoryRecords();
+            if(checkInternet())
+                deleteHistoryRecords();
         } else if (R.id.report_search == view.getId()) {
 
             if ((customStartDt != null && customEndDt == null) || (customStartDt == null && customEndDt != null)) {
@@ -454,8 +455,19 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
                     startOfDay = startOfDay.minusMonths(1);
                 }
             }
-            processReport(startOfDay, endOfDay);
+            if(checkInternet())
+                processReport(startOfDay, endOfDay);
         }
+    }
+
+    private boolean checkInternet() {
+        if (SingleTon.isNetworkConnected(activity)) {
+            return true;
+        } else {
+            Toast.makeText(context, "No Internet connection. Please try again .! ", Toast.LENGTH_LONG).show();
+            return false;
+        }
+
     }
 
     private void deleteHistoryRecords() {

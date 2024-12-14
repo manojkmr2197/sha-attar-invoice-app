@@ -44,6 +44,7 @@
                         android:layout_marginEnd="5sp"
                         android:maxLength="35"
                         android:text="Attar Name"
+                        android:singleLine="true"
                         android:textAllCaps="true"
                         android:textColor="@color/app_color"
                         android:textSize="13sp" />
@@ -71,6 +72,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="10sp"
                         android:text="5 ML"
+                        android:textSize="12sp"
                         android:textColor="@color/app_color"
                         android:textStyle="bold" />
 
@@ -88,8 +90,9 @@
                     android:id="@+id/billing_product_total_price"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.2"
+                    android:layout_weight="0.23"
                     android:text="Rs. 50"
+                    android:textSize="13sp"
                     android:textColor="@color/app_color"
                     android:textStyle="bold" />
 
@@ -129,6 +132,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="5sp"
                     android:maxLength="35"
+                    android:singleLine="true"
                     android:text="50 ML fancy bottle"
                     android:textAllCaps="true"
                     android:textColor="@color/app_color"
@@ -152,8 +156,9 @@
                     android:id="@+id/billing_accessories_price"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.2"
+                    android:layout_weight="0.23"
                     android:text="Rs. 400"
+                    android:textSize="13sp"
                     android:textColor="@color/app_color"
                     android:textStyle="bold" />
 

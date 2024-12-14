@@ -11,6 +11,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
@@ -96,30 +97,10 @@ public class DBUtil {
                 });
     }
 
-    public void getBillingItemModelDetail(FirestoreCallback<List<BillingItemModel>> callback, Long saleId) {
-
-        db.collection(DatabaseConstants.INVOICE_DETAILS_COLLECTION).whereEqualTo("invoiceId", saleId)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            List<BillingItemModel> billingItemModel = new ArrayList<>();
-                            for (DocumentSnapshot document : task.getResult()) {
-                                BillingItemModel model = document.toObject(BillingItemModel.class);
-                                billingItemModel.add(model);
-                            }
-                            callback.onCallback(billingItemModel);
-                        } else {
-                            System.err.println("Error fetching product details: " + task.getException());
-                        }
-                    }
-                });
-    }
-
     public void getBillingInvoiceDetail(FirestoreCallback<List<BillingInvoiceModel>> callback,  Long startTime,Long endTime) {
         db.collection(DatabaseConstants.INVOICE_COLLECTION).whereGreaterThanOrEqualTo("billingDate", startTime)
                 .whereLessThanOrEqualTo("billingDate", endTime)
+                .orderBy("billingDate", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -153,6 +134,28 @@ public class DBUtil {
                     callback.onCallback(querySnapshot.getDocuments());
                 })
                 .addOnFailureListener(e -> System.err.println("Error fetching documents: " + e.getMessage()));
+    }
+
+    public void getBillingItemDetailByDocId(FirestoreCallback<BillingInvoiceModel> callback, String documentId) {
+
+        db.collection(DatabaseConstants.INVOICE_COLLECTION).document(documentId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Map the document to the model class
+                        BillingInvoiceModel model = documentSnapshot.toObject(BillingInvoiceModel.class);
+
+                        if (model != null) {
+                            // prepare invoice item details
+                            callback.onCallback(model);
+                        }
+                    } else {
+                        System.out.println("No document found with the given ID.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    System.err.println("Error fetching document: " + e.getMessage());
+                });
     }
 
 }
