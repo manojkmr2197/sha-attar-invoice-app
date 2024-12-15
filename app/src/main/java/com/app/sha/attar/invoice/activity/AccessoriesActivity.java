@@ -152,6 +152,13 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
             }
         };
 
+        ArrayAdapter<CharSequence> ownerAdapter = ArrayAdapter.createFromResource(this,
+                R.array.spinner_items, android.R.layout.simple_spinner_item);
+
+        ownerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        ownerSpinner.setAdapter(ownerAdapter);
+
         adapter = new AccessoriesViewAdapter(context, filteredList, listener);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
@@ -191,7 +198,12 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 searchText = search_et.getText().toString();
-                searchOwner = adapterView.getItemAtPosition(i).toString();
+                if(adapterView !=null){
+                    searchOwner = adapterView.getItemAtPosition(i).toString();
+                }else{
+                    searchOwner = "ALL";
+                }
+
                 if (searchOwner.equalsIgnoreCase("ALL")) {
                     searchOwner = "";
                 }
@@ -219,7 +231,12 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                 if (searchOwner.equalsIgnoreCase("ALL")) {
                     searchOwner = "";
                 }
-                searchDealer = adapterView.getItemAtPosition(i).toString();
+                if(adapterView != null){
+                    searchDealer = adapterView.getItemAtPosition(i).toString();
+                }else{
+                    searchDealer ="ALL";
+                }
+
                 if (searchDealer.equalsIgnoreCase("ALL")) {
                     searchDealer = "";
                 }
@@ -232,12 +249,7 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
             }
         });
 
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.spinner_items, android.R.layout.simple_spinner_item);
 
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        ownerSpinner.setAdapter(adapter);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION);

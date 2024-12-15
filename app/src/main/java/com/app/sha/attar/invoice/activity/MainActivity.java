@@ -763,7 +763,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 LinearLayout.LayoutParams.WRAP_CONTENT));
 
         // Specify the type of input expected
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
         builder.setView(input);
 
         // Set up the buttons

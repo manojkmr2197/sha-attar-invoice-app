@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
+import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -15,7 +16,10 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class DBUtil {
     private static  FirebaseFirestore db;
@@ -156,6 +160,19 @@ public class DBUtil {
                 .addOnFailureListener(e -> {
                     System.err.println("Error fetching document: " + e.getMessage());
                 });
+    }
+
+    public void getAppConfig(FirestoreCallback<ConfigModel> callback) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        // Query Firestore for documents with IDs (timestamps) before the given timestamp
+        db.collection(DatabaseConstants.APP_CONFIG_COLLECTION)
+                .document(DatabaseConstants.APP_CONFIG_DOCUMENT)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    ConfigModel model = documentSnapshot.toObject(ConfigModel.class);
+                    callback.onCallback(model);
+                })
+                .addOnFailureListener(e -> System.err.println("Error fetching documents: " + e.getMessage()));
     }
 
 }
