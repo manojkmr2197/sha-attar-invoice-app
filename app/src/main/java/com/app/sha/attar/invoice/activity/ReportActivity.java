@@ -16,7 +16,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -40,22 +39,16 @@ import com.app.sha.attar.invoice.adapter.ReportViewAdapter;
 import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
-import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.model.ReportModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.ReportGenerator;
 import com.app.sha.attar.invoice.utils.SingleTon;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -68,9 +61,9 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 
 public class ReportActivity extends AppCompatActivity implements View.OnClickListener {
@@ -137,7 +130,10 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         reportProductList.clear();
 
         for (BillingInvoiceModel invoice : billingInvoiceModelList) {
-            for (BillingItemModel item : invoice.getBillingItemModelList()) {
+            List<BillingItemModel> itemList = new ArrayList<>();
+            itemList.addAll(invoice.getBillingItemModelList());
+            Collections.reverse(itemList);
+            for (BillingItemModel item : itemList) {
                 if (!item.getType().equals("PRODUCT")) {
                     continue;
                 }
@@ -169,7 +165,10 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         reportAccessoriesList.clear();
 
         for (BillingInvoiceModel invoice : billingInvoiceModelList) {
-            for (BillingItemModel item : invoice.getBillingItemModelList()) {
+            List<BillingItemModel> itemList = new ArrayList<>();
+            itemList.addAll(invoice.getBillingItemModelList());
+            Collections.reverse(itemList);
+            for (BillingItemModel item : itemList) {
                 if (!item.getType().equals("NON_PRODUCT")) {
                     continue;
                 }
