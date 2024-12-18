@@ -74,6 +74,8 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
     DBUtil dbObj;
     FirebaseFirestore db;
 
+    boolean owner;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,7 +112,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         add_fab.setOnClickListener(this);
 
         Intent intent = getIntent();
-        boolean owner = intent.getBooleanExtra("owner",false);
+        owner= intent.getBooleanExtra("owner",false);
 
         listener = new BillingClickListener() {
             @Override
@@ -232,6 +234,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         } else if(R.id.invoice_history_add_fab == view.getId()){
             //call intent to  invoice detail activity
             Intent i = new Intent(InvoiceHistoryActivity.this, InvoiceHistoryDetailsActivity.class);
+            i.putExtra("owner",owner);
             startActivity(i);
         }
     }

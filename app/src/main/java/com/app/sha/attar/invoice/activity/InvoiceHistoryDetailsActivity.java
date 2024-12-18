@@ -111,6 +111,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
     List<AccessoriesModel> accessoriesModelList = new ArrayList<>();
     SharedPrefHelper sharedPrefHelper;
 
+    Boolean owner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -193,6 +194,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
 
         Intent intent = getIntent();
         String invoiceId = intent.getStringExtra("invoiceId");
+        owner = intent.getBooleanExtra("owner",false);
 
         if (StringUtils.isNoneBlank(invoiceId)) {
             getInvoiceDocumentDetails(invoiceId);
@@ -644,7 +646,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         Calendar calendar = Calendar.getInstance();
 
         // DatePickerDialog
-        new DatePickerDialog(
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
                 this,
                 (view, year, month, dayOfMonth) -> {
                     // Update calendar with selected date
@@ -680,7 +682,12 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
-        ).show();
+        );
+        if(!owner){
+            datePickerDialog.getDatePicker().setMinDate(OffsetDateTime.now().minusDays(1).toInstant().toEpochMilli());
+        }
+        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        datePickerDialog.show();
 
     }
 
