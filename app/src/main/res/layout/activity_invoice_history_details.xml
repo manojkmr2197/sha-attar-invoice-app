@@ -111,16 +111,17 @@
                 android:overScrollMode="never"
                 android:nestedScrollingEnabled="false" />
 
-            <Button
-                android:id="@+id/invoice_history_detail_add_item_bt"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center|end"
-                android:textSize="10sp"
-                android:text="Add Items" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <Button
+        android:id="@+id/invoice_history_detail_add_item_bt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|end"
+        android:textSize="10sp"
+        android:layout_margin="5sp"
+        android:text="Add Items" />
 
     <LinearLayout
         android:layout_width="match_parent"

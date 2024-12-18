@@ -197,9 +197,10 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         owner = intent.getBooleanExtra("owner",false);
 
         if (StringUtils.isNoneBlank(invoiceId)) {
+            addInvoiceBt.setText("Update Invoice");
             getInvoiceDocumentDetails(invoiceId);
         }else{
-            //new invoice declararation
+            addInvoiceBt.setText("Add Invoice");
             billingInvoiceModel = new BillingInvoiceModel();
             offsetDateTime = OffsetDateTime.now();
         }
@@ -543,7 +544,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             @Override
             public void onClick(View v) {
                 if (billingItemModel != null) {
-                    itemModelList.remove(billingItemModel);
+                    //itemModelList.remove(billingItemModel);
                     if ("PRODUCT".equalsIgnoreCase(type[0])) {
                         if (selectedProduct[0] == null) {
                             Toast.makeText(context, "Please Choose the Product Name..!", Toast.LENGTH_LONG).show();
@@ -557,6 +558,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                             Toast.makeText(context, "Please fill the Quantity..!", Toast.LENGTH_LONG).show();
                             return;
                         }
+                        billingItemModel.setAccessoriesModel(null);
                         billingItemModel.setProductModel(selectedProduct[0]);
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedProduct[0].getName());
@@ -580,9 +582,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                         billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
-
+                        billingItemModel.setProductModel(null);
                     }
-                    itemModelList.add(billingItemModel);
+                    //itemModelList.add(billingItemModel);
                     invoiceAdapter.notifyDataSetChanged();
                     manageBillingLayout();
                 } else {
