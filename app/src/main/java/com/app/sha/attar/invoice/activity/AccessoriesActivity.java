@@ -89,7 +89,7 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
 
     List<String> dealerList = new ArrayList<>();
 
-    String searchText, searchOwner,searchDealer;
+    String searchText, searchOwner="ALL",searchDealer="ALL";
 
     DBUtil dbObj;
     SharedPrefHelper sharedPrefHelper;
@@ -158,6 +158,16 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         ownerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         ownerSpinner.setAdapter(ownerAdapter);
+
+        dealerList.add("ALL");
+        dealerAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,  // Layout for the items
+                dealerList  // The custom list of strings
+        );
+
+        dealerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        dealerSpinner.setAdapter(dealerAdapter);
 
         adapter = new AccessoriesViewAdapter(context, filteredList, listener);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -555,7 +565,6 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
 
         filteredList.clear();
         filteredList.addAll(itemList);
-        adapter.notifyDataSetChanged();
 
         dealerList.clear();
         Set<String> data = new TreeSet<>();
@@ -567,16 +576,23 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
 
         dealerList.add("ALL");
         dealerList.addAll(data);
-        dealerAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_item,  // Layout for the items
-                dealerList  // The custom list of strings
-        );
+        dealerAdapter.notifyDataSetChanged();
 
-        dealerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        dealerSpinner.setAdapter(dealerAdapter);
+        searchText = search_et.getText().toString();
+        if (searchOwner.equalsIgnoreCase("ALL")) {
+            searchOwner = "";
+        }
+        for (int i=0;i<dealerList.size();i++){
+            if(searchDealer.equalsIgnoreCase(dealerList.get(i))){
+                dealerSpinner.setSelection(i);
+            }
+        }
+        if (searchDealer.equalsIgnoreCase("ALL")) {
+            searchDealer = "";
+        }
 
-
+        filter(searchText, searchOwner,searchDealer);
+        adapter.notifyDataSetChanged();
     }
 
     public void setTotalAccessoriesItem() {

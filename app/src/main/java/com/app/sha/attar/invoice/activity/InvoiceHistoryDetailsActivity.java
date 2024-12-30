@@ -182,6 +182,14 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         itemRecyclerview.setLayoutManager(new LinearLayoutManager(this));
         itemRecyclerview.setAdapter(invoiceAdapter);
 
+        invoiceAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                itemRecyclerview.scrollToPosition((itemModelList.size()>0)?itemModelList.size() - 1:0);
+            }
+        });
+
         totalAmountTv = (TextView) findViewById(R.id.invoice_history_detail_total_amount_price);
         sellingAmountTv = (TextView) findViewById(R.id.invoice_history_detail_total_selling_price);
         discountTv = (TextView) findViewById(R.id.invoice_history_detail_discount);

@@ -14,6 +14,7 @@ import android.os.Environment;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -249,6 +250,21 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         typeSpinner.setAdapter(adapter);
+
+        typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                customStartDt = null;
+                customEndDt = null;
+                startDatetv.setText("Start Date");
+                endDatetv.setText("End Date");
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
 
         startDatetv = findViewById(R.id.start_date_tv);
         endDatetv = findViewById(R.id.end_date_tv);

@@ -127,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.home_drawer_layout);
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         TextView textView = (TextView) findViewById(R.id.home_nav_text_view);
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -218,7 +219,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         billingAdapter = new BillingViewAdapter(context, billingItemModelList, listener);
         bill_recycler.setLayoutManager(new LinearLayoutManager(this));
+        bill_recycler.scrollToPosition((billingItemModelList.size()>0)?billingItemModelList.size() - 1:0);
         bill_recycler.setAdapter(billingAdapter);
+
+        billingAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                bill_recycler.scrollToPosition((billingItemModelList.size()>0)?billingItemModelList.size() - 1:0);
+            }
+        });
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION);

@@ -68,12 +68,14 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:layout_weight="1">
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/filledTextField"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:layout_margin="2dp"
                     android:hint="Enter Product eg. ATTAR">
 
@@ -86,6 +88,26 @@
                         android:singleLine="true" />
 
                 </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.7"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="7sp"
+                        android:text="Stock Status"/>
+
+                    <Spinner
+                        android:id="@+id/product_spinner_availability"
+                        android:layout_width="wrap_content"
+                        android:layout_height="30sp"/>
+                </LinearLayout>
+
+
+
             </LinearLayout>
 
         </LinearLayout>
