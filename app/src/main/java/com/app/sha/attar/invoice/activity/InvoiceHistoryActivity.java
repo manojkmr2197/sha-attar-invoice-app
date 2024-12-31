@@ -30,14 +30,18 @@ import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.InvoiceHistoryViewAdapter;
 import com.app.sha.attar.invoice.listener.BillingClickListener;
 import com.app.sha.attar.invoice.listener.ClickListener;
+import com.app.sha.attar.invoice.listener.TimeApi;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
+import com.app.sha.attar.invoice.model.TimeResponse;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
+import com.app.sha.attar.invoice.utils.RetrofitClient;
 import com.app.sha.attar.invoice.utils.SingleTon;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -48,6 +52,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class InvoiceHistoryActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -137,11 +147,38 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
 
         if(!owner){
             filter_ll.setVisibility(View.GONE);
-            LocalDate today = LocalDate.now();
-            startOfDay = today.atStartOfDay().atOffset(ZoneOffset.UTC).minusDays(1);
-            endOfDay = today.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
-            getInvoiceRecords(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
+            getServerDate();
         }
+    }
+
+    private void getServerDate() {
+
+        TimeApi timeApi = RetrofitClient.getInstance().create(TimeApi.class);
+
+        timeApi.getTime().enqueue(new Callback<TimeResponse>() {
+            @Override
+            public void onResponse(Call<TimeResponse> call, Response<TimeResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String datetime = response.body().datetime;
+                    System.out.println("ServerTime --"+ datetime);
+                    OffsetDateTime offsetDateTime = OffsetDateTime.parse(datetime).withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));;
+                    startOfDay = offsetDateTime.withHour(0).withMinute(0).withSecond(0).minusDays(1);
+                    endOfDay = offsetDateTime.withHour(23).withMinute(59).withSecond(59);
+                    getInvoiceRecords(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<TimeResponse> call, Throwable t) {
+                if (t instanceof IOException) {
+                    // Retry logic
+                    call.clone().enqueue(this);
+                } else {
+                    System.out.println("ServerTime "+ "Failed to fetch time"+ t);
+                }
+            }
+        });
+
     }
 
     private void deleteConfirmationPopup(int index) {

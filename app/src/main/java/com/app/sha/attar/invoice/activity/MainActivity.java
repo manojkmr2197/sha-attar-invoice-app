@@ -340,6 +340,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             i = new Intent(MainActivity.this, InvoiceHistoryActivity.class);
             i.putExtra("owner",true);
             startActivity(i);
+        } else if (item.getItemId() == R.id.nav_consolidate_report) {
+            i = new Intent(MainActivity.this, ConsolidateReportActivity.class);
+            startActivity(i);
         }
         return true;
     }

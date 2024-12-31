@@ -41,13 +41,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.InvoiceHistoryDetailViewAdapter;
 import com.app.sha.attar.invoice.listener.BillingClickListener;
+import com.app.sha.attar.invoice.listener.TimeApi;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.ProductModel;
+import com.app.sha.attar.invoice.model.TimeResponse;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
+import com.app.sha.attar.invoice.utils.RetrofitClient;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -58,6 +61,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -74,6 +78,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -210,8 +220,36 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         }else{
             addInvoiceBt.setText("Add Invoice");
             billingInvoiceModel = new BillingInvoiceModel();
-            offsetDateTime = OffsetDateTime.now();
+            getServerDate();
         }
+
+    }
+
+    private void getServerDate() {
+
+        TimeApi timeApi = RetrofitClient.getInstance().create(TimeApi.class);
+
+        timeApi.getTime().enqueue(new Callback<TimeResponse>() {
+            @Override
+            public void onResponse(Call<TimeResponse> call, Response<TimeResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String datetime = response.body().datetime;
+                    System.out.println("ServerTime --"+ datetime);
+                    offsetDateTime = OffsetDateTime.parse(datetime).withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));;
+                }
+            }
+
+            @Override
+            public void onFailure(Call<TimeResponse> call, Throwable t) {
+                if (t instanceof IOException) {
+                    // Retry logic
+                    call.clone().enqueue(this);
+                } else {
+                    System.out.println("ServerTime "+ "Failed to fetch time"+ t);
+                }
+
+            }
+        });
 
     }
 
@@ -693,8 +731,8 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
         );
-        if(!owner){
-            datePickerDialog.getDatePicker().setMinDate(OffsetDateTime.now().minusDays(1).toInstant().toEpochMilli());
+        if(!owner && "Select Date".equalsIgnoreCase(invoiceDtTv.getText().toString())){
+            datePickerDialog.getDatePicker().setMinDate(offsetDateTime.minusDays(1).toInstant().toEpochMilli());
         }
         datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
         datePickerDialog.show();

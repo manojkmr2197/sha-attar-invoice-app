@@ -33,6 +33,10 @@
                 android:id="@+id/nav_report"
                 android:icon="@drawable/line"
                 android:title="Sales Report" />
+            <item
+                android:id="@+id/nav_consolidate_report"
+                android:icon="@drawable/baseline_featured_play_list_24"
+                android:title="Consolidate Report" />
         </menu>
     </item>
 
