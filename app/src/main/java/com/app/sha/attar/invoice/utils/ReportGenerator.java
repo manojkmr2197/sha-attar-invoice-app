@@ -79,7 +79,8 @@ public class ReportGenerator {
                 String productName = item.getName();
                 int quantity = item.getUnits();
                 double soldPrice = item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount()/100));
-                double actualPrice = item.getUnitPrice() * quantity;
+                //double actualPrice = item.getUnitPrice() * quantity;
+                double actualPrice = item.getTotalPrice();
                 double profit = soldPrice - actualPrice;
                 aggregationMap.putIfAbsent(productName, new AggregatedData(0, 0, 0, 0,""));
                 AggregatedData aggregatedData = aggregationMap.get(productName);
