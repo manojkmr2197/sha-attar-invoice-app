@@ -1,5 +1,7 @@
 package com.app.sha.attar.invoice.activity;
 
+
+
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -43,13 +45,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.BillingViewAdapter;
 import com.app.sha.attar.invoice.listener.BillingClickListener;
+import com.app.sha.attar.invoice.listener.TimeApi;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.ProductModel;
+import com.app.sha.attar.invoice.model.TimeResponse;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
+import com.app.sha.attar.invoice.utils.RetrofitClient;
 import com.app.sha.attar.invoice.utils.SharedConstants;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
@@ -65,12 +70,18 @@ import com.google.firebase.firestore.WriteBatch;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
@@ -174,9 +185,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         home_invoice_tv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(MainActivity.this, InvoiceHistoryActivity.class);
-                i.putExtra("owner",false);
-                startActivity(i);
+               getServerDate();
             }
         });
 
@@ -806,5 +815,39 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
         builder.show();
+    }
+
+    private void getServerDate() {
+        Toast.makeText(MainActivity.this, "Loading.!", Toast.LENGTH_LONG).show();
+        TimeApi timeApi = RetrofitClient.getInstance().create(TimeApi.class);
+
+        timeApi.getTime().enqueue(new Callback<TimeResponse>() {
+            @Override
+            public void onResponse(Call<TimeResponse> call, Response<TimeResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String datetime = response.body().datetime;
+                    System.out.println("ServerTime --"+ datetime);
+                    OffsetDateTime offsetDateTime = OffsetDateTime.parse(datetime);
+                    if(SingleTon.compareDateTime(offsetDateTime)) {
+                        Intent i = new Intent(MainActivity.this, InvoiceHistoryActivity.class);
+                        i.putExtra("owner",false);
+                        startActivity(i);
+                    }else{
+                        Toast.makeText(MainActivity.this, "Please check Mobile Date/Time", Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<TimeResponse> call, Throwable t) {
+                if (t instanceof IOException) {
+                    // Retry logic
+                    call.clone().enqueue(this);
+                } else {
+                    System.out.println("ServerTime "+ "Failed to fetch time"+ t);
+                }
+            }
+        });
+
     }
 }

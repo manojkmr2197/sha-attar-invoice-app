@@ -734,7 +734,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         if(!owner && "Select Date".equalsIgnoreCase(invoiceDtTv.getText().toString())){
             datePickerDialog.getDatePicker().setMinDate(offsetDateTime.minusDays(1).toInstant().toEpochMilli());
         }
-        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        datePickerDialog.getDatePicker().setMaxDate(offsetDateTime.toInstant().toEpochMilli());
         datePickerDialog.show();
 
     }
