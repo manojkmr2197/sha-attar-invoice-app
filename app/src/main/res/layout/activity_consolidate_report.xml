@@ -204,7 +204,7 @@
                         android:background="#ADD8E6"
                         android:gravity="center"
                         android:id="@+id/consolidate_product_actual"
-                        android:text="Rs.0.0"
+                        android:text="₹ 0.0"
                         android:textColor="@color/app_color"
                         android:textSize="12sp" />
 
@@ -220,7 +220,7 @@
                         android:background="#9FE2BF"
                         android:gravity="center"
                         android:id="@+id/consolidate_product_profit"
-                        android:text="Rs.0.0"
+                        android:text="₹ 0.0"
                         android:textColor="@color/app_color"
                         android:textSize="12sp" />
 
@@ -260,7 +260,7 @@
                         android:background="#ADD8E6"
                         android:gravity="center"
                         android:id="@+id/consolidate_accessories_actual"
-                        android:text="Rs.0.0"
+                        android:text="₹ 0.0"
                         android:textColor="@color/app_color"
                         android:textSize="12sp" />
 
@@ -276,7 +276,7 @@
                         android:background="#9FE2BF"
                         android:gravity="center"
                         android:id="@+id/consolidate_accessories_profit"
-                        android:text="Rs.0.0"
+                        android:text="₹ 0.0"
                         android:textColor="@color/app_color"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -296,7 +296,7 @@
                 android:layout_weight="1"
                 android:textColor="@color/black"
                 android:gravity="center|end"
-                android:text="Total Actual Amount : Rs. "/>
+                android:text="Total Actual Amount :  "/>
 
             <TextView
                 android:layout_width="0dp"
@@ -327,7 +327,7 @@
                 android:layout_weight="1"
                 android:textColor="@color/black"
                 android:gravity="center|end"
-                android:text="Total Profit : Rs. "/>
+                android:text="Total Profit :  "/>
 
             <TextView
                 android:layout_width="0dp"
@@ -358,7 +358,7 @@
                 android:layout_weight="1"
                 android:textColor="@color/black"
                 android:gravity="center|end"
-                android:text="Profit / Person: Rs. "/>
+                android:text="Profit / Person:  "/>
 
             <TextView
                 android:layout_width="0dp"
@@ -389,7 +389,8 @@
                 android:layout_weight="1"
                 android:textColor="@color/black"
                 android:gravity="center|end"
-                android:text="Total Amount from IK : Rs. "/>
+                android:textStyle="bold"
+                android:text="Total Amount from IK :  "/>
 
             <TextView
                 android:layout_width="0dp"
@@ -399,6 +400,7 @@
                 android:padding="5sp"
                 android:id="@+id/consolidate_amount_from_ik"
                 android:text="0.0"
+                android:textStyle="bold"
                 android:textColor="@color/app_color"
                 android:textSize="15sp" />
 

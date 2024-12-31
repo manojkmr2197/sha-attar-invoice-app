@@ -28,6 +28,7 @@ import com.app.sha.attar.invoice.utils.ReportGenerator;
 import com.app.sha.attar.invoice.utils.SingleTon;
 
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -60,6 +61,8 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
     TextView productActual, accessoriesActual, productProfit, accessoriesProfit, totalActual, totalProfit, profitPerPerson, amountFromIk;
 
     double productActualValue,accessoriesActualValue, productProfitValue, accessoriesProfitValue, totalActualValue, totalProfitValue, profitPerPersonValue, amountFromIkValue;
+
+    NumberFormat numberFormat = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
 
     DecimalFormat df = new DecimalFormat("#.00");
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm a");
@@ -153,18 +156,18 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
                     accessoriesProfitValue +=value.profit;
                 });
 
-                productActual.setText(df.format(productActualValue));
-                productProfit.setText(df.format(productProfitValue));
-                accessoriesActual.setText(df.format(accessoriesActualValue));
-                accessoriesProfit.setText(df.format(accessoriesProfitValue));
+                productActual.setText(numberFormat.format(productActualValue).replace("\u00A0", ""));
+                productProfit.setText(numberFormat.format(productProfitValue).replace("\u00A0", ""));
+                accessoriesActual.setText(numberFormat.format(accessoriesActualValue).replace("\u00A0", ""));
+                accessoriesProfit.setText(numberFormat.format(accessoriesProfitValue).replace("\u00A0", ""));
 
                 totalActualValue = productActualValue+accessoriesActualValue;
                 totalProfitValue = productProfitValue+accessoriesProfitValue;
 
-                totalActual.setText(df.format(totalActualValue));
-                totalProfit.setText(df.format(totalProfitValue));
-                profitPerPerson.setText(df.format(totalProfitValue/2));
-                amountFromIk.setText(df.format(totalActualValue+(totalProfitValue/2)));
+                totalActual.setText(numberFormat.format(totalActualValue).replace("\u00A0", ""));
+                totalProfit.setText(numberFormat.format(totalProfitValue).replace("\u00A0", ""));
+                profitPerPerson.setText(numberFormat.format(totalProfitValue/2).replace("\u00A0", ""));
+                amountFromIk.setText(numberFormat.format(totalActualValue+(totalProfitValue/2)).replace("\u00A0", ""));
 
                 Toast.makeText(ConsolidateReportActivity.this, "Invoice Data Loaded .!", Toast.LENGTH_SHORT).show();
             }
