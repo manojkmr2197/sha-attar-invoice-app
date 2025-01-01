@@ -121,7 +121,7 @@
                 <!--Header-->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="150dp"
+                    android:layout_height="200dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -163,6 +163,22 @@
                         android:layout_weight="1"
                         android:background="#75C3C2C0"
                         android:gravity="center"
+                        android:text="Sold Price"
+                        android:textColor="@color/black"
+                        android:textSize="13sp"
+                        android:textStyle="bold|italic" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#ffffff" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:background="#75C3C2C0"
+                        android:gravity="center"
                         android:text="Profit"
                         android:textColor="@color/black"
                         android:textSize="13sp"
@@ -177,7 +193,7 @@
                 <!--Product-->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="150dp"
+                    android:layout_height="200dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -217,6 +233,22 @@
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="1"
+                        android:background="#FFB3B3"
+                        android:gravity="center"
+                        android:id="@+id/consolidate_product_sold"
+                        android:text="₹ 0.0"
+                        android:textColor="@color/app_color"
+                        android:textSize="12sp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#ffffff" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
                         android:background="#9FE2BF"
                         android:gravity="center"
                         android:id="@+id/consolidate_product_profit"
@@ -233,7 +265,7 @@
                 <!--Accessories-->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="150dp"
+                    android:layout_height="200dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -260,6 +292,22 @@
                         android:background="#ADD8E6"
                         android:gravity="center"
                         android:id="@+id/consolidate_accessories_actual"
+                        android:text="₹ 0.0"
+                        android:textColor="@color/app_color"
+                        android:textSize="12sp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#ffffff" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:background="#FFB3B3"
+                        android:gravity="center"
+                        android:id="@+id/consolidate_accessories_sold"
                         android:text="₹ 0.0"
                         android:textColor="@color/app_color"
                         android:textSize="12sp" />
@@ -304,6 +352,37 @@
                 android:layout_weight="0.5"
                 android:gravity="start|center"
                 android:id="@+id/consolidate_total_actual_amount"
+                android:padding="5sp"
+                android:text="0.0"
+                android:textColor="@color/app_color"
+                android:textSize="15sp" />
+
+
+        </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#ffffff" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFB3B3"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/black"
+                android:gravity="center|end"
+                android:text="Total Sold Amount :  "/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:gravity="start|center"
+                android:id="@+id/consolidate_total_sold_amount"
                 android:padding="5sp"
                 android:text="0.0"
                 android:textColor="@color/app_color"

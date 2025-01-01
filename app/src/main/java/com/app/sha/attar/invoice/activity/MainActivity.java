@@ -93,7 +93,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     List<ProductModel> productModelList = new ArrayList<>();
     List<AccessoriesModel> accessoriesModelList = new ArrayList<>();
 
-    FrameLayout content_ll, empty_ll;
+    FrameLayout  empty_ll;
+    LinearLayout content_ll;
 
     RecyclerView bill_recycler;
     BillingViewAdapter billingAdapter;
@@ -157,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        content_ll = (FrameLayout) findViewById(R.id.home_content_ll);
+        content_ll = (LinearLayout) findViewById(R.id.home_content_ll);
         empty_ll = (FrameLayout) findViewById(R.id.home_empty_ll);
 
         billing_add = (Button) findViewById(R.id.home_bill_add_bt);

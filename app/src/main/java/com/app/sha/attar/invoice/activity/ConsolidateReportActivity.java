@@ -58,9 +58,9 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
 
     List<BillingInvoiceModel> billingInvoiceModelList = new ArrayList<>();
 
-    TextView productActual, accessoriesActual, productProfit, accessoriesProfit, totalActual, totalProfit, profitPerPerson, amountFromIk;
+    TextView productActual, accessoriesActual,productSold, accessoriesSold, productProfit, accessoriesProfit, totalActual,totalSold, totalProfit, profitPerPerson, amountFromIk;
 
-    double productActualValue,accessoriesActualValue, productProfitValue, accessoriesProfitValue, totalActualValue, totalProfitValue, profitPerPersonValue, amountFromIkValue;
+    double productActualValue,accessoriesActualValue,productSoldValue, accessoriesSoldValue, productProfitValue, accessoriesProfitValue, totalActualValue,totalSoldValue, totalProfitValue;
 
     NumberFormat numberFormat = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
 
@@ -100,8 +100,11 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
         accessoriesActual = (TextView) findViewById(R.id.consolidate_accessories_actual);
         productProfit = (TextView) findViewById(R.id.consolidate_product_profit);
         accessoriesProfit = (TextView) findViewById(R.id.consolidate_accessories_profit);
+        productSold = (TextView) findViewById(R.id.consolidate_product_sold);
+        accessoriesSold = (TextView) findViewById(R.id.consolidate_accessories_sold);
         totalActual = (TextView) findViewById(R.id.consolidate_total_actual_amount);
         totalProfit = (TextView) findViewById(R.id.consolidate_total_profit);
+        totalSold = (TextView) findViewById(R.id.consolidate_total_sold_amount);
         profitPerPerson = (TextView) findViewById(R.id.consolidate_profit_per_person);
         amountFromIk = (TextView) findViewById(R.id.consolidate_amount_from_ik);
 
@@ -149,22 +152,28 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
 
                 productData.forEach((key,value)->{
                     productActualValue +=value.actualPrice;
+                    productSoldValue +=value.soldPrice;
                     productProfitValue +=value.profit;
                 });
                 accessoryData.forEach((key,value)->{
                     accessoriesActualValue +=value.actualPrice;
+                    accessoriesSoldValue +=value.soldPrice;
                     accessoriesProfitValue +=value.profit;
                 });
 
                 productActual.setText(numberFormat.format(productActualValue).replace("\u00A0", ""));
+                productSold.setText(numberFormat.format(productSoldValue).replace("\u00A0", ""));
                 productProfit.setText(numberFormat.format(productProfitValue).replace("\u00A0", ""));
                 accessoriesActual.setText(numberFormat.format(accessoriesActualValue).replace("\u00A0", ""));
+                accessoriesSold.setText(numberFormat.format(accessoriesSoldValue).replace("\u00A0", ""));
                 accessoriesProfit.setText(numberFormat.format(accessoriesProfitValue).replace("\u00A0", ""));
 
                 totalActualValue = productActualValue+accessoriesActualValue;
+                totalSoldValue = productSoldValue+accessoriesSoldValue;
                 totalProfitValue = productProfitValue+accessoriesProfitValue;
 
                 totalActual.setText(numberFormat.format(totalActualValue).replace("\u00A0", ""));
+                totalSold.setText(numberFormat.format(totalSoldValue).replace("\u00A0", ""));
                 totalProfit.setText(numberFormat.format(totalProfitValue).replace("\u00A0", ""));
                 profitPerPerson.setText(numberFormat.format(totalProfitValue/2).replace("\u00A0", ""));
                 amountFromIk.setText(numberFormat.format(totalActualValue+(totalProfitValue/2)).replace("\u00A0", ""));
