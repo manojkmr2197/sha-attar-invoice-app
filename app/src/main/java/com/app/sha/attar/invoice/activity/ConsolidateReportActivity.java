@@ -150,6 +150,13 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
                 Map<String, ReportGenerator.AggregatedData> productData = ReportGenerator.getAggregatedSalesReportData(billingInvoiceModelList);
                 Map<String, ReportGenerator.AccessoryAggregatedData> accessoryData = ReportGenerator.getAggregatedAccessoriesReportData(billingInvoiceModelList);
 
+                productActualValue =0;
+                productSoldValue =0;
+                productProfitValue =0;
+                accessoriesActualValue =0;
+                accessoriesSoldValue =0;
+                accessoriesProfitValue =0;
+
                 productData.forEach((key,value)->{
                     productActualValue +=value.actualPrice;
                     productSoldValue +=value.soldPrice;
