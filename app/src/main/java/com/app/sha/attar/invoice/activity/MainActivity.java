@@ -819,36 +819,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void getServerDate() {
-        Toast.makeText(MainActivity.this, "Loading.!", Toast.LENGTH_LONG).show();
-        TimeApi timeApi = RetrofitClient.getInstance().create(TimeApi.class);
+        Toast.makeText(MainActivity.this, "Loading.!", Toast.LENGTH_SHORT).show();
 
-        timeApi.getTime().enqueue(new Callback<TimeResponse>() {
-            @Override
-            public void onResponse(Call<TimeResponse> call, Response<TimeResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String datetime = response.body().datetime;
-                    System.out.println("ServerTime --"+ datetime);
-                    OffsetDateTime offsetDateTime = OffsetDateTime.parse(datetime);
-                    if(SingleTon.compareDateTime(offsetDateTime)) {
-                        Intent i = new Intent(MainActivity.this, InvoiceHistoryActivity.class);
-                        i.putExtra("owner",false);
-                        startActivity(i);
-                    }else{
-                        Toast.makeText(MainActivity.this, "Please check Mobile Date/Time", Toast.LENGTH_LONG).show();
-                    }
-                }
-            }
+        OffsetDateTime offsetDateTime = null;
+        if(StringUtils.isNotBlank(sharedPrefHelper.getSystemTime())) {
+            offsetDateTime = OffsetDateTime.parse(sharedPrefHelper.getSystemTime()).withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));
+        }else {
+            offsetDateTime = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));
+        }
 
-            @Override
-            public void onFailure(Call<TimeResponse> call, Throwable t) {
-                if (t instanceof IOException) {
-                    // Retry logic
-                    call.clone().enqueue(this);
-                } else {
-                    System.out.println("ServerTime "+ "Failed to fetch time"+ t);
-                }
-            }
-        });
+        if(SingleTon.compareDateTime(offsetDateTime)) {
+            Intent i = new Intent(MainActivity.this, InvoiceHistoryActivity.class);
+            i.putExtra("owner",false);
+            startActivity(i);
+        }else{
+            Toast.makeText(MainActivity.this, "Please check Mobile Date/Time", Toast.LENGTH_LONG).show();
+        }
 
     }
 }

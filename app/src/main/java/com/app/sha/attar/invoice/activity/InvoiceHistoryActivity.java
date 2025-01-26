@@ -37,9 +37,12 @@ import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.RetrofitClient;
+import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -152,32 +155,16 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
     }
 
     private void getServerDate() {
-
-        TimeApi timeApi = RetrofitClient.getInstance().create(TimeApi.class);
-
-        timeApi.getTime().enqueue(new Callback<TimeResponse>() {
-            @Override
-            public void onResponse(Call<TimeResponse> call, Response<TimeResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String datetime = response.body().datetime;
-                    System.out.println("ServerTime --"+ datetime);
-                    OffsetDateTime offsetDateTime = OffsetDateTime.parse(datetime).withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));;
-                    startOfDay = offsetDateTime.withHour(0).withMinute(0).withSecond(0).minusDays(1);
-                    endOfDay = offsetDateTime.withHour(23).withMinute(59).withSecond(59);
-                    getInvoiceRecords(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<TimeResponse> call, Throwable t) {
-                if (t instanceof IOException) {
-                    // Retry logic
-                    call.clone().enqueue(this);
-                } else {
-                    System.out.println("ServerTime "+ "Failed to fetch time"+ t);
-                }
-            }
-        });
+        SharedPrefHelper sharedPrefHelper = new SharedPrefHelper(context);
+        OffsetDateTime offsetDateTime = null;
+        if(StringUtils.isNotBlank(sharedPrefHelper.getSystemTime())) {
+            offsetDateTime = OffsetDateTime.parse(sharedPrefHelper.getSystemTime()).withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));
+        }else {
+            offsetDateTime = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));
+        }
+        startOfDay = offsetDateTime.withHour(0).withMinute(0).withSecond(0).minusDays(1);
+        endOfDay = offsetDateTime.withHour(23).withMinute(59).withSecond(59);
+        getInvoiceRecords(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
 
     }
 

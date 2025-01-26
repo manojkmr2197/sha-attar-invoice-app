@@ -1,5 +1,7 @@
 package com.app.sha.attar.invoice.utils;
 
+import java.time.OffsetDateTime;
+
 public class SharedConstants {
 
     public static String SHA_ATTAR = "SHA_ATTAR";
@@ -8,5 +10,7 @@ public class SharedConstants {
 
     public static String PACKAGING_KEY = "SHA_ATTAR_PACKAGING";
     public static String ADMIN_PASSWORD = "ADMIN_PASSWORD";
+
+    public static String SYSTEM_TIME = "SYSTEM_TIME";
 
 }

@@ -106,6 +106,15 @@ public class SharedPrefHelper {
         });
     }
 
+    public String getSystemTime(){
+        return sharedPreferences.getString(SharedConstants.SYSTEM_TIME, null);
+    }
 
+    public void setSystemTime(String dateTime){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(SharedConstants.SYSTEM_TIME, dateTime);
+        editor.apply();
+        editor.commit();
+    }
 
 }

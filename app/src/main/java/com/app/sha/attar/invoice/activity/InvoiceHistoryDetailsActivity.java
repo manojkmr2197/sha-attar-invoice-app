@@ -227,29 +227,11 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
 
     private void getServerDate() {
 
-        TimeApi timeApi = RetrofitClient.getInstance().create(TimeApi.class);
-
-        timeApi.getTime().enqueue(new Callback<TimeResponse>() {
-            @Override
-            public void onResponse(Call<TimeResponse> call, Response<TimeResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String datetime = response.body().datetime;
-                    System.out.println("ServerTime --"+ datetime);
-                    offsetDateTime = OffsetDateTime.parse(datetime).withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));;
-                }
-            }
-
-            @Override
-            public void onFailure(Call<TimeResponse> call, Throwable t) {
-                if (t instanceof IOException) {
-                    // Retry logic
-                    call.clone().enqueue(this);
-                } else {
-                    System.out.println("ServerTime "+ "Failed to fetch time"+ t);
-                }
-
-            }
-        });
+        if(StringUtils.isNotBlank(sharedPrefHelper.getSystemTime())) {
+            offsetDateTime = OffsetDateTime.parse(sharedPrefHelper.getSystemTime()).withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));
+        }else {
+            offsetDateTime = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));
+        }
 
     }
 
