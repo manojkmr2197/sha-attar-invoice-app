@@ -54,7 +54,7 @@ public class SplashActivity extends AppCompatActivity {
         helper = new SharedPrefHelper(SplashActivity.this);
         if (checkInternet()) {
             loadAppConfig();
-            getServerDate();
+            //getServerDate();
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
