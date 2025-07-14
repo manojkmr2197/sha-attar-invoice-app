@@ -12,19 +12,20 @@
             android:id="@+id/nav_accessories"
             android:icon="@drawable/accessory"
             android:title="Accessories" />
-        <item
-            android:id="@+id/nav_packaging"
-            android:icon="@drawable/delivery"
-            android:title="Packaging" />
 
     </group>
 
-    <item android:title="Reports">
+    <item android:title="Sales Person">
         <menu>
             <item
-                android:id="@+id/nav_customer"
+                android:id="@+id/nav_sales_person"
                 android:icon="@drawable/customer"
-                android:title="Customer Details" />
+                android:title="Sales Person Details" />
+        </menu>
+    </item>
+
+    <item android:title="Reports">
+        <menu>
             <item
                 android:id="@+id/nav_invoice"
                 android:icon="@drawable/baseline_file_copy_24"
@@ -37,6 +38,20 @@
                 android:id="@+id/nav_consolidate_report"
                 android:icon="@drawable/baseline_featured_play_list_24"
                 android:title="Consolidate Report" />
+
+            <item
+                android:id="@+id/nav_sales_person_report"
+                android:icon="@drawable/baseline_featured_play_list_24"
+                android:title="Sales Person Report" />
+
+            <item
+                android:id="@+id/nav_asset_business_calc"
+                android:icon="@drawable/baseline_featured_play_list_24"
+                android:title="Asset Business Calculator" />
+            <item
+                android:id="@+id/nav_expense_tracker"
+                android:icon="@drawable/baseline_featured_play_list_24"
+                android:title="Expense Tracker" />
         </menu>
     </item>
 

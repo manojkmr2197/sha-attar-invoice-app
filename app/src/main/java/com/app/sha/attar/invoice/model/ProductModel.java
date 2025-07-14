@@ -1,5 +1,7 @@
 package com.app.sha.attar.invoice.model;
 
+import java.util.HashMap;
+
 public class ProductModel {
 
     private Integer id;
@@ -10,12 +12,11 @@ public class ProductModel {
     private String status;
     private String documentId;
     private String dealer;
+    private HashMap<String,Double> attarSellingPriceMap;
+    private HashMap<String,Double> perfumeSellingPriceMap;
 
     public ProductModel(){}
-    //        productModelList.add(new ProductModel(1,"Apple","A1",15000,"MTS","Y"));
-    //'ProductModel(java.lang.Integer, java.lang.String, java.lang.String, java.lang.String,
-    // java.lang.String, java.lang.String)' in 'com.app.sha.attar.invoice.model.ProductModel' cannot
-    // be applied to '(int, java.lang.String, java.lang.String, int, java.lang.String, java.lang.String)'
+
     public ProductModel(String name, String price, String owner, String a_status) {
         this.name = name;
         this.price = price;
@@ -91,5 +92,21 @@ public class ProductModel {
 
     public void setDealer(String dealer) {
         this.dealer = dealer;
+    }
+
+    public HashMap<String, Double> getAttarSellingPriceMap() {
+        return attarSellingPriceMap;
+    }
+
+    public void setAttarSellingPriceMap(HashMap<String, Double> attarSellingPriceMap) {
+        this.attarSellingPriceMap = attarSellingPriceMap;
+    }
+
+    public HashMap<String, Double> getPerfumeSellingPriceMap() {
+        return perfumeSellingPriceMap;
+    }
+
+    public void setPerfumeSellingPriceMap(HashMap<String, Double> perfumeSellingPriceMap) {
+        this.perfumeSellingPriceMap = perfumeSellingPriceMap;
     }
 }

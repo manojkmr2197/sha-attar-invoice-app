@@ -144,7 +144,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                preAuthentication();
+
+                if("ADMIN".equalsIgnoreCase(sharedPrefHelper.getLoginUserType())){
+                    if (!mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                        mDrawerLayout.openDrawer(GravityCompat.START);
+                    } else {
+                        mDrawerLayout.closeDrawer(GravityCompat.START);
+                    }
+                }else{
+                    Toast.makeText(context, "You are not a Admin .! ", Toast.LENGTH_LONG).show();
+                }
             }
         });
         dbObj = new DBUtil();
@@ -340,11 +349,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_report) {
             i = new Intent(MainActivity.this, ReportActivity.class);
             startActivity(i);
-        } else if (item.getItemId() == R.id.nav_packaging) {
-            i = new Intent(MainActivity.this, PackageActivity.class);
-            startActivity(i);
-        } else if (item.getItemId() == R.id.nav_customer) {
-            i = new Intent(MainActivity.this, CustomerHistoryActivity.class);
+        }  else if (item.getItemId() == R.id.nav_sales_person) {
+            i = new Intent(MainActivity.this, SalesPersonActivity.class);
             startActivity(i);
         } else if (item.getItemId() == R.id.nav_invoice) {
             i = new Intent(MainActivity.this, InvoiceHistoryActivity.class);
@@ -352,6 +358,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startActivity(i);
         } else if (item.getItemId() == R.id.nav_consolidate_report) {
             i = new Intent(MainActivity.this, ConsolidateReportActivity.class);
+            startActivity(i);
+        }else if (item.getItemId() == R.id.nav_sales_person_report) {
+            i = new Intent(MainActivity.this, SalesPersonReportActivity.class);
+            startActivity(i);
+        } else if (item.getItemId() == R.id.nav_asset_business_calc) {
+            i = new Intent(MainActivity.this, AssetBusinessCalcActivity.class);
+            startActivity(i);
+        }else if (item.getItemId() == R.id.nav_expense_tracker) {
+            i = new Intent(MainActivity.this, ExpenseTrackerActivity.class);
             startActivity(i);
         }
         return true;
@@ -698,7 +713,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         billingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
                         Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                         billingItemModel.setUnitPrice(fullPrice / 1000);
-                        billingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                        billingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)));
                         billingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                     } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
                         if (selectedNonProduct[0] == null) {
@@ -711,7 +726,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedNonProduct[0].getName());
-                        billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                        billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice());
                         billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
 
@@ -744,7 +759,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             newBillingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
                             Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                             newBillingItemModel.setUnitPrice(fullPrice / 1000);
-                            newBillingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            newBillingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)));
                             newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                         } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
 
@@ -759,7 +774,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                             newBillingItemModel.setType(type[0]);
                             newBillingItemModel.setName(selectedNonProduct[0].getName());
-                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice());
                             newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         }
                         billingItemModelList.add(newBillingItemModel);
@@ -794,7 +809,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String inputText = input.getText().toString();
-                if (StringUtils.isEmpty(inputText) || !sharedPrefHelper.getPassword().equals(inputText)) {
+                if (StringUtils.isEmpty(inputText)) {
                     Toast.makeText(MainActivity.this, "Wrong Password. try again later.!", Toast.LENGTH_LONG).show();
                     dialog.cancel();
                     return;

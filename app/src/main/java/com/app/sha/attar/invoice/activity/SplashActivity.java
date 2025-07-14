@@ -13,18 +13,14 @@ import androidx.appcompat.app.AppCompatDelegate;
 
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.listener.TimeApi;
-import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.TimeResponse;
 import com.app.sha.attar.invoice.utils.DBUtil;
-import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.RetrofitClient;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
 
 import java.io.IOException;
-import java.time.OffsetDateTime;
-import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -52,13 +48,12 @@ public class SplashActivity extends AppCompatActivity {
         }
         dbUtil = new DBUtil();
         helper = new SharedPrefHelper(SplashActivity.this);
+        helper.clearLoginUserDetails();
         if (checkInternet()) {
-            loadAppConfig();
-            //getServerDate();
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    Intent i = new Intent(SplashActivity.this, MainActivity.class);
+                    Intent i = new Intent(SplashActivity.this, LoginActivity.class);
                     startActivity(i);
                     finish();
                     overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
@@ -78,21 +73,6 @@ public class SplashActivity extends AppCompatActivity {
             return false;
         }
 
-    }
-
-    private void loadAppConfig() {
-        dbUtil.getAppConfig(new FirestoreCallback<ConfigModel>() {
-            @Override
-            public void onCallback(ConfigModel result) {
-                if (result != null) {
-                    helper.setPackageCost(result.getPackageCost());
-                    helper.setPassword(result.getAdminPassword());
-                } else {
-                    helper.setPackageCost(15);
-                    helper.setPassword("123456");
-                }
-            }
-        });
     }
 
     private void getServerDate() {

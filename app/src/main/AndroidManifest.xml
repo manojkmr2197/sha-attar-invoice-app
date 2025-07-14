@@ -21,15 +21,31 @@
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
-        android:networkSecurityConfig="@xml/network_security_config"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.ShaAttarInvoice"
         tools:targetApi="31">
+        <activity
+            android:name=".activity.SalesPersonReportActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activity.LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.AssetBusinessCalcActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.ExpenseTrackerActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.SalesPersonActivity"
+            android:exported="false" />
         <activity
             android:name=".activity.ConsolidateReportActivity"
             android:exported="false" />
@@ -64,9 +80,6 @@
         <activity
             android:name=".activity.MainActivity"
             android:exported="true" />
-        <activity
-            android:name=".activity.PackageActivity"
-            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

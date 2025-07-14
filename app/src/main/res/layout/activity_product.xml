@@ -45,9 +45,9 @@
             <TextView
                 android:id="@+id/product_download"
                 android:layout_width="40dp"
-                android:layout_margin="5dp"
                 android:layout_height="40dp"
                 android:layout_gravity="center_vertical"
+                android:layout_margin="5dp"
                 android:background="@drawable/baseline_arrow_circle_down_24" />
 
 
@@ -68,15 +68,15 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_weight="1">
+                android:layout_weight="1"
+                android:gravity="center">
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/filledTextField"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_margin="2dp"
+                    android:layout_weight="1"
                     android:hint="Enter Product eg. ATTAR">
 
                     <!--this is the actual edit text which takes the input-->
@@ -85,7 +85,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textCapCharacters"
-                        android:singleLine="true" />
+                        android:singleLine="true"
+                        android:textSize="12sp" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -94,23 +95,26 @@
                     android:layout_height="match_parent"
                     android:layout_weight="0.7"
                     android:orientation="vertical">
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="7sp"
-                        android:text="Stock Status"/>
+                        android:text="Stock Status"
+                        android:textSize="12sp" />
 
                     <Spinner
                         android:id="@+id/product_spinner_availability"
                         android:layout_width="wrap_content"
-                        android:layout_height="30sp"/>
+                        android:layout_height="30sp"
+                        android:textSize="12sp" />
                 </LinearLayout>
-
 
 
             </LinearLayout>
 
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -118,18 +122,21 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginStart="7sp"
-                android:text="Dealers"/>
+                android:layout_weight="1"
+                android:text="Dealers"
+                android:textSize="12sp" />
 
             <TextView
                 android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="7sp"
                 android:layout_weight="1"
                 android:text="Owners"
-                android:layout_marginStart="7sp"
-                android:layout_height="wrap_content" />
+                android:textSize="12sp" />
 
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -138,71 +145,90 @@
                 android:id="@+id/product_spinner_dealer"
                 android:layout_width="0dp"
                 android:layout_height="30sp"
-                android:layout_weight="1"/>
+                android:layout_weight="1"
+                android:textSize="12sp" />
 
             <Spinner
                 android:id="@+id/product_spinner"
                 android:layout_width="0dp"
+                android:layout_height="30sp"
                 android:layout_weight="1"
-                android:layout_height="30sp" />
+                android:textSize="12sp" />
 
         </LinearLayout>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="3sp"
+            android:alpha="0.5"
+            android:background="@color/black" />
+
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-        <!--Empty data layout-->
-        <FrameLayout
-            android:id="@+id/product_no_data_ll"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="No Data found"
-                android:textColor="@color/app_color"
-                android:textSize="20sp" />
-
-        </FrameLayout>
-
-        <!--Content Layout-->
-        <FrameLayout
-            android:id="@+id/product_data_ll"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <LinearLayout
+            <!--Empty data layout-->
+            <FrameLayout
+                android:id="@+id/product_no_data_ll"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_margin="10dp"
-                android:orientation="vertical">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/product_recyclerView"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false"
-                    android:layout_marginBottom="50sp"
-                    android:overScrollMode="always" />
+                    android:layout_gravity="center"
+                    android:text="No Data found"
+                    android:textColor="@color/app_color"
+                    android:textSize="20sp" />
 
-            </LinearLayout>
+            </FrameLayout>
 
-        </FrameLayout>
+            <!--Content Layout-->
+            <FrameLayout
+                android:id="@+id/product_data_ll"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/product_add_fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
-            android:src="@drawable/ic_baseline_add_24" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="2dp"
+                    android:background="#E0E0E0"
+                    android:orientation="vertical">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/product_recyclerView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="50sp"
+                        android:nestedScrollingEnabled="false"
+                        android:overScrollMode="always" />
+
+                </LinearLayout>
+
+            </FrameLayout>
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/product_add_fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:src="@drawable/ic_baseline_add_24" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/product_add_import_fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="80dp"
+                android:layout_marginBottom="16dp"
+                android:src="@drawable/baseline_upload_file_24" />
 
         </FrameLayout>
     </LinearLayout>

@@ -5,9 +5,9 @@ import androidx.annotation.NonNull;
 
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
-import com.app.sha.attar.invoice.model.BillingItemModel;
-import com.app.sha.attar.invoice.model.ConfigModel;
+import com.app.sha.attar.invoice.model.ExpenseModel;
 import com.app.sha.attar.invoice.model.ProductModel;
+import com.app.sha.attar.invoice.model.SalesPersonModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -16,13 +16,10 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 public class DBUtil {
-    private static  FirebaseFirestore db;
+    private static FirebaseFirestore db;
 
     public DBUtil() {
         db = FirebaseFirestore.getInstance();
@@ -101,7 +98,7 @@ public class DBUtil {
                 });
     }
 
-    public void getBillingInvoiceDetail(FirestoreCallback<List<BillingInvoiceModel>> callback,  Long startTime,Long endTime) {
+    public void getBillingInvoiceDetail(FirestoreCallback<List<BillingInvoiceModel>> callback, Long startTime, Long endTime) {
         db.collection(DatabaseConstants.INVOICE_COLLECTION).whereGreaterThanOrEqualTo("billingDate", startTime)
                 .whereLessThanOrEqualTo("billingDate", endTime)
                 .orderBy("billingDate", Query.Direction.DESCENDING)
@@ -113,8 +110,7 @@ public class DBUtil {
                             List<BillingInvoiceModel> saleDetails = new ArrayList<>();
                             for (DocumentSnapshot document : task.getResult()) {
                                 BillingInvoiceModel model = document.toObject(BillingInvoiceModel.class);
-                                if(model.getBillingItemModelList() == null)
-                                {
+                                if (model.getBillingItemModelList() == null) {
                                     System.out.println("Got null.");
                                 }
                                 saleDetails.add(model);
@@ -127,7 +123,7 @@ public class DBUtil {
                 });
     }
 
-    public void deleteRecordsBefore(FirestoreCallback<List<DocumentSnapshot>> callback,long beforeTimestamp) {
+    public void deleteRecordsBefore(FirestoreCallback<List<DocumentSnapshot>> callback, long beforeTimestamp) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         // Query Firestore for documents with IDs (timestamps) before the given timestamp
@@ -162,17 +158,69 @@ public class DBUtil {
                 });
     }
 
-    public void getAppConfig(FirestoreCallback<ConfigModel> callback) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        // Query Firestore for documents with IDs (timestamps) before the given timestamp
-        db.collection(DatabaseConstants.APP_CONFIG_COLLECTION)
-                .document(DatabaseConstants.APP_CONFIG_DOCUMENT)
+    public void getSalePersonDetails(FirestoreCallback<List<SalesPersonModel>> callback) {
+        // Fetch data from Firestore
+        db.collection(DatabaseConstants.SALES_PERSON_COLLECTION)
+                .orderBy("name")
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    ConfigModel model = documentSnapshot.toObject(ConfigModel.class);
-                    callback.onCallback(model);
-                })
-                .addOnFailureListener(e -> System.err.println("Error fetching documents: " + e.getMessage()));
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            List<SalesPersonModel> salesPersonList = new ArrayList<>();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                SalesPersonModel product = document.toObject(SalesPersonModel.class);
+                                salesPersonList.add(product);
+                            }
+                            callback.onCallback(salesPersonList);
+                        } else {
+                            System.err.println("Error fetching Sales Persons list details: " + task.getException());
+                        }
+                    }
+                });
+    }
+
+    public void getExpenseDetail(FirestoreCallback<List<ExpenseModel>> callback, Long startTime, Long endTime) {
+        db.collection(DatabaseConstants.EXPENSE_COLLECTION).whereGreaterThanOrEqualTo("expenseDate", startTime)
+                .whereLessThanOrEqualTo("expenseDate", endTime)
+                .orderBy("expenseDate", Query.Direction.DESCENDING)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            List<ExpenseModel> expenseDetails = new ArrayList<>();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                ExpenseModel model = document.toObject(ExpenseModel.class);
+                                expenseDetails.add(model);
+                            }
+                            callback.onCallback(expenseDetails);
+                        } else {
+                            System.err.println("Error fetching expense details: " + task.getException());
+                        }
+                    }
+                });
+    }
+
+    public void getLoginSalesInfoDetail(FirestoreCallback<List<SalesPersonModel>> callback, String phone,String password) {
+        db.collection(DatabaseConstants.SALES_PERSON_COLLECTION).whereEqualTo("phoneNo", phone)
+                .whereEqualTo("password", password)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            List<SalesPersonModel> saleDetails = new ArrayList<>();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                SalesPersonModel model = document.toObject(SalesPersonModel.class);
+                                saleDetails.add(model);
+                            }
+                            callback.onCallback(saleDetails);
+                        } else {
+                            System.err.println("Error fetching product details: " + task.getException());
+                        }
+                    }
+                });
     }
 
 }

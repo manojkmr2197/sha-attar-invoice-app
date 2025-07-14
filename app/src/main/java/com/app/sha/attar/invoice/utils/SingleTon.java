@@ -60,6 +60,13 @@ public class SingleTon {
         return "INVOICE-"+ UUID.randomUUID().toString();
     }
 
+    public static final String generateExpenseDetailDocument(){
+        return "EXPENSE-"+ UUID.randomUUID().toString();
+    }
+    public static final String generateSalesPersonDetailDocument(){
+        return "SALE_PERSON-"+ UUID.randomUUID().toString();
+    }
+
     public static final String getDealerName(String name){
         int hyphenIndex = name.indexOf('-');
         // Check if the hyphen exists and extract the substring before it

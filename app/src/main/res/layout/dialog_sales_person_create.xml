@@ -20,13 +20,13 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Add Accessories"
+                android:text="Add Sales Person"
                 android:textColor="@color/white"
                 android:padding="5dp"
                 android:textSize="15sp" />
 
             <TextView
-                android:id="@+id/accessories_add_close"
+                android:id="@+id/sales_person_add_close"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:background="@drawable/ic_baseline_close_24" />
@@ -36,15 +36,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
-            android:hint="Enter Accessories Name *">
+            android:hint="Enter Person Name *">
 
             <!--this is the actual edit text which takes the input-->
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/accessories_add_name"
+                android:id="@+id/sales_person_add_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textCapCharacters"
-                android:textSize="13sp"
+                android:inputType="text"
                 android:singleLine="true"/>
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -59,15 +58,14 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_margin="5dp"
-                android:hint="Enter Price *">
+                android:hint="Enter Person Phone number *">
 
                 <!--this is the actual edit text which takes the input-->
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/accessories_add_price"
+                    android:id="@+id/sales_person_add_phone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
-                    android:textSize="13sp"
                     android:singleLine="true"/>
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -75,26 +73,41 @@
             <androidx.appcompat.widget.AppCompatSpinner
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:id="@+id/accessories_add_owner"/>
+                android:id="@+id/sales_person_add_type"/>
 
         </LinearLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:hint="Enter Dealer Name ">
+            android:gravity="center_vertical">
 
-            <!--this is the actual edit text which takes the input-->
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/accessories_dealer_name"
-                android:layout_width="match_parent"
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:inputType="textCapCharacters"
-                android:textSize="13sp"
-                android:singleLine="true"/>
+                android:layout_weight="1"
+                android:layout_margin="5dp"
+                android:hint="Enter Person password *">
 
-        </com.google.android.material.textfield.TextInputLayout>
+                <!--this is the actual edit text which takes the input-->
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/sales_person_add_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:singleLine="true"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:id="@+id/sales_person_add_checkbox"
+            android:text="Available"
+            android:textColorHint="@color/app_color"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -109,7 +122,7 @@
                 android:layout_weight="1"/>
 
             <Button
-                android:id="@+id/accessories_add_submit"
+                android:id="@+id/sales_person_add_submit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -122,7 +135,7 @@
                 android:layout_weight="1"/>
 
             <TextView
-                android:id="@+id/accessories_add_delete"
+                android:id="@+id/sales_person_add_delete"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="@drawable/baseline_delete_24" />

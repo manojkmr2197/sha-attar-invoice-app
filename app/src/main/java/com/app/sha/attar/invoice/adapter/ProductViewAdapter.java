@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.ProductModel;
+import com.app.sha.attar.invoice.utils.AppConstants;
 import com.app.sha.attar.invoice.viewholder.ProductViewHolder;
 
 import java.util.ArrayList;
@@ -50,6 +51,13 @@ public class ProductViewAdapter extends RecyclerView.Adapter<ProductViewHolder> 
                 clickListener.click(index);
             }
         });
+        holder.attarSellingTv.setText(String.valueOf(contentList.get(index).getAttarSellingPriceMap().get(AppConstants.ML_6)));
+
+        holder.perfumeSellingTv.setText(
+                AppConstants.ML_10+" : Rs."+contentList.get(index).getPerfumeSellingPriceMap().get(AppConstants.ML_10)+" | "+
+                AppConstants.ML_30+" : Rs."+contentList.get(index).getPerfumeSellingPriceMap().get(AppConstants.ML_30)+" | "+
+                AppConstants.ML_50+" : Rs."+contentList.get(index).getPerfumeSellingPriceMap().get(AppConstants.ML_50)+" | "+
+                AppConstants.ML_100+" :  Rs."+contentList.get(index).getPerfumeSellingPriceMap().get(AppConstants.ML_100));
     }
 
     @Override

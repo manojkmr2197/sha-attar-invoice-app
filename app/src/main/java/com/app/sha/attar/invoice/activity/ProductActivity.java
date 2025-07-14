@@ -44,6 +44,7 @@ import com.app.sha.attar.invoice.adapter.ProductViewAdapter;
 import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.ProductModel;
+import com.app.sha.attar.invoice.utils.AppConstants;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.ReportGenerator;
@@ -63,6 +64,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -92,11 +94,11 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
     ClickListener listener;
 
     TextInputEditText search_et;
-    Spinner ownerSpinner,dealerSpinner,stockStatusSpinner;
+    Spinner ownerSpinner, dealerSpinner, stockStatusSpinner;
 
     List<String> dealerList = new ArrayList<>();
 
-    String searchText, searchOwner="ALL",searchDealer="ALL",searchStockStatus ="ALL";
+    String searchText, searchOwner = "ALL", searchDealer = "ALL", searchStockStatus = "ALL";
     DBUtil dbObj;
 
     FirebaseFirestore db;
@@ -187,7 +189,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                 if (searchStockStatus.equalsIgnoreCase("ALL")) {
                     searchStockStatus = "";
                 }
-                filter(searchText, searchOwner,searchDealer,searchStockStatus);
+                filter(searchText, searchOwner, searchDealer, searchStockStatus);
             }
         });
 
@@ -207,7 +209,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                 if (searchStockStatus.equalsIgnoreCase("ALL")) {
                     searchStockStatus = "";
                 }
-                filter(searchText, searchOwner,searchDealer,searchStockStatus);
+                filter(searchText, searchOwner, searchDealer, searchStockStatus);
             }
 
             @Override
@@ -232,7 +234,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                 if (searchStockStatus.equalsIgnoreCase("ALL")) {
                     searchStockStatus = "";
                 }
-                filter(searchText, searchOwner,searchDealer,searchStockStatus);
+                filter(searchText, searchOwner, searchDealer, searchStockStatus);
             }
 
             @Override
@@ -257,7 +259,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                 if (searchStockStatus.equalsIgnoreCase("ALL")) {
                     searchStockStatus = "";
                 }
-                filter(searchText, searchOwner,searchDealer,searchStockStatus);
+                filter(searchText, searchOwner, searchDealer, searchStockStatus);
             }
 
             @Override
@@ -275,6 +277,10 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
 
         FloatingActionButton add_fab = (FloatingActionButton) findViewById(R.id.product_add_fab);
         add_fab.setOnClickListener(this);
+
+        FloatingActionButton add_import_fab = (FloatingActionButton) findViewById(R.id.product_add_import_fab);
+        add_import_fab.setOnClickListener(this);
+
         dbObj = new DBUtil();
         sharedPrefHelper = new SharedPrefHelper(context);
         db = DBUtil.getInstance();
@@ -287,7 +293,6 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                 createDialogBox(context, filteredList.get(index));
             }
         };
-
 
 
         productAdapter = new ProductViewAdapter(context, filteredList, listener);
@@ -350,8 +355,8 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         filteredList.addAll(itemList);
         dealerList.clear();
         Set<String> data = new TreeSet<>();
-        itemList.forEach(items ->{
-            if(items.getDealer() != null){
+        itemList.forEach(items -> {
+            if (items.getDealer() != null) {
                 data.add(SingleTon.getDealerName(items.getDealer()));
             }
         });
@@ -363,8 +368,8 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         if (searchOwner.equalsIgnoreCase("ALL")) {
             searchOwner = "";
         }
-        for (int i=0;i<dealerList.size();i++){
-            if(searchDealer.equalsIgnoreCase(dealerList.get(i))){
+        for (int i = 0; i < dealerList.size(); i++) {
+            if (searchDealer.equalsIgnoreCase(dealerList.get(i))) {
                 dealerSpinner.setSelection(i);
             }
         }
@@ -376,7 +381,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         if (searchStockStatus.equalsIgnoreCase("ALL")) {
             searchStockStatus = "";
         }
-        filter(searchText, searchOwner,searchDealer,searchStockStatus);
+        filter(searchText, searchOwner, searchDealer, searchStockStatus);
         productAdapter.notifyDataSetChanged();
     }
 
@@ -386,9 +391,19 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             finish();
         } else if (R.id.product_add_fab == view.getId()) {
             createDialogBox(ProductActivity.this, null);
-        } else if (R.id.product_download == view.getId()){
+        } else if (R.id.product_download == view.getId()) {
             downloadProductList();
+        } else if (R.id.product_add_import_fab == view.getId()) {
+            importProductList();
         }
+    }
+
+    private void importProductList() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"); // .xlsx
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(Intent.createChooser(intent, "Select Excel File"), 100);
+
     }
 
     private void downloadProductList() {
@@ -438,6 +453,12 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
 
         owner.setAdapter(adapter);
 
+        TextInputEditText attar6ml = (TextInputEditText) dialog.findViewById(R.id.product_add_attar_selling_price);
+        TextInputEditText perfume10ml = (TextInputEditText) dialog.findViewById(R.id.product_add_perfume_10ml_selling_price);
+        TextInputEditText perfume30ml = (TextInputEditText) dialog.findViewById(R.id.product_add_perfume_30ml_selling_price);
+        TextInputEditText perfume50ml = (TextInputEditText) dialog.findViewById(R.id.product_add_perfume_50ml_selling_price);
+        TextInputEditText perfume100ml = (TextInputEditText) dialog.findViewById(R.id.product_add_perfume_100ml_selling_price);
+
         Button submit = (Button) dialog.findViewById(R.id.product_add_submit);
         TextView close = (TextView) dialog.findViewById(R.id.product_add_close);
         TextView delete = (TextView) dialog.findViewById(R.id.product_add_delete);
@@ -455,6 +476,13 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             } else {
                 available.setChecked(false);
             }
+
+            attar6ml.setText(String.valueOf(productModel.getAttarSellingPriceMap().get(AppConstants.ML_6)));
+            perfume10ml.setText(String.valueOf(productModel.getPerfumeSellingPriceMap().get(AppConstants.ML_10)));
+            perfume30ml.setText(String.valueOf(productModel.getPerfumeSellingPriceMap().get(AppConstants.ML_30)));
+            perfume50ml.setText(String.valueOf(productModel.getPerfumeSellingPriceMap().get(AppConstants.ML_50)));
+            perfume100ml.setText(String.valueOf(productModel.getPerfumeSellingPriceMap().get(AppConstants.ML_100)));
+
             delete.setVisibility(View.VISIBLE);
             delete.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -505,6 +533,13 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     Toast.makeText(ProductActivity.this, "Please enter Product Price ..!", Toast.LENGTH_SHORT).show();
                     return;
                 }
+
+                if (StringUtils.isEmpty(attar6ml.getText().toString()) || StringUtils.isEmpty(perfume10ml.getText().toString()) || StringUtils.isEmpty(perfume30ml.getText().toString()) ||
+                        StringUtils.isEmpty(perfume50ml.getText().toString()) || StringUtils.isEmpty(perfume100ml.getText().toString())) {
+                    Toast.makeText(ProductActivity.this, "Please enter selling attar/Perfume Price ..!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 Toast.makeText(context, "Loading .! ", Toast.LENGTH_LONG).show();
                 if (productModel != null) {
                     productModel.setName(name.getText().toString());
@@ -512,6 +547,20 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     productModel.setDealer(dealer.getText().toString());
                     productModel.setOwner(owner.getSelectedItem().toString());
                     productModel.setStatus(available.isChecked() ? "Y" : "N");
+
+                    double attar1ml = Double.parseDouble(attar6ml.getText().toString()) / 6;
+
+                    productModel.setAttarSellingPriceMap(new HashMap<>());
+                    productModel.getAttarSellingPriceMap().put(AppConstants.ML_3, attar1ml * 3);
+                    productModel.getAttarSellingPriceMap().put(AppConstants.ML_6, attar1ml * 6);
+                    productModel.getAttarSellingPriceMap().put(AppConstants.ML_12, attar1ml * 12);
+                    productModel.getAttarSellingPriceMap().put(AppConstants.ML_24, attar1ml * 24);
+
+                    productModel.setPerfumeSellingPriceMap(new HashMap<>());
+                    productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_10, Double.parseDouble(perfume10ml.getText().toString()));
+                    productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_30, Double.parseDouble(perfume30ml.getText().toString()));
+                    productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_50, Double.parseDouble(perfume50ml.getText().toString()));
+                    productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_100, Double.parseDouble(perfume100ml.getText().toString()));
 
                     db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
                             .document(productModel.getDocumentId())
@@ -547,9 +596,23 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     newProductModel.setDealer(dealer.getText().toString());
                     newProductModel.setOwner(owner.getSelectedItem().toString());
                     newProductModel.setStatus(available.isChecked() ? "Y" : "N");
-                    newProductModel.setCode(prepareProductCode(newProductModel.getName()));
-                    newProductModel.setId(getLatestProductID());
+                    //newProductModel.setCode(prepareProductCode(newProductModel.getName()));
+                    //newProductModel.setId(getLatestProductID());
                     newProductModel.setDocumentId(SingleTon.generateProductDocument());
+
+                    double attar1ml = Double.parseDouble(attar6ml.getText().toString()) / 6;
+
+                    newProductModel.setAttarSellingPriceMap(new HashMap<>());
+                    newProductModel.getAttarSellingPriceMap().put(AppConstants.ML_3, attar1ml * 3);
+                    newProductModel.getAttarSellingPriceMap().put(AppConstants.ML_6, attar1ml * 6);
+                    newProductModel.getAttarSellingPriceMap().put(AppConstants.ML_12, attar1ml * 12);
+                    newProductModel.getAttarSellingPriceMap().put(AppConstants.ML_24, attar1ml * 24);
+
+                    newProductModel.setPerfumeSellingPriceMap(new HashMap<>());
+                    newProductModel.getPerfumeSellingPriceMap().put(AppConstants.ML_10, Double.parseDouble(perfume10ml.getText().toString()));
+                    newProductModel.getPerfumeSellingPriceMap().put(AppConstants.ML_30, Double.parseDouble(perfume30ml.getText().toString()));
+                    newProductModel.getPerfumeSellingPriceMap().put(AppConstants.ML_50, Double.parseDouble(perfume50ml.getText().toString()));
+                    newProductModel.getPerfumeSellingPriceMap().put(AppConstants.ML_100, Double.parseDouble(perfume100ml.getText().toString()));
 
                     db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
                             .document(newProductModel.getDocumentId())
@@ -579,7 +642,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
     }
 
 
-    private Integer getLatestProductID() {
+    public Integer getLatestProductID() {
         List<ProductModel> products = sharedPrefHelper.getTotalProductList();
 
         if (products.isEmpty()) {
@@ -619,7 +682,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         return i;
     }
 
-    public void filter(String text, String owner,String dealer,String stockStatus) {
+    public void filter(String text, String owner, String dealer, String stockStatus) {
         Log.v("data1 -- >", text);
         Log.v("data2 -- >", owner);
         Log.v("data3 -- >", dealer);
@@ -628,7 +691,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         text = (text == null) ? "" : text;
         owner = (owner == null) ? "" : owner;
         dealer = (dealer == null) ? "" : dealer;
-        stockStatus = (stockStatus ==null || stockStatus.equalsIgnoreCase("ALL"))? "": stockStatus;
+        stockStatus = (stockStatus == null || stockStatus.equalsIgnoreCase("ALL")) ? "" : stockStatus;
         if (text.isEmpty() && owner.isEmpty()) {
             filteredList.addAll(itemList);
         } else if (!text.isEmpty() && owner.isEmpty()) {
@@ -654,7 +717,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
         }
-        if(!filteredList.isEmpty() && !dealer.isEmpty()){
+        if (!filteredList.isEmpty() && !dealer.isEmpty()) {
             for (int i = filteredList.size() - 1; i >= 0; i--) {
                 if (!filteredList.get(i).getDealer().toLowerCase().contains(dealer.toLowerCase())) {
                     filteredList.remove(i);
@@ -662,9 +725,9 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             }
         }
 
-        if(!filteredList.isEmpty() && !stockStatus.isEmpty()){
+        if (!filteredList.isEmpty() && !stockStatus.isEmpty()) {
             for (int i = filteredList.size() - 1; i >= 0; i--) {
-                if (!filteredList.get(i).getStatus().equalsIgnoreCase((stockStatus.equalsIgnoreCase("Available"))?"Y":"N")) {
+                if (!filteredList.get(i).getStatus().equalsIgnoreCase((stockStatus.equalsIgnoreCase("Available")) ? "Y" : "N")) {
                     filteredList.remove(i);
                 }
             }
@@ -709,4 +772,49 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
 //            }
         }
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 100 && resultCode == RESULT_OK && data != null) {
+            Uri fileUri = data.getData();
+            if (fileUri != null) {
+                try {
+                    ReportGenerator reportGenerator = new ReportGenerator();
+                    List<ProductModel> productModelList = reportGenerator.readExcelFile(fileUri, context);
+                    if(productModelList == null || productModelList.isEmpty()){
+                        Toast.makeText(context, "No Products Found .!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    for (ProductModel productModel: productModelList){
+                        db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
+                                .document(productModel.getDocumentId())
+                                .set(productModel)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void unused) {
+                                        //Toast.makeText(context, "Products - " + productModel.getName() + " Added", Toast.LENGTH_SHORT).show();
+                                        System.out.println("Product Added successfully."+productModel.getName());
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        //Toast.makeText(context, "Error while saving product. Please try again", Toast.LENGTH_SHORT).show();
+                                        System.out.println("Error while saving product." + e);
+                                    }
+                                });
+
+                    }
+                    setTotalProductItem();
+                }catch (Exception e){
+                    e.printStackTrace();
+                    Toast.makeText(ProductActivity.this, "Internal Server Error. Please try again later.!", Toast.LENGTH_LONG).show();
+                }
+
+            }
+        }
+    }
+
+
 }

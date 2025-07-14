@@ -1,8 +1,6 @@
 package com.app.sha.attar.invoice.utils;
 
 import static com.app.sha.attar.invoice.utils.SharedConstants.ACCESSORIES_KEY;
-import static com.app.sha.attar.invoice.utils.SharedConstants.ADMIN_PASSWORD;
-import static com.app.sha.attar.invoice.utils.SharedConstants.PACKAGING_KEY;
 import static com.app.sha.attar.invoice.utils.SharedConstants.PRODUCT_KEY;
 import static com.app.sha.attar.invoice.utils.SharedConstants.SHA_ATTAR;
 
@@ -11,6 +9,7 @@ import android.content.SharedPreferences;
 
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.ProductModel;
+import com.app.sha.attar.invoice.model.SalesPersonModel;
 import com.google.gson.Gson;
 
 import com.google.gson.reflect.TypeToken;
@@ -29,28 +28,6 @@ public class SharedPrefHelper {
         this.sharedPreferences = context.getSharedPreferences(SHA_ATTAR, Context.MODE_PRIVATE);
         this.gson = new Gson();
         this.dbObj = new DBUtil();
-    }
-
-    public String getPackageCost(){
-        return sharedPreferences.getString(PACKAGING_KEY, "15");
-    }
-
-    public void setPackageCost(int amount){
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(PACKAGING_KEY, String.valueOf(amount));
-        editor.apply();
-        editor.commit();
-    }
-
-    public String getPassword(){
-        return sharedPreferences.getString(ADMIN_PASSWORD, "123456");
-    }
-
-    public void setPassword(String password){
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(ADMIN_PASSWORD, password);
-        editor.apply();
-        editor.commit();
     }
 
     public List<ProductModel> getTotalProductList(){
@@ -113,6 +90,35 @@ public class SharedPrefHelper {
     public void setSystemTime(String dateTime){
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(SharedConstants.SYSTEM_TIME, dateTime);
+        editor.apply();
+        editor.commit();
+    }
+
+    public String getLoginUserType(){
+        return sharedPreferences.getString(SharedConstants.LOGIN_USER_TYPE, null);
+    }
+
+    public String getLoginUserName(){
+        return sharedPreferences.getString(SharedConstants.LOGIN_USER_NAME, null);
+    }
+    public String getLoginUserPhone(){
+        return sharedPreferences.getString(SharedConstants.LOGIN_USER_PHONE, null);
+    }
+
+    public void setLoginUserDetails(SalesPersonModel salesPersonModel){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(SharedConstants.LOGIN_USER_NAME, salesPersonModel.getName());
+        editor.putString(SharedConstants.LOGIN_USER_PHONE, salesPersonModel.getPhoneNo());
+        editor.putString(SharedConstants.LOGIN_USER_TYPE, salesPersonModel.getType());
+        editor.apply();
+        editor.commit();
+    }
+
+    public void clearLoginUserDetails(){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove(SharedConstants.LOGIN_USER_NAME);
+        editor.remove(SharedConstants.LOGIN_USER_PHONE);
+        editor.remove(SharedConstants.LOGIN_USER_TYPE);
         editor.apply();
         editor.commit();
     }
