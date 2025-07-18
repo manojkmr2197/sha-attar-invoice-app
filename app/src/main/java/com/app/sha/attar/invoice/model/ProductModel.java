@@ -14,6 +14,7 @@ public class ProductModel {
     private String dealer;
     private HashMap<String,Double> attarSellingPriceMap;
     private HashMap<String,Double> perfumeSellingPriceMap;
+    private HashMap<String,Double> perfumeActualPriceMap;
 
     public ProductModel(){}
 
@@ -108,5 +109,13 @@ public class ProductModel {
 
     public void setPerfumeSellingPriceMap(HashMap<String, Double> perfumeSellingPriceMap) {
         this.perfumeSellingPriceMap = perfumeSellingPriceMap;
+    }
+
+    public HashMap<String, Double> getPerfumeActualPriceMap() {
+        return perfumeActualPriceMap;
+    }
+
+    public void setPerfumeActualPriceMap(HashMap<String, Double> perfumeActualPriceMap) {
+        this.perfumeActualPriceMap = perfumeActualPriceMap;
     }
 }

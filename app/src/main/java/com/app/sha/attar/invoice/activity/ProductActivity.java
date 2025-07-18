@@ -562,6 +562,13 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_50, Double.parseDouble(perfume50ml.getText().toString()));
                     productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_100, Double.parseDouble(perfume100ml.getText().toString()));
 
+                    productModel.setPerfumeActualPriceMap(new HashMap<>());
+                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_10, attar1ml * 4);
+                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_30, attar1ml * 12);
+                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_50, attar1ml * 20);
+                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_100, attar1ml * 35);
+
+
                     db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
                             .document(productModel.getDocumentId())
                             .set(productModel)

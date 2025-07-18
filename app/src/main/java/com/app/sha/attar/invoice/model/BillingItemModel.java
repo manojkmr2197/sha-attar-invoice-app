@@ -12,6 +12,7 @@ public class BillingItemModel {
     ProductModel productModel;
     AccessoriesModel accessoriesModel;
     Long invoiceId;
+    String productCategory;
 
     public BillingItemModel() {
     }
@@ -23,6 +24,14 @@ public class BillingItemModel {
         this.units = units;
         this.unitPrice = unitPrice;
         this.totalPrice = totalPrice;
+    }
+
+    public String getProductCategory() {
+        return productCategory;
+    }
+
+    public void setProductCategory(String productCategory) {
+        this.productCategory = productCategory;
     }
 
     public String getType() {

@@ -38,6 +38,9 @@
             android:name=".activity.LoginActivity"
             android:exported="false" />
         <activity
+            android:name=".activity.PackageActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.AssetBusinessCalcActivity"
             android:exported="false" />
         <activity

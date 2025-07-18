@@ -25,6 +25,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -73,6 +74,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -388,7 +390,6 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         invoiceAdapter.notifyDataSetChanged();
     }
 
-
     private void createNewBillDialog(Context context, BillingItemModel billingItemModel) {
 
         BottomSheetDialog dialog = new BottomSheetDialog(context);
@@ -404,9 +405,8 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         LinearLayout product_detail_ll = dialog.findViewById(R.id.new_bill_detail_ll);
 
         TextView new_bill_owner = (TextView) dialog.findViewById(R.id.new_bill_item_owner);
-        TextView new_bill_code = (TextView) dialog.findViewById(R.id.new_bill_item_code);
-        TextInputEditText product_size = (TextInputEditText) dialog.findViewById(R.id.new_bill_item_size);
-        TextInputEditText product_selling_cost = (TextInputEditText) dialog.findViewById(R.id.new_bill_item_selling_price);
+        TextView product_selling_cost = (TextView) dialog.findViewById(R.id.new_bill_item_selling_price);
+
 
         RadioGroup typeRadioGroup = (RadioGroup) dialog.findViewById(R.id.new_bill_radio_group);
         final String[] type = {"PRODUCT"};
@@ -431,6 +431,79 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 }
             }
         });
+
+        RadioGroup productCategoryRadioGroup = (RadioGroup) dialog.findViewById(R.id.new_bill_product_split_radio_group);
+        final String[] productCategoryType = {"ATTAR"};
+        RadioButton productCategoryAttarRadioButton = (RadioButton) dialog.findViewById(R.id.new_bill_product_attar);
+        RadioButton productCategorySprayRadioButton = (RadioButton) dialog.findViewById(R.id.new_bill_product_spray);
+        productCategoryAttarRadioButton.setChecked(true);
+
+        Spinner productQtySpinner = (Spinner) dialog.findViewById(R.id.new_bill_item_size);
+
+        List<String> attarQtyList = Arrays.asList(
+                getString(R.string.ML_6),
+                getString(R.string.ML_3),
+                getString(R.string.ML_12),
+                getString(R.string.ML_24)
+        );
+
+        ArrayAdapter<String> attarAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                attarQtyList
+        );
+        attarAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        List<String> sprayQtyList = Arrays.asList(
+                getString(R.string.ML_10),
+                getString(R.string.ML_30),
+                getString(R.string.ML_50),
+                getString(R.string.ML_100)
+        );
+
+        ArrayAdapter<String> sprayAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                sprayQtyList
+        );
+        sprayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        productCategoryRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                // Find which radio button is selected
+                if (R.id.new_bill_product_attar == checkedId) {
+                    productCategoryType[0] = "ATTAR";
+                    productQtySpinner.setAdapter(attarAdapter);
+                } else if (R.id.new_bill_product_spray == checkedId) {
+                    productCategoryType[0] = "SPRAY";
+                    productQtySpinner.setAdapter(sprayAdapter);
+                }
+            }
+        });
+
+        String[] productQtyValue = {"0"};
+        productQtySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedValue = parent.getItemAtPosition(position).toString();
+                if(selectedProduct[0] != null){
+                    if(productCategoryType[0].equalsIgnoreCase("ATTAR")){
+                        product_selling_cost.setText(""+selectedProduct[0].getAttarSellingPriceMap().get(selectedValue));
+                        productQtyValue[0] = selectedValue;
+                    }else if(productCategoryType[0].equalsIgnoreCase("SPRAY")){
+                        product_selling_cost.setText(""+selectedProduct[0].getPerfumeSellingPriceMap().get(selectedValue));
+                        productQtyValue[0] = selectedValue;
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Handle case when nothing is selected if needed
+            }
+        });
+
 
         AutoCompleteTextView non_product_name = (AutoCompleteTextView) dialog.findViewById(R.id.new_bill_non_product_name);
         TextInputEditText non_product_price = (TextInputEditText) dialog.findViewById(R.id.new_bill_non_product_selling_price);
@@ -520,7 +593,327 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                     ProductModel selectProductModel = resultModel.get();
                     product_name.setText(selectProductModel.getName());
                     new_bill_owner.setText(selectProductModel.getOwner());
-                    new_bill_code.setText(selectProductModel.getCode());
+                    selectedProduct[0] = selectProductModel;
+                    product_detail_ll.setVisibility(View.VISIBLE);
+
+                }
+
+            }
+        });
+
+
+        TextInputEditText occurance = (TextInputEditText) dialog.findViewById(R.id.new_bill_occurance);
+        TextView submit = (TextView) dialog.findViewById(R.id.new_bill_add_submit);
+        TextView close = (TextView) dialog.findViewById(R.id.new_bill_close);
+        if (billingItemModel != null) {
+            occurance.setVisibility(View.GONE);
+            if ("PRODUCT".equalsIgnoreCase(billingItemModel.getType())) {
+                productRadioButton.setChecked(true);
+                nonProductRadioButton.setChecked(false);
+                product_ll.setVisibility(View.VISIBLE);
+                non_product_ll.setVisibility(View.GONE);
+
+                if("ATTAR".equalsIgnoreCase(billingItemModel.getProductCategory())){
+                    productCategoryAttarRadioButton.setChecked(true);
+                    productCategorySprayRadioButton.setChecked(false);
+
+                    if (getString(R.string.ML_6).equalsIgnoreCase(billingItemModel.getUnits()+"ML")) {
+                        productQtySpinner.setSelection(0);
+                    } else if (getString(R.string.ML_3).equalsIgnoreCase(billingItemModel.getUnits()+"ML"))  {
+                        productQtySpinner.setSelection(1);
+                    }else if (getString(R.string.ML_12).equalsIgnoreCase(billingItemModel.getUnits()+"ML"))  {
+                        productQtySpinner.setSelection(2);
+                    }else if (getString(R.string.ML_24).equalsIgnoreCase(billingItemModel.getUnits()+"ML"))  {
+                        productQtySpinner.setSelection(3);
+                    }
+
+                }else if("SPRAY".equalsIgnoreCase(billingItemModel.getProductCategory())){
+                    productCategoryAttarRadioButton.setChecked(false);
+                    productCategorySprayRadioButton.setChecked(true);
+
+                    if (getString(R.string.ML_10).equalsIgnoreCase(billingItemModel.getUnits()+"ML")) {
+                        productQtySpinner.setSelection(0);
+                    } else if (getString(R.string.ML_30).equalsIgnoreCase(billingItemModel.getUnits()+"ML"))  {
+                        productQtySpinner.setSelection(1);
+                    }else if (getString(R.string.ML_50).equalsIgnoreCase(billingItemModel.getUnits()+"ML"))  {
+                        productQtySpinner.setSelection(2);
+                    }else if (getString(R.string.ML_100).equalsIgnoreCase(billingItemModel.getUnits()+"ML"))  {
+                        productQtySpinner.setSelection(3);
+                    }
+                }
+
+                ProductModel selectProductModel = billingItemModel.getProductModel();
+                if (selectProductModel != null) {
+                    product_name.setText(selectProductModel.getName());
+                    new_bill_owner.setText(selectProductModel.getOwner());
+                    selectedProduct[0] = selectProductModel;
+                    product_selling_cost.setText(String.valueOf(billingItemModel.getSellingItemPrice()));
+                }
+            } else if ("NON_PRODUCT".equalsIgnoreCase(billingItemModel.getType())) {
+                nonProductRadioButton.setChecked(true);
+                productRadioButton.setChecked(false);
+                non_product_ll.setVisibility(View.VISIBLE);
+                product_ll.setVisibility(View.GONE);
+                non_product_name.setText(billingItemModel.getName());
+                non_product_price.setText(String.valueOf(billingItemModel.getSellingItemPrice()));
+                selectedNonProduct[0] = billingItemModel.getAccessoriesModel();
+
+            }
+
+        }
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (billingItemModel != null) {
+                    itemModelList.remove(billingItemModel);
+                    if ("PRODUCT".equalsIgnoreCase(type[0])) {
+                        if (selectedProduct[0] == null) {
+                            Toast.makeText(InvoiceHistoryDetailsActivity.this, "Please Choose the Product Name..!", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        if (StringUtils.isEmpty(productQtyValue[0])){
+                            Toast.makeText(InvoiceHistoryDetailsActivity.this, "Please Choose the Quantity..!", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        if (StringUtils.isEmpty(product_selling_cost.getText().toString())) {
+                            Toast.makeText(InvoiceHistoryDetailsActivity.this, "Please fill the Quantity..!", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        billingItemModel.setProductModel(selectedProduct[0]);
+                        billingItemModel.setType(type[0]);
+                        billingItemModel.setProductCategory(productCategoryType[0]);
+                        billingItemModel.setName(selectedProduct[0].getName());
+                        billingItemModel.setCode(selectedProduct[0].getCode());
+                        Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
+                        billingItemModel.setUnitPrice(fullPrice / 1000);
+                        if("ATTAR".equalsIgnoreCase(billingItemModel.getProductCategory())){
+                            billingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")));
+                            billingItemModel.setTotalPrice((Double.parseDouble(productQtySpinner.getSelectedItem().toString().replace("ML", "")) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            billingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
+                        }else {
+                            billingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")));
+                            billingItemModel.setTotalPrice((selectedProduct[0].getPerfumeActualPriceMap().get(productQtySpinner.getSelectedItem().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            billingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
+                        }
+                    } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
+                        if (selectedNonProduct[0] == null) {
+                            Toast.makeText(InvoiceHistoryDetailsActivity.this, "Please Choose the Accessories Name..!", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        if (StringUtils.isEmpty(non_product_price.getText().toString())) {
+                            Toast.makeText(InvoiceHistoryDetailsActivity.this, "Please fill the Price..!", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        billingItemModel.setType(type[0]);
+                        billingItemModel.setName(selectedNonProduct[0].getName());
+                        billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                        billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
+                        billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
+
+                    }
+                    itemModelList.add(billingItemModel);
+                    invoiceAdapter.notifyDataSetChanged();
+                    manageBillingLayout();
+                } else {
+                    int iterCount =0;
+                    if(StringUtils.isBlank(occurance.getText().toString())){
+                        occurance.setText("1");
+                    }
+                    iterCount = Integer.valueOf(occurance.getText().toString());
+                    for (int i=0;i<iterCount;i++) {
+                        BillingItemModel newBillingItemModel = new BillingItemModel();
+
+                        if ("PRODUCT".equalsIgnoreCase(type[0])) {
+                            if (selectedProduct[0] == null) {
+                                Toast.makeText(InvoiceHistoryDetailsActivity.this, "Please Choose the Product Name..!", Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                            if (StringUtils.isEmpty(productQtyValue[0])) {
+                                Toast.makeText(InvoiceHistoryDetailsActivity.this, "Please fill the Quantity..!", Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                            newBillingItemModel.setProductModel(selectedProduct[0]);
+                            newBillingItemModel.setType(type[0]);
+                            newBillingItemModel.setName(selectedProduct[0].getName());
+                            newBillingItemModel.setCode(selectedProduct[0].getCode());
+                            Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
+                            newBillingItemModel.setUnitPrice(fullPrice / 1000);
+                            if("ATTAR".equalsIgnoreCase(billingItemModel.getProductCategory())){
+                                newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML","")));
+                                newBillingItemModel.setTotalPrice((Double.parseDouble(productQtySpinner.getSelectedItem().toString().replace("ML", "")) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                                newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
+                            }else{
+                                newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML","")));
+                                newBillingItemModel.setTotalPrice((Double.valueOf(selectedProduct[0].getPerfumeActualPriceMap().get(productQtySpinner.getSelectedItem().toString())) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                                newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
+                            }
+
+                        } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
+
+                            if (selectedNonProduct[0] == null) {
+                                Toast.makeText(InvoiceHistoryDetailsActivity.this, "Please Choose the Accessories Name..!", Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                            if (StringUtils.isEmpty(non_product_price.getText().toString())) {
+                                Toast.makeText(InvoiceHistoryDetailsActivity.this, "Please fill the Price..!", Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                            newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
+                            newBillingItemModel.setType(type[0]);
+                            newBillingItemModel.setName(selectedNonProduct[0].getName());
+                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
+                        }
+                        itemModelList.add(newBillingItemModel);
+                    }
+                    invoiceAdapter.notifyDataSetChanged();
+                    manageBillingLayout();
+
+                }
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+
+    }
+
+    private void createNewBillDialogOLD(Context context, BillingItemModel billingItemModel) {
+
+        BottomSheetDialog dialog = new BottomSheetDialog(context);
+        dialog.setContentView(R.layout.dialog_billing_create);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
+        ProductModel[] selectedProduct = new ProductModel[1];
+        AccessoriesModel[] selectedNonProduct = new AccessoriesModel[1];
+
+        LinearLayout product_ll = dialog.findViewById(R.id.new_bill_product_ll);
+        LinearLayout non_product_ll = dialog.findViewById(R.id.new_bill_non_product_ll);
+        LinearLayout product_detail_ll = dialog.findViewById(R.id.new_bill_detail_ll);
+
+        TextView new_bill_owner = (TextView) dialog.findViewById(R.id.new_bill_item_owner);
+        TextInputEditText product_size = (TextInputEditText) dialog.findViewById(R.id.new_bill_item_size);
+        TextView product_selling_cost = (TextView) dialog.findViewById(R.id.new_bill_item_selling_price);
+
+        RadioGroup typeRadioGroup = (RadioGroup) dialog.findViewById(R.id.new_bill_radio_group);
+        final String[] type = {"PRODUCT"};
+        RadioButton productRadioButton = (RadioButton) dialog.findViewById(R.id.new_bill_product);
+        RadioButton nonProductRadioButton = (RadioButton) dialog.findViewById(R.id.new_bill_non_product);
+        productRadioButton.setChecked(true);
+        product_ll.setVisibility(View.VISIBLE);
+        product_detail_ll.setVisibility(View.GONE);
+        non_product_ll.setVisibility(View.GONE);
+        typeRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                // Find which radio button is selected
+                if (R.id.new_bill_product == checkedId) {
+                    product_ll.setVisibility(View.VISIBLE);
+                    non_product_ll.setVisibility(View.GONE);
+                    type[0] = "PRODUCT";
+                } else if (R.id.new_bill_non_product == checkedId) {
+                    product_ll.setVisibility(View.GONE);
+                    non_product_ll.setVisibility(View.VISIBLE);
+                    type[0] = "NON_PRODUCT";
+                }
+            }
+        });
+
+
+        AutoCompleteTextView non_product_name = (AutoCompleteTextView) dialog.findViewById(R.id.new_bill_non_product_name);
+        TextInputEditText non_product_price = (TextInputEditText) dialog.findViewById(R.id.new_bill_non_product_selling_price);
+
+        List<String> accessories_items = accessoriesModelList.stream()
+                .map(AccessoriesModel::getName)
+                .collect(Collectors.toList());
+
+        // Create an ArrayAdapter to bind the items to the AutoCompleteTextView
+        ArrayAdapter<String> accessories_adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, accessories_items);
+        non_product_name.setAdapter(accessories_adapter);
+
+        non_product_name.setThreshold(1);
+
+        // Show the dropdown when the AutoCompleteTextView is focused or clicked
+        non_product_name.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                non_product_name.showDropDown();
+            }
+        });
+
+        non_product_name.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    non_product_name.showDropDown();
+                }
+            }
+        });
+        non_product_name.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                String selectedItem = (String) adapterView.getItemAtPosition(i);
+                Optional<AccessoriesModel> resultModel = accessoriesModelList.stream()
+                        .filter(model -> selectedItem.equals(model.getName()))
+                        .findFirst();
+
+                if (resultModel.isPresent()) {
+                    AccessoriesModel selectNonProductModel = resultModel.get();
+                    non_product_name.setText(selectNonProductModel.getName());
+                    selectedNonProduct[0] = selectNonProductModel;
+
+                }
+
+            }
+        });
+
+        AutoCompleteTextView product_name = (AutoCompleteTextView) dialog.findViewById(R.id.new_bill_name);
+
+        List<String> items = productModelList.stream()
+                .filter(product -> "Y".equals(product.getStatus()))
+                .map(ProductModel::getName)
+                .collect(Collectors.toList());
+
+        System.out.println("data --" + items);
+        // Create an ArrayAdapter to bind the items to the AutoCompleteTextView
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, items);
+        product_name.setAdapter(adapter);
+        product_name.setThreshold(1);
+
+        // Show the dropdown when the AutoCompleteTextView is focused or clicked
+        product_name.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                product_name.showDropDown();
+            }
+        });
+
+        product_name.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    product_name.showDropDown();
+                }
+            }
+        });
+        product_name.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                String selectedItem = (String) adapterView.getItemAtPosition(i);
+                Optional<ProductModel> resultModel = productModelList.stream()
+                        .filter(model -> selectedItem.equals(model.getName()))
+                        .findFirst();
+
+                if (resultModel.isPresent()) {
+                    ProductModel selectProductModel = resultModel.get();
+                    product_name.setText(selectProductModel.getName());
+                    new_bill_owner.setText(selectProductModel.getOwner());
                     selectedProduct[0] = selectProductModel;
                     product_detail_ll.setVisibility(View.VISIBLE);
 
@@ -545,7 +938,6 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 if (selectProductModel != null) {
                     product_name.setText(selectProductModel.getName());
                     new_bill_owner.setText(selectProductModel.getOwner());
-                    new_bill_code.setText(selectProductModel.getCode());
                     selectedProduct[0] = selectProductModel;
                     product_size.setText(String.valueOf(billingItemModel.getUnits()));
                     product_selling_cost.setText(String.valueOf(billingItemModel.getSellingItemPrice()));
