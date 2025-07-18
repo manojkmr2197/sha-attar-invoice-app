@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
+import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.ExpenseModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.model.SalesPersonModel;
@@ -200,6 +201,19 @@ public class DBUtil {
                         }
                     }
                 });
+    }
+
+    public void getAppConfig(FirestoreCallback<ConfigModel> callback) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        // Query Firestore for documents with IDs (timestamps) before the given timestamp
+        db.collection(DatabaseConstants.APP_CONFIG_COLLECTION)
+                .document(DatabaseConstants.APP_CONFIG_DOCUMENT)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    ConfigModel model = documentSnapshot.toObject(ConfigModel.class);
+                    callback.onCallback(model);
+                })
+                .addOnFailureListener(e -> System.err.println("Error fetching documents: " + e.getMessage()));
     }
 
     public void getLoginSalesInfoDetail(FirestoreCallback<List<SalesPersonModel>> callback, String phone,String password) {

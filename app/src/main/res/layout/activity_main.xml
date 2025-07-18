@@ -231,7 +231,7 @@
                                         android:layout_width="match_parent"
                                         android:layout_height="30sp"
                                         android:gravity="center"
-                                        android:text="Customer Information"
+                                        android:text="Biller Information"
                                         android:textSize="18sp"
                                         android:textStyle="bold" />
 
@@ -264,30 +264,23 @@
                                                     android:textColor="@color/app_color"
                                                     android:textSize="13sp" />
 
-                                                <EditText
+                                                <TextView
                                                     android:id="@+id/billing_customer_phone"
                                                     android:layout_width="0dp"
                                                     android:layout_height="wrap_content"
                                                     android:layout_marginStart="5dp"
                                                     android:layout_weight="0.7"
-                                                    android:hint="eg. 9876543210"
-                                                    android:inputType="number"
-                                                    android:textColor="@color/app_color"
+                                                    android:text="9876543210"
+                                                    android:textColor="@color/black"
                                                     android:textSize="13sp" />
-
-                                                <TextView
-                                                    android:id="@+id/billing_customer_search"
-                                                    android:layout_width="30sp"
-                                                    android:layout_height="30sp"
-                                                    android:background="@drawable/baseline_person_search_24" />
 
                                             </LinearLayout>
 
-
-                                            <!--customer Phone-->
+                                            <!--customer Name-->
                                             <LinearLayout
                                                 android:layout_width="match_parent"
                                                 android:layout_height="wrap_content"
+                                                android:layout_marginTop="3sp"
                                                 android:gravity="center">
 
                                                 <TextView
@@ -301,56 +294,19 @@
                                                     android:textColor="@color/app_color"
                                                     android:textSize="13sp" />
 
-                                                <EditText
+                                                <TextView
                                                     android:id="@+id/billing_customer_name"
                                                     android:layout_width="0dp"
                                                     android:layout_height="wrap_content"
                                                     android:layout_marginStart="5dp"
                                                     android:layout_weight="0.7"
-                                                    android:hint="eg. Rajinikanth"
-                                                    android:textColor="@color/app_color"
+                                                    android:text="Mano"
+                                                    android:textColor="@color/black"
                                                     android:textSize="13sp" />
-
-                                                <View
-                                                    android:layout_width="30sp"
-                                                    android:layout_height="30sp" />
 
 
                                             </LinearLayout>
 
-                                            <!--customer Phone-->
-                                            <LinearLayout
-                                                android:layout_width="match_parent"
-                                                android:layout_height="wrap_content"
-                                                android:gravity="center">
-
-                                                <TextView
-                                                    android:layout_width="0dp"
-                                                    android:layout_height="wrap_content"
-                                                    android:layout_marginEnd="10sp"
-                                                    android:layout_weight="0.3"
-                                                    android:gravity="end"
-                                                    android:text="Remarks "
-                                                    android:textAllCaps="true"
-                                                    android:textColor="@color/app_color"
-                                                    android:textSize="13sp" />
-
-                                                <EditText
-                                                    android:id="@+id/billing_customer_remarks"
-                                                    android:layout_width="0dp"
-                                                    android:layout_height="wrap_content"
-                                                    android:layout_marginStart="5dp"
-                                                    android:layout_weight="0.7"
-                                                    android:hint="eg. Frequent Customers"
-                                                    android:textColor="@color/app_color"
-                                                    android:textSize="13sp" />
-
-                                                <View
-                                                    android:layout_width="30sp"
-                                                    android:layout_height="30sp" />
-
-
-                                            </LinearLayout>
 
                                         </LinearLayout>
 

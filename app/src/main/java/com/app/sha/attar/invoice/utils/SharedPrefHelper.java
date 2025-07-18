@@ -1,6 +1,7 @@
 package com.app.sha.attar.invoice.utils;
 
 import static com.app.sha.attar.invoice.utils.SharedConstants.ACCESSORIES_KEY;
+import static com.app.sha.attar.invoice.utils.SharedConstants.PACKAGING_KEY;
 import static com.app.sha.attar.invoice.utils.SharedConstants.PRODUCT_KEY;
 import static com.app.sha.attar.invoice.utils.SharedConstants.SHA_ATTAR;
 
@@ -119,6 +120,17 @@ public class SharedPrefHelper {
         editor.remove(SharedConstants.LOGIN_USER_NAME);
         editor.remove(SharedConstants.LOGIN_USER_PHONE);
         editor.remove(SharedConstants.LOGIN_USER_TYPE);
+        editor.apply();
+        editor.commit();
+    }
+
+    public String getPackageCost(){
+        return sharedPreferences.getString(PACKAGING_KEY, "15");
+    }
+
+    public void setPackageCost(int amount){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(PACKAGING_KEY, String.valueOf(amount));
         editor.apply();
         editor.commit();
     }

@@ -594,7 +594,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                         billingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
                         Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                         billingItemModel.setUnitPrice(fullPrice / 1000);
-                        billingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)));
+                        billingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         billingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                     } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
                         if (selectedNonProduct[0] == null) {
@@ -607,7 +607,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                         }
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedNonProduct[0].getName());
-                        billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice());
+                        billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                         billingItemModel.setProductModel(null);
@@ -640,7 +640,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                             newBillingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
                             Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                             newBillingItemModel.setUnitPrice(fullPrice / 1000);
-                            newBillingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)));
+                            newBillingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                             newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                         } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
 
@@ -655,7 +655,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                             newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                             newBillingItemModel.setType(type[0]);
                             newBillingItemModel.setName(selectedNonProduct[0].getName());
-                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice());
+                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                             newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         }
                         itemModelList.add(newBillingItemModel);

@@ -108,8 +108,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     LinearLayout billing_discount_ll;
 
-    EditText customer_name, customer_phone,remarks;
-    TextView customer_search;
+    TextView customer_name, customer_phone;
 
     Double totalAmount =  0.0, sellingAmount = 0.0, discount = 0.0;
 
@@ -179,12 +178,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         billing_discount_ll = (LinearLayout) findViewById(R.id.billing_discount_ll);
         billing_button = (Button) findViewById(R.id.billing_submit_invoice);
 
-        customer_name = (EditText) findViewById(R.id.billing_customer_name);
-        customer_phone = (EditText) findViewById(R.id.billing_customer_phone);
-        remarks = (EditText) findViewById(R.id.billing_customer_remarks);
-        customer_search = (TextView) findViewById(R.id.billing_customer_search);
-
-        customer_search.setOnClickListener(this);
+        customer_name = (TextView) findViewById(R.id.billing_customer_name);
+        customer_phone = (TextView) findViewById(R.id.billing_customer_phone);
         billing_discount_ll.setOnClickListener(this);
         billing_button.setOnClickListener(this);
 
@@ -211,29 +206,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
         };
-
-        customer_phone.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                if (editable.length() == 10) {
-                    Toast.makeText(context, "Searching .! ", Toast.LENGTH_LONG).show();
-                    InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(customer_phone.getWindowToken(), 0);
-                    searchContactInfo();
-
-                }
-            }
-        });
 
 
         billingAdapter = new BillingViewAdapter(context, billingItemModelList, listener);
@@ -275,21 +247,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    private void searchContactInfo() {
-
-        dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
-            @Override
-            public void onCallback(List<BillingInvoiceModel> aCustomerDetails) {
-                System.out.println("customerHistorySize: " + aCustomerDetails.size());
-                if(aCustomerDetails.size() >0){
-                    customer_name.setText(aCustomerDetails.get(0).getCustomerName());
-                }else{
-                    Toast.makeText(context, "It's a new Customer .! ", Toast.LENGTH_LONG).show();
-                }
-            }
-        }, customer_phone.getText().toString());
-    }
-
     private boolean checkInternet() {
         if (SingleTon.isNetworkConnected(activity)) {
             return true;
@@ -306,9 +263,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             empty_ll.setVisibility(View.VISIBLE);
             totalAmount = 0.0;
             discount = 0.0;
-            customer_name.setText("");
-            customer_phone.setText("");
-            remarks.setText("");
+            customer_name.setText(sharedPrefHelper.getLoginUserName());
+            customer_phone.setText(sharedPrefHelper.getLoginUserPhone());
             return;
         } else {
             content_ll.setVisibility(View.VISIBLE);
@@ -346,7 +302,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_accessories) {
             i = new Intent(MainActivity.this, AccessoriesActivity.class);
             startActivity(i);
-        } else if (item.getItemId() == R.id.nav_report) {
+        } else if (item.getItemId() == R.id.nav_packaging) {
+            i = new Intent(MainActivity.this, PackageActivity.class);
+            startActivity(i);
+        }  else if (item.getItemId() == R.id.nav_report) {
             i = new Intent(MainActivity.this, ReportActivity.class);
             startActivity(i);
         }  else if (item.getItemId() == R.id.nav_sales_person) {
@@ -395,25 +354,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             if (checkInternet())
                 submitInvoiceDetails();
-        } else if (R.id.billing_customer_search == view.getId()) {
-            if (checkInternet())
-                searchCustomerInfo();
         }
-
-    }
-
-    private void searchCustomerInfo() {
-        //DB call with  customer_phone
-        String phone_no = customer_phone.getText().toString();
-
-        if (StringUtils.isEmpty(phone_no)) {
-            Toast.makeText(MainActivity.this, "Enter Customer phone No ..!", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        Intent customerIntent = new Intent(MainActivity.this, CustomerHistoryActivity.class);
-        customerIntent.putExtra("phone_no", phone_no);
-        startActivityForResult(customerIntent, 1);
 
     }
 
@@ -438,7 +379,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         billingInvoiceModel.setCustomerName(customer_name.getText().toString());
         billingInvoiceModel.setCustomerPhone(customer_phone.getText().toString());
-        billingInvoiceModel.setRemarks(remarks.getText().toString());
         billingInvoiceModel.setDiscount(discount);
         billingInvoiceModel.setSellingCost(sellingAmount);
         billingInvoiceModel.setTotalCost(totalAmount);
@@ -713,7 +653,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         billingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
                         Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                         billingItemModel.setUnitPrice(fullPrice / 1000);
-                        billingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)));
+                        billingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         billingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                     } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
                         if (selectedNonProduct[0] == null) {
@@ -726,7 +666,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedNonProduct[0].getName());
-                        billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice());
+                        billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
 
@@ -759,7 +699,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             newBillingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
                             Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                             newBillingItemModel.setUnitPrice(fullPrice / 1000);
-                            newBillingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)));
+                            newBillingItemModel.setTotalPrice((Double.parseDouble(product_size.getText().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                             newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                         } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
 
@@ -774,7 +714,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                             newBillingItemModel.setType(type[0]);
                             newBillingItemModel.setName(selectedNonProduct[0].getName());
-                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice());
+                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                             newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         }
                         billingItemModelList.add(newBillingItemModel);

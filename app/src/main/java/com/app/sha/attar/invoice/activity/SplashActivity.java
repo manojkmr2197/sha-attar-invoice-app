@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.listener.TimeApi;
+import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.TimeResponse;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
@@ -50,6 +51,7 @@ public class SplashActivity extends AppCompatActivity {
         helper = new SharedPrefHelper(SplashActivity.this);
         helper.clearLoginUserDetails();
         if (checkInternet()) {
+            loadAppConfig();
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -73,6 +75,19 @@ public class SplashActivity extends AppCompatActivity {
             return false;
         }
 
+    }
+
+    private void loadAppConfig() {
+        dbUtil.getAppConfig(new FirestoreCallback<ConfigModel>() {
+            @Override
+            public void onCallback(ConfigModel result) {
+                if (result != null) {
+                    helper.setPackageCost(result.getPackageCost());
+                } else {
+                    helper.setPackageCost(15);
+                }
+            }
+        });
     }
 
     private void getServerDate() {
