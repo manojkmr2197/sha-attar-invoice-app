@@ -75,7 +75,6 @@
                         android:id="@+id/invoice_history_detail_item_code"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@color/app_color"
                         android:padding="3dp"
                         android:layout_marginStart="10sp"
                         android:text=""

@@ -95,15 +95,15 @@
                                 <Button
                                     android:id="@+id/home_bill_add_bt"
                                     android:layout_width="300dp"
-                                    android:layout_gravity="center"
                                     android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
                                     android:text="Add Bill" />
 
                                 <LinearLayout
+                                    android:id="@+id/home_content_ll"
                                     android:layout_width="match_parent"
                                     android:layout_height="350dp"
                                     android:layout_gravity="bottom"
-                                    android:id="@+id/home_content_ll"
                                     android:orientation="vertical">
 
 
@@ -304,9 +304,50 @@
                                                     android:textColor="@color/black"
                                                     android:textSize="13sp" />
 
-
                                             </LinearLayout>
 
+                                            <TextView
+                                                android:layout_width="match_parent"
+                                                android:layout_height="30sp"
+                                                android:gravity="center"
+                                                android:text="Payment Details"
+                                                android:textSize="18sp"
+                                                android:textStyle="bold" />
+
+                                            <RadioGroup
+                                                android:id="@+id/new_bill_payment_radio_group"
+                                                android:layout_width="match_parent"
+                                                android:layout_height="match_parent"
+                                                android:orientation="horizontal">
+
+                                                <View
+                                                    android:layout_width="0dp"
+                                                    android:layout_height="match_parent"
+                                                    android:layout_weight="1" />
+
+                                                <RadioButton
+                                                    android:id="@+id/new_billing_payment_cash"
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:text="CASH" />
+
+                                                <View
+                                                    android:layout_width="0dp"
+                                                    android:layout_height="match_parent"
+                                                    android:layout_weight="1" />
+
+                                                <RadioButton
+                                                    android:id="@+id/new_billing_payment_upi"
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:text="UPI" />
+
+                                                <View
+                                                    android:layout_width="0dp"
+                                                    android:layout_height="match_parent"
+                                                    android:layout_weight="1" />
+
+                                            </RadioGroup>
 
                                         </LinearLayout>
 

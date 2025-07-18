@@ -52,7 +52,7 @@ public class InvoiceHistoryDetailViewAdapter extends RecyclerView.Adapter<Invoic
             holder.itemQuantity.setVisibility(View.GONE);
         }
 
-        holder.itemName.setText(contentList.get(index).getName());
+        holder.itemName.setText(contentList.get(index).getName()+"-"+contentList.get(index).getProductCategory().substring(0,1));
         if(StringUtils.isNoneBlank(contentList.get(index).getCode())) {
             holder.itemCode.setText(contentList.get(index).getCode());
         }else{

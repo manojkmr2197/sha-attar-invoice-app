@@ -96,7 +96,11 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
     BillingInvoiceModel billingInvoiceModel;
 
     TextView back, invoiceIdTv, invoiceDtTv;
-    EditText customerName, customerPhone, customerRemarks;
+    TextView customerName, customerPhone;
+
+    RadioGroup paymentGroup;
+    RadioButton cashRadioBt,upiRadioBt;
+    String paymentMode="";
 
     RecyclerView itemRecyclerview;
 
@@ -152,32 +156,27 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         invoiceIdTv = (TextView) findViewById(R.id.invoice_history_detail_id);
         invoiceDtTv = (TextView) findViewById(R.id.invoice_history_detail_date_tv);
         invoiceDtTv.setOnClickListener(this);
-        customerName = (EditText) findViewById(R.id.invoice_history_detail_customer_name);
-        customerPhone = (EditText) findViewById(R.id.invoice_history_detail_customer_phone);
-        customerRemarks = (EditText) findViewById(R.id.invoice_history_detail_remarks);
+        customerName = (TextView) findViewById(R.id.invoice_history_detail_customer_name);
+        customerPhone = (TextView) findViewById(R.id.invoice_history_detail_customer_phone);
 
-        customerPhone.addTextChangedListener(new TextWatcher() {
+        paymentGroup = (RadioGroup) findViewById(R.id.invoice_history_detail_payment_radio_group);
+        cashRadioBt = (RadioButton) findViewById(R.id.invoice_history_detail_payment_cash);
+        upiRadioBt = (RadioButton) findViewById(R.id.invoice_history_detail_payment_upi);
+
+        cashRadioBt.setChecked(true);
+        paymentMode = "CASH";
+        paymentGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                if (editable.length() == 10) {
-                    Toast.makeText(context, "Searching .! ", Toast.LENGTH_SHORT).show();
-                    InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(customerPhone.getWindowToken(), 0);
-                    searchContactInfo();
-
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                // Find which radio button is selected
+                if (R.id.new_billing_payment_cash == checkedId) {
+                    paymentMode = "CASH";
+                } else if (R.id.new_billing_payment_upi == checkedId) {
+                    paymentMode = "UPI";
                 }
             }
         });
+
 
         itemRecyclerview = (RecyclerView) findViewById(R.id.invoice_history_detail_recycler_view);
         clickListener =new BillingClickListener() {
@@ -222,6 +221,8 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         }else{
             addInvoiceBt.setText("Add Invoice");
             billingInvoiceModel = new BillingInvoiceModel();
+            customerName.setText(sharedPrefHelper.getLoginUserName());
+            customerPhone.setText(sharedPrefHelper.getLoginUserPhone());
             getServerDate();
         }
 
@@ -235,20 +236,6 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             offsetDateTime = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));
         }
 
-    }
-
-    private void searchContactInfo() {
-        dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
-            @Override
-            public void onCallback(List<BillingInvoiceModel> aCustomerDetails) {
-                System.out.println("customerHistorySize: " + aCustomerDetails.size());
-                if(aCustomerDetails.size() >0){
-                    customerName.setText(aCustomerDetails.get(0).getCustomerName());
-                }else{
-                    Toast.makeText(context, "It's a new Customer .! ", Toast.LENGTH_LONG).show();
-                }
-            }
-        }, customerPhone.getText().toString());
     }
 
 
@@ -286,7 +273,14 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 invoiceIdTv.setText("Invoice ID : " + billingInvoiceModel.getBillingDate());
                 customerName.setText(billingInvoiceModel.getCustomerName());
                 customerPhone.setText(billingInvoiceModel.getCustomerPhone());
-                customerRemarks.setText(billingInvoiceModel.getRemarks());
+                paymentMode =billingInvoiceModel.getPaymentMode();
+                if("CASH".equalsIgnoreCase(paymentMode)){
+                    cashRadioBt.setChecked(true);
+                    upiRadioBt.setChecked(false);
+                }else{
+                    cashRadioBt.setChecked(false);
+                    upiRadioBt.setChecked(true);
+                }
 
                 totalAmountTv.setText("Rs. " + df.format(billingInvoiceModel.getTotalCost()));
                 discountTv.setText(billingInvoiceModel.getDiscount() + "%");
@@ -698,7 +692,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                             billingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                         }else {
                             billingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")));
-                            billingItemModel.setTotalPrice((selectedProduct[0].getPerfumeActualPriceMap().get(productQtySpinner.getSelectedItem().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            billingItemModel.setTotalPrice((selectedProduct[0].getPerfumeActualPriceMap().get(productQtySpinner.getSelectedItem().toString())) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                             billingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                         }
                     } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
@@ -740,17 +734,18 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                             }
                             newBillingItemModel.setProductModel(selectedProduct[0]);
                             newBillingItemModel.setType(type[0]);
+                            newBillingItemModel.setProductCategory(productCategoryType[0]);
                             newBillingItemModel.setName(selectedProduct[0].getName());
                             newBillingItemModel.setCode(selectedProduct[0].getCode());
                             Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                             newBillingItemModel.setUnitPrice(fullPrice / 1000);
-                            if("ATTAR".equalsIgnoreCase(billingItemModel.getProductCategory())){
+                            if("ATTAR".equalsIgnoreCase(newBillingItemModel.getProductCategory())){
                                 newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML","")));
                                 newBillingItemModel.setTotalPrice((Double.parseDouble(productQtySpinner.getSelectedItem().toString().replace("ML", "")) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                                 newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                             }else{
                                 newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML","")));
-                                newBillingItemModel.setTotalPrice((Double.valueOf(selectedProduct[0].getPerfumeActualPriceMap().get(productQtySpinner.getSelectedItem().toString())) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                                newBillingItemModel.setTotalPrice((Double.valueOf(selectedProduct[0].getPerfumeActualPriceMap().get(productQtySpinner.getSelectedItem().toString()))) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                                 newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                             }
 
@@ -1150,24 +1145,19 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             return;
         }
 
-        if (StringUtils.isEmpty(customerName.getText().toString())) {
-            Toast.makeText(context, "Please Enter Customer Name..!", Toast.LENGTH_LONG).show();
-            return;
-        }
-        if (StringUtils.isEmpty(customerPhone.getText().toString())) {
-            Toast.makeText(context, "Please Enter Customer Phone no..!", Toast.LENGTH_LONG).show();
-            return;
-        }
-
         if(itemModelList.isEmpty()){
             Toast.makeText(context, "Please Add products / Accessories..!", Toast.LENGTH_LONG).show();
+            return;
+        }
+        if(StringUtils.isBlank(paymentMode)){
+            Toast.makeText(context, "Please Choose Payment mode..!", Toast.LENGTH_LONG).show();
             return;
         }
 
 
         billingInvoiceModel.setCustomerName(customerName.getText().toString());
         billingInvoiceModel.setCustomerPhone(customerPhone.getText().toString());
-        billingInvoiceModel.setRemarks(customerRemarks.getText().toString());
+        billingInvoiceModel.setPaymentMode(paymentMode);
         billingInvoiceModel.setDiscount(discount);
         billingInvoiceModel.setSellingCost(sellingAmount);
         billingInvoiceModel.setTotalCost(totalAmount);

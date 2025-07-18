@@ -25,8 +25,8 @@
 
                 <Button
                     android:id="@+id/billing_product_close"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
                     android:layout_gravity="bottom"
                     android:layout_marginEnd="5dp"
                     android:background="@drawable/ic_baseline_clear_24" />
@@ -47,7 +47,7 @@
                         android:singleLine="true"
                         android:textAllCaps="true"
                         android:textColor="@color/app_color"
-                        android:textSize="13sp" />
+                        android:textSize="11sp" />
 
                     <TextView
                         android:id="@+id/billing_product_code"
@@ -55,6 +55,7 @@
                         android:layout_height="wrap_content"
                         android:background="@color/app_color"
                         android:padding="5dp"
+                        android:visibility="gone"
                         android:text="A15"
                         android:textAllCaps="true"
                         android:textColor="@color/white"
@@ -72,7 +73,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="10sp"
                         android:text="5 ML"
-                        android:textSize="12sp"
+                        android:textSize="11sp"
                         android:textColor="@color/app_color"
                         android:textStyle="bold" />
 
@@ -92,14 +93,14 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="0.23"
                     android:text="Rs. 50"
-                    android:textSize="13sp"
+                    android:textSize="11sp"
                     android:textColor="@color/app_color"
                     android:textStyle="bold" />
 
                 <Button
                     android:id="@+id/billing_product_edit"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
                     android:layout_gravity="bottom"
                     android:layout_marginStart="5dp"
                     android:background="@drawable/ic_baseline_edit_24" />
@@ -114,8 +115,8 @@
 
                 <Button
                     android:id="@+id/billing_accessories_close"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
                     android:layout_gravity="bottom"
                     android:layout_marginEnd="5dp"
                     android:background="@drawable/ic_baseline_clear_24" />
@@ -136,7 +137,7 @@
                     android:text="50 ML fancy bottle"
                     android:textAllCaps="true"
                     android:textColor="@color/app_color"
-                    android:textSize="13sp" />
+                    android:textSize="11sp" />
 
 
                 <View
@@ -158,14 +159,14 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="0.23"
                     android:text="Rs. 400"
-                    android:textSize="13sp"
+                    android:textSize="11sp"
                     android:textColor="@color/app_color"
                     android:textStyle="bold" />
 
                 <Button
                     android:id="@+id/billing_accessories_edit"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
                     android:layout_gravity="bottom"
                     android:layout_marginStart="5dp"
                     android:background="@drawable/ic_baseline_edit_24" />

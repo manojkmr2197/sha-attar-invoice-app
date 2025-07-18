@@ -59,7 +59,9 @@ public class LoginActivity extends AppCompatActivity {
         dbObj = new DBUtil();
         sharedPrefHelper = new SharedPrefHelper(context);
         phone = (TextInputEditText) findViewById(R.id.login_user_name);
+        phone.setText("9585905176");
         password = (TextInputEditText) findViewById(R.id.login_user_password);
+        password.setText("1234");
         login = (Button) findViewById(R.id.login_submit);
 
         login.setOnClickListener(new View.OnClickListener() {

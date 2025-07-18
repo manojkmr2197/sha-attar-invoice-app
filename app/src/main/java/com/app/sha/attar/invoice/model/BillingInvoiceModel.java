@@ -10,6 +10,7 @@ public class BillingInvoiceModel {
     Double discount;
     String customerName;
     String customerPhone;
+    String paymentMode;
     String remarks;
     Double sellingCost;
     List<BillingItemModel> billingItemModelList;
@@ -86,5 +87,13 @@ public class BillingInvoiceModel {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public String getPaymentMode() {
+        return paymentMode;
+    }
+
+    public void setPaymentMode(String paymentMode) {
+        this.paymentMode = paymentMode;
     }
 }

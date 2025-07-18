@@ -96,100 +96,108 @@
                         android:hint="Search Product Name" />
 
                     <LinearLayout
+                        android:layout_width="match_parent"
                         android:id="@+id/new_bill_detail_ll"
-                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="vertical">
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Owner : "
-                            android:textColor="@color/app_color" />
+                            android:gravity="center_vertical">
 
-                        <TextView
-                            android:id="@+id/new_bill_item_owner"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text=""
-                            android:textColor="@color/app_color" />
-
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1" />
-
-                    </LinearLayout>
-
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:layout_marginBottom="5dp"
-                        android:gravity="center">
-
-                        <RadioGroup
-                            android:id="@+id/new_bill_product_split_radio_group"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:orientation="horizontal">
-
-                            <RadioButton
-                                android:id="@+id/new_bill_product_attar"
+                            <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="ATTAR " />
+                                android:text="Owner : "
+                                android:textColor="@color/app_color" />
 
-                            <RadioButton
-                                android:id="@+id/new_bill_product_spray"
+                            <TextView
+                                android:id="@+id/new_bill_item_owner"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="SPRAY" />
+                                android:text=""
+                                android:textColor="@color/app_color" />
 
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1" />
+                        </LinearLayout>
 
-                        </RadioGroup>
-
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="1dp"
-                            android:layout_weight="1" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:text="Qty : " />
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:gravity="center">
 
-                        <androidx.appcompat.widget.AppCompatSpinner
-                            android:id="@+id/new_bill_item_size"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent" />
+                            <RadioGroup
+                                android:id="@+id/new_bill_product_split_radio_group"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal">
 
+                                <RadioButton
+                                    android:id="@+id/new_bill_product_attar"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="ATTAR " />
+
+                                <RadioButton
+                                    android:id="@+id/new_bill_product_spray"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="SPRAY" />
+
+
+                            </RadioGroup>
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="1" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:text="Qty : " />
+
+                            <androidx.appcompat.widget.AppCompatSpinner
+                                android:id="@+id/new_bill_item_size"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent" />
+
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10sp"
+                            android:gravity="center">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:text="Selling Price : Rs  "
+                                android:textSize="15sp" />
+
+                            <TextView
+                                android:id="@+id/new_bill_item_selling_price"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=""
+                                android:textColor="@color/app_color"
+                                android:textSize="15sp" />
+
+                        </LinearLayout>
 
                     </LinearLayout>
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10sp"
-                        android:gravity="center">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:textSize="15sp"
-                            android:text="Selling Price : Rs  " />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text=""
-                            android:textSize="15sp"
-                            android:id="@+id/new_bill_item_selling_price"
-                            android:textColor="@color/app_color" />
-
-                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -261,8 +269,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
-                            android:text="1"
                             android:singleLine="true"
+                            android:text="1"
                             android:textAllCaps="true" />
 
                     </com.google.android.material.textfield.TextInputLayout>

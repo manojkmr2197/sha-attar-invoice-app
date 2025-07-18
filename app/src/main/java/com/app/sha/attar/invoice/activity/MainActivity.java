@@ -112,6 +112,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     TextView customer_name, customer_phone;
 
+    RadioGroup paymentGroup;
+    RadioButton cashRadioBt,upiRadioBt;
+
     Double totalAmount =  0.0, sellingAmount = 0.0, discount = 0.0;
 
     SharedPrefHelper sharedPrefHelper;
@@ -119,6 +122,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     FirebaseFirestore db;
 
     private static final int REQUEST_WRITE_PERMISSION = 786;
+
+    String paymentMode="";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -179,6 +184,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         billing_discount = (TextView) findViewById(R.id.billing_discount);
         billing_discount_ll = (LinearLayout) findViewById(R.id.billing_discount_ll);
         billing_button = (Button) findViewById(R.id.billing_submit_invoice);
+
+        paymentGroup = (RadioGroup) findViewById(R.id.new_bill_payment_radio_group);
+        cashRadioBt = (RadioButton) findViewById(R.id.new_billing_payment_cash);
+        upiRadioBt = (RadioButton) findViewById(R.id.new_billing_payment_upi);
+
+        cashRadioBt.setChecked(true);
+        paymentMode = "CASH";
+        paymentGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                // Find which radio button is selected
+                if (R.id.new_billing_payment_cash == checkedId) {
+                    paymentMode = "CASH";
+                } else if (R.id.new_billing_payment_upi == checkedId) {
+                    paymentMode = "UPI";
+                }
+            }
+        });
 
         customer_name = (TextView) findViewById(R.id.billing_customer_name);
         customer_phone = (TextView) findViewById(R.id.billing_customer_phone);
@@ -372,6 +395,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return;
         }
 
+        if (StringUtils.isEmpty(paymentMode)) {
+            Toast.makeText(MainActivity.this, "Please Choose Payment mode..!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
 
         BillingInvoiceModel billingInvoiceModel = new BillingInvoiceModel();
 
@@ -513,7 +541,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 attarQtyList
         );
         attarAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
+        productQtySpinner.setAdapter(attarAdapter);
+        productQtySpinner.setSelection(0);
         List<String> sprayQtyList = Arrays.asList(
                 getString(R.string.ML_10),
                 getString(R.string.ML_30),
@@ -758,7 +787,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             billingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                         }else {
                             billingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")));
-                            billingItemModel.setTotalPrice((selectedProduct[0].getPerfumeActualPriceMap().get(productQtySpinner.getSelectedItem().toString()) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            billingItemModel.setTotalPrice((selectedProduct[0].getPerfumeActualPriceMap().get(productQtySpinner.getSelectedItem().toString())) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                             billingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                         }
                     } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
@@ -800,17 +829,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             }
                             newBillingItemModel.setProductModel(selectedProduct[0]);
                             newBillingItemModel.setType(type[0]);
+                            newBillingItemModel.setProductCategory(productCategoryType[0]);
                             newBillingItemModel.setName(selectedProduct[0].getName());
                             newBillingItemModel.setCode(selectedProduct[0].getCode());
                             Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                             newBillingItemModel.setUnitPrice(fullPrice / 1000);
-                            if("ATTAR".equalsIgnoreCase(billingItemModel.getProductCategory())){
+                            if("ATTAR".equalsIgnoreCase(newBillingItemModel.getProductCategory())){
                                 newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML","")));
                                 newBillingItemModel.setTotalPrice((Double.parseDouble(productQtySpinner.getSelectedItem().toString().replace("ML", "")) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                                 newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                             }else{
                                 newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML","")));
-                                newBillingItemModel.setTotalPrice((Double.valueOf(selectedProduct[0].getPerfumeActualPriceMap().get(productQtySpinner.getSelectedItem().toString())) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                                newBillingItemModel.setTotalPrice((Double.valueOf(selectedProduct[0].getPerfumeActualPriceMap().get(productQtySpinner.getSelectedItem().toString()))) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                                 newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                             }
 
