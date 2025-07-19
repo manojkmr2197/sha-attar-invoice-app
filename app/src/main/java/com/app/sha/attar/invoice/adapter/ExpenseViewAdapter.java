@@ -20,6 +20,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -56,6 +57,13 @@ public class ExpenseViewAdapter extends RecyclerView.Adapter<ExpenseViewHolder>{
         }
         holder.title.setText(contentList.get(index).getTitle());
         holder.amount.setText(numberFormat.format(contentList.get(index).getAmount()).replace("\u00A0", ""));
+
+        List<String> specialList = Arrays.asList(context.getResources().getStringArray(R.array.spinner_special_expense_type));
+
+        if(specialList.contains(contentList.get(index).getType())){
+            holder.delete.setVisibility(View.INVISIBLE);
+            holder.edit.setVisibility(View.INVISIBLE);
+        }
 
         holder.delete.setOnClickListener(new View.OnClickListener() {
             @Override

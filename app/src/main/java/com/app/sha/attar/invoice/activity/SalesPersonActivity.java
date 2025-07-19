@@ -168,11 +168,11 @@ public class SalesPersonActivity extends AppCompatActivity implements View.OnCli
                 }
                 itemList.clear();
                 itemList.addAll(result);
+                salesPersonViewAdapter.notifyDataSetChanged();
                 Toast.makeText(SalesPersonActivity.this, "Sales Person Data Loaded .!", Toast.LENGTH_LONG).show();
-
                 data_fl.setVisibility(View.VISIBLE);
                 no_data_fl.setVisibility(View.GONE);
-                salesPersonViewAdapter.notifyDataSetChanged();
+
             }
         });
     }

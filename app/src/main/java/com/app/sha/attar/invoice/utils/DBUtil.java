@@ -99,6 +99,32 @@ public class DBUtil {
                 });
     }
 
+    public void getBillingInvoiceDetail(FirestoreCallback<List<BillingInvoiceModel>> callback, Long startTime, Long endTime,String customerPhone) {
+        db.collection(DatabaseConstants.INVOICE_COLLECTION).whereGreaterThanOrEqualTo("billingDate", startTime)
+                .whereLessThanOrEqualTo("billingDate", endTime)
+                .whereEqualTo("customerPhone", customerPhone)
+                .orderBy("billingDate", Query.Direction.DESCENDING)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            List<BillingInvoiceModel> saleDetails = new ArrayList<>();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                BillingInvoiceModel model = document.toObject(BillingInvoiceModel.class);
+                                if (model.getBillingItemModelList() == null) {
+                                    System.out.println("Got null.");
+                                }
+                                saleDetails.add(model);
+                            }
+                            callback.onCallback(saleDetails);
+                        } else {
+                            System.err.println("Error fetching product details: " + task.getException());
+                        }
+                    }
+                });
+    }
+
     public void getBillingInvoiceDetail(FirestoreCallback<List<BillingInvoiceModel>> callback, Long startTime, Long endTime) {
         db.collection(DatabaseConstants.INVOICE_COLLECTION).whereGreaterThanOrEqualTo("billingDate", startTime)
                 .whereLessThanOrEqualTo("billingDate", endTime)
@@ -162,7 +188,7 @@ public class DBUtil {
     public void getSalePersonDetails(FirestoreCallback<List<SalesPersonModel>> callback) {
         // Fetch data from Firestore
         db.collection(DatabaseConstants.SALES_PERSON_COLLECTION)
-                .orderBy("name")
+                .orderBy("type")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -184,6 +210,29 @@ public class DBUtil {
     public void getExpenseDetail(FirestoreCallback<List<ExpenseModel>> callback, Long startTime, Long endTime) {
         db.collection(DatabaseConstants.EXPENSE_COLLECTION).whereGreaterThanOrEqualTo("expenseDate", startTime)
                 .whereLessThanOrEqualTo("expenseDate", endTime)
+                .orderBy("expenseDate", Query.Direction.DESCENDING)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            List<ExpenseModel> expenseDetails = new ArrayList<>();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                ExpenseModel model = document.toObject(ExpenseModel.class);
+                                expenseDetails.add(model);
+                            }
+                            callback.onCallback(expenseDetails);
+                        } else {
+                            System.err.println("Error fetching expense details: " + task.getException());
+                        }
+                    }
+                });
+    }
+
+    public void getExpenseDetail(FirestoreCallback<List<ExpenseModel>> callback, Long startTime, Long endTime,String expenseType) {
+        db.collection(DatabaseConstants.EXPENSE_COLLECTION).whereGreaterThanOrEqualTo("expenseDate", startTime)
+                .whereLessThanOrEqualTo("expenseDate", endTime)
+                .whereEqualTo("type",expenseType)
                 .orderBy("expenseDate", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {

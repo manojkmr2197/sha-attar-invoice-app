@@ -4,6 +4,7 @@ public class ExpenseModel {
 
     private String id;
     private Long expenseDate;
+    private String type;
     private String title;
     private double amount;
 
@@ -37,5 +38,13 @@ public class ExpenseModel {
 
     public void setAmount(double amount) {
         this.amount = amount;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

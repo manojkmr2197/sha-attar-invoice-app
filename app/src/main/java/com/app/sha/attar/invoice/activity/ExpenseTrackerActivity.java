@@ -9,9 +9,11 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.FrameLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,11 +39,14 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.gson.Gson;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -69,6 +74,7 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
     TextView startDatetv, endDatetv;
     OffsetDateTime customStartDt = null, customEndDt = null;
 
+    Spinner expenseType;
     Button search;
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm a");
 
@@ -104,11 +110,23 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
         FloatingActionButton add_fab = (FloatingActionButton) findViewById(R.id.expense_add_fab);
         add_fab.setOnClickListener(this);
 
+        FloatingActionButton special_add_fab = (FloatingActionButton) findViewById(R.id.expense_special_add_fab);
+        special_add_fab.setOnClickListener(this);
+
         startDatetv = findViewById(R.id.expense_start_date_tv);
         endDatetv = findViewById(R.id.expense_end_date_tv);
 
         startDatetv.setOnClickListener(view -> showStartDatePickerDialog());
         endDatetv.setOnClickListener(view -> showEndDatePickerDialog());
+
+        expenseType = (Spinner) findViewById(R.id.expense_choose_type);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.spinner_expense_filter_type, android.R.layout.simple_spinner_item);
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        expenseType.setAdapter(adapter);
+        expenseType.setSelection(0);
 
         search = (Button) findViewById(R.id.expense_search);
         search.setOnClickListener(this);
@@ -122,7 +140,7 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
             public void click(int index, String type) {
                 if (type.equalsIgnoreCase("EDIT")) {
                     //editdialog box
-                    createDialogBox(context,itemList.get(index));
+                    createDialogBox(context, itemList.get(index));
                 } else if (type.equalsIgnoreCase("DELETE")) {
                     //delete confirmation
                     deleteConfirmationPopup(index);
@@ -169,7 +187,7 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
                     itemList.remove(index);
                     expenseViewAdapter.notifyDataSetChanged();
                 })
-                .addOnFailureListener(e ->  Toast.makeText(ExpenseTrackerActivity.this, "Expense deleted failed..!", Toast.LENGTH_LONG).show());
+                .addOnFailureListener(e -> Toast.makeText(ExpenseTrackerActivity.this, "Expense deleted failed..!", Toast.LENGTH_LONG).show());
 
     }
 
@@ -180,6 +198,9 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
         } else if (view.getId() == R.id.expense_add_fab) {
             //add dialog will show
             createDialogBox(context, null);
+        } else if (view.getId() == R.id.expense_special_add_fab) {
+            //add dialog will show
+            createSpecialDialogBox(context);
         } else if (view.getId() == R.id.expense_download_tv) {
             //download xl
         } else if (view.getId() == R.id.expense_search) {
@@ -190,10 +211,110 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
             if (checkInternet()) {
                 System.out.println(customStartDt + " --- " + customEndDt);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    processExpense(customStartDt, customEndDt);
+
+                    if("ALL".equalsIgnoreCase(expenseType.getSelectedItem().toString())){
+                        processExpense(customStartDt, customEndDt);
+                    }else {
+                        processExpenseFilter(customStartDt, customEndDt,expenseType.getSelectedItem().toString());
+                    }
+
                 }
             }
         }
+    }
+
+    private void createSpecialDialogBox(Context context) {
+        BottomSheetDialog dialog = new BottomSheetDialog(context);
+        dialog.setContentView(R.layout.dialog_special_expense_create);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        TextInputEditText price = (TextInputEditText) dialog.findViewById(R.id.expense_special_add_price);
+        Spinner type = (Spinner) dialog.findViewById(R.id.expense_special_add_type);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.spinner_special_expense_type, android.R.layout.simple_spinner_item);
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        type.setAdapter(adapter);
+        type.setSelection(0);
+
+        TextView close = (TextView) dialog.findViewById(R.id.expense_special_add_close);
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+
+        Button submitDialog = (Button) dialog.findViewById(R.id.expense_special_add_submit);
+
+        submitDialog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (StringUtils.isEmpty(price.getText().toString())) {
+                    Toast.makeText(ExpenseTrackerActivity.this, "Please enter Price amount ..!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                OffsetDateTime now = OffsetDateTime.now();
+                // Extract year and month
+                YearMonth yearMonth = YearMonth.of(now.getYear(), now.getMonth());
+                // Get the number of days in this month
+                int daysInMonth = yearMonth.lengthOfMonth();
+                if("STORE_RENT".equalsIgnoreCase(type.getSelectedItem().toString())){
+                    double pricePerDay = Double.valueOf(price.getText().toString())/daysInMonth;
+                    for(int i=0;i<daysInMonth;i++){
+                        insertExpense(now.withDayOfMonth(i+1),type.getSelectedItem().toString(),pricePerDay);
+                    }
+                    Toast.makeText(context, "New Expense - " + type.getSelectedItem().toString() + " Added", Toast.LENGTH_LONG).show();
+                    System.out.println("Expense Added successfully.");
+                    if (customStartDt != null && customEndDt != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        processExpense(customStartDt, customEndDt);
+                    }
+                }else if("ELECTRICITY".equalsIgnoreCase(type.getSelectedItem().toString())){
+                    YearMonth yearPreviousMonth = YearMonth.of(now.getYear(), now.getMonth().minus(1));
+                    double pricePerDay = Double.valueOf(price.getText().toString())/(daysInMonth+yearPreviousMonth.lengthOfMonth());
+                    for(int i=0;i<daysInMonth;i++){
+                        insertExpense(now.withDayOfMonth(i+1),type.getSelectedItem().toString(),pricePerDay);
+                    }
+                    for(int i=0;i<yearPreviousMonth.lengthOfMonth();i++){
+                        insertExpense(now.minusMonths(1).withDayOfMonth(i+1),type.getSelectedItem().toString(),pricePerDay);
+                    }
+                    Toast.makeText(context, "New Expense - " + type.getSelectedItem().toString() + " Added", Toast.LENGTH_LONG).show();
+                    System.out.println("Expense Added successfully.");
+                    if (customStartDt != null && customEndDt != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        processExpense(customStartDt, customEndDt);
+                    }
+                }
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+
+    private void insertExpense(OffsetDateTime offsetDateTime, String type, double pricePerDay) {
+        ExpenseModel newExpenseModel = new ExpenseModel();
+        newExpenseModel.setExpenseDate(offsetDateTime.toEpochSecond());
+        newExpenseModel.setAmount(pricePerDay);
+        newExpenseModel.setType(type);
+        newExpenseModel.setId(SingleTon.generateExpenseDetailDocument());
+        db.collection(DatabaseConstants.EXPENSE_COLLECTION)
+                .document(newExpenseModel.getId())
+                .set(newExpenseModel)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        //Toast.makeText(context, "New Expense - " + newExpenseModel.getTitle() + " Added", Toast.LENGTH_LONG).show();
+                        System.out.println("Expense Added successfully.");
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(context, "Error while saving Expense. Please try again", Toast.LENGTH_LONG).show();
+                        System.out.println("Error while saving Expense." + e);
+                    }
+                });
+
     }
 
     private void createDialogBox(Context context, ExpenseModel expenseModel) {
@@ -205,6 +326,14 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
         TextInputEditText title = (TextInputEditText) dialog.findViewById(R.id.expense_add_name);
         TextInputEditText price = (TextInputEditText) dialog.findViewById(R.id.expense_add_price);
         TextView date = (TextView) dialog.findViewById(R.id.expense_add_date_tv);
+        Spinner type = (Spinner) dialog.findViewById(R.id.expense_add_type);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.spinner_expense_type, android.R.layout.simple_spinner_item);
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        type.setAdapter(adapter);
+        type.setSelection(0);
 
         Button submitDialog = (Button) dialog.findViewById(R.id.expense_add_submit);
         TextView delete = (TextView) dialog.findViewById(R.id.expense_add_delete);
@@ -223,6 +352,27 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
             currentTime = Instant.ofEpochSecond(expenseModel.getExpenseDate()).atOffset(ZoneOffset.ofHoursMinutes(5, 30));
             title.setText(expenseModel.getTitle());
             price.setText("" + expenseModel.getAmount());
+
+            switch (expenseModel.getType()) {
+                case "COURIER":
+                    type.setSelection(0);
+                    break;
+                case "TEA_FOOD_EXPENSE":
+                    type.setSelection(1);
+                    break;
+                case "STATIONARY":
+                    type.setSelection(2);
+                    break;
+                case "DONATION":
+                    type.setSelection(3);
+                    break;
+                case "STAFF_SALARY":
+                    type.setSelection(4);
+                    break;
+                case "OTHER":
+                    type.setSelection(5);
+                    break;
+            }
 
             delete.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -264,9 +414,15 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
         submitDialog.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (StringUtils.isEmpty(price.getText().toString())) {
+                    Toast.makeText(ExpenseTrackerActivity.this, "Please enter Price amount ..!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 if (expenseModel != null) {
                     expenseModel.setTitle(title.getText().toString());
                     expenseModel.setAmount(Double.valueOf(price.getText().toString()));
+                    expenseModel.setType(type.getSelectedItem().toString());
                     db.collection(DatabaseConstants.EXPENSE_COLLECTION)
                             .document(expenseModel.getId())
                             .set(expenseModel)
@@ -292,6 +448,7 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
                     newExpenseModel.setExpenseDate(finalCurrentTime.toEpochSecond());
                     newExpenseModel.setTitle(title.getText().toString());
                     newExpenseModel.setAmount(Double.valueOf(price.getText().toString()));
+                    newExpenseModel.setType(type.getSelectedItem().toString());
                     newExpenseModel.setId(SingleTon.generateExpenseDetailDocument());
                     db.collection(DatabaseConstants.EXPENSE_COLLECTION)
                             .document(newExpenseModel.getId())
@@ -340,6 +497,25 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
                 expenseViewAdapter.notifyDataSetChanged();
             }
         }, customStartDt.toEpochSecond(), customEndDt.toEpochSecond());
+    }
+
+    private void processExpenseFilter(OffsetDateTime customStartDt, OffsetDateTime customEndDt,String expenseType) {
+        dbObj.getExpenseDetail(new FirestoreCallback<List<ExpenseModel>>() {
+            @Override
+            public void onCallback(List<ExpenseModel> result) {
+                if (result.isEmpty()) {
+                    Toast.makeText(ExpenseTrackerActivity.this, "No Expense Data found .!", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                itemList.clear();
+                itemList.addAll(result);
+                Toast.makeText(ExpenseTrackerActivity.this, "Expense Data Loaded .!", Toast.LENGTH_LONG).show();
+
+                data_fl.setVisibility(View.VISIBLE);
+                no_data_fl.setVisibility(View.GONE);
+                expenseViewAdapter.notifyDataSetChanged();
+            }
+        }, customStartDt.toEpochSecond(), customEndDt.toEpochSecond(),expenseType);
     }
 
     private boolean checkInternet() {

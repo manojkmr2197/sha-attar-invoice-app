@@ -88,6 +88,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
     FirebaseFirestore db;
 
     boolean owner;
+    SharedPrefHelper sharedPrefHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +107,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         activity = InvoiceHistoryActivity.this;
         dbObj = new DBUtil();
         db  = DBUtil.getInstance();
+        sharedPrefHelper = new SharedPrefHelper(context);
         back = (TextView) findViewById(R.id.invoice_history_back);
         back.setOnClickListener(this);
 
@@ -214,26 +216,50 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
 
 
     private void getInvoiceRecords(long startOfDay, long endOfDay) {
-        dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
-            @Override
-            public void onCallback(List<BillingInvoiceModel> result) {
+        if(!owner){
+            dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
+                @Override
+                public void onCallback(List<BillingInvoiceModel> result) {
 
-                if (result.isEmpty()) {
-                    Toast.makeText(InvoiceHistoryActivity.this, "No Invoice Data found .!", Toast.LENGTH_LONG).show();
-                    no_data_ll.setVisibility(View.VISIBLE);
-                    data_ll.setVisibility(View.GONE);
-                    return;
+                    if (result.isEmpty()) {
+                        Toast.makeText(InvoiceHistoryActivity.this, "No Invoice Data found .!", Toast.LENGTH_LONG).show();
+                        no_data_ll.setVisibility(View.VISIBLE);
+                        data_ll.setVisibility(View.GONE);
+                        return;
+                    }
+                    contentList.clear();
+                    contentList.addAll(result);
+                    data_ll.setVisibility(View.VISIBLE);
+                    no_data_ll.setVisibility(View.GONE);
+                    Toast.makeText(InvoiceHistoryActivity.this, "Invoice Data Loaded .!", Toast.LENGTH_LONG).show();
+
+                    adapter.notifyDataSetChanged();
+
                 }
-                contentList.clear();
-                contentList.addAll(result);
-                data_ll.setVisibility(View.VISIBLE);
-                no_data_ll.setVisibility(View.GONE);
-                Toast.makeText(InvoiceHistoryActivity.this, "Invoice Data Loaded .!", Toast.LENGTH_LONG).show();
+            }, startOfDay, endOfDay,sharedPrefHelper.getLoginUserPhone());
+        }else{
+            dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
+                @Override
+                public void onCallback(List<BillingInvoiceModel> result) {
 
-                adapter.notifyDataSetChanged();
+                    if (result.isEmpty()) {
+                        Toast.makeText(InvoiceHistoryActivity.this, "No Invoice Data found .!", Toast.LENGTH_LONG).show();
+                        no_data_ll.setVisibility(View.VISIBLE);
+                        data_ll.setVisibility(View.GONE);
+                        return;
+                    }
+                    contentList.clear();
+                    contentList.addAll(result);
+                    data_ll.setVisibility(View.VISIBLE);
+                    no_data_ll.setVisibility(View.GONE);
+                    Toast.makeText(InvoiceHistoryActivity.this, "Invoice Data Loaded .!", Toast.LENGTH_LONG).show();
 
-            }
-        }, startOfDay, endOfDay);
+                    adapter.notifyDataSetChanged();
+
+                }
+            }, startOfDay, endOfDay);
+        }
+
     }
 
     @Override

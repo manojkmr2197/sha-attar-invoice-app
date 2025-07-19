@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Sha\'s Attar - Invoice</string>
+    <string name="app_name">Sha\'s Perfume - Invoice</string>
     <string name="action_settings">Settings</string>
     <!-- Strings used for fragments for navigation -->
     <string name="next">Next</string>
@@ -37,5 +37,31 @@
     <string name="ML_30">30ML</string>
     <string name="ML_50">50ML</string>
     <string name="ML_100">100ML</string>
+
+    <string-array name="spinner_expense_filter_type">
+        <item>ALL</item>
+        <item>STAFF_SALARY</item>
+        <item>COURIER</item>
+        <item>TEA_FOOD_EXPENSE</item>
+        <item>STATIONARY</item>
+        <item>DONATION</item>
+        <item>STORE_RENT</item>
+        <item>ELECTRICITY</item>
+        <item>OTHER</item>
+    </string-array>
+
+    <string-array name="spinner_expense_type">
+        <item>COURIER</item>
+        <item>TEA_FOOD_EXPENSE</item>
+        <item>STATIONARY</item>
+        <item>DONATION</item>
+        <item>STAFF_SALARY</item>
+        <item>OTHER</item>
+    </string-array>
+
+    <string-array name="spinner_special_expense_type">
+        <item>STORE_RENT</item>
+        <item>ELECTRICITY</item>
+    </string-array>
 
 </resources>
