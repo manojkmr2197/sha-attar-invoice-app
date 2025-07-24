@@ -437,7 +437,7 @@
                 android:layout_weight="1"
                 android:textColor="@color/black"
                 android:gravity="center|end"
-                android:text="Profit / Person:  "/>
+                android:text="Total Expense :  "/>
 
             <TextView
                 android:layout_width="0dp"
@@ -445,7 +445,7 @@
                 android:layout_weight="0.5"
                 android:gravity="start|center"
                 android:padding="5sp"
-                android:id="@+id/consolidate_profit_per_person"
+                android:id="@+id/consolidate_total_expense"
                 android:text="0.0"
                 android:textColor="@color/app_color"
                 android:textSize="15sp" />
@@ -469,7 +469,7 @@
                 android:textColor="@color/black"
                 android:gravity="center|end"
                 android:textStyle="bold"
-                android:text="Total Amount from IK :  "/>
+                android:text="Net Profit :  "/>
 
             <TextView
                 android:layout_width="0dp"
@@ -477,7 +477,7 @@
                 android:layout_weight="0.5"
                 android:gravity="start|center"
                 android:padding="5sp"
-                android:id="@+id/consolidate_amount_from_ik"
+                android:id="@+id/consolidate_net_profit"
                 android:text="0.0"
                 android:textStyle="bold"
                 android:textColor="@color/app_color"

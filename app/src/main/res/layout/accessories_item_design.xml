@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="3dp"
+    android:layout_margin="5dp"
     android:orientation="vertical">
 
 
@@ -29,7 +29,20 @@
                     android:text="ACCESSORIES NAME"
                     android:textAllCaps="true"
                     android:textColor="@color/app_color"
-                    android:textSize="15sp" />
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/accessories_item_actual_price"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/app_color"
+                    android:padding="5dp"
+                    android:layout_marginStart="5sp"
+                    android:text="Rs. 20"
+                    android:textAllCaps="true"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
 
                 <View
                     android:layout_width="0dp"
@@ -37,7 +50,7 @@
                     android:layout_weight="1" />
 
                 <TextView
-                    android:id="@+id/accessories_item_price"
+                    android:id="@+id/accessories_item_selling_price"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@color/app_color"
@@ -45,7 +58,7 @@
                     android:text="Rs. 20"
                     android:textAllCaps="true"
                     android:textColor="@color/white"
-                    android:textSize="15sp"
+                    android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -62,7 +75,7 @@
                     android:text="Dealer Name"
                     android:textAllCaps="true"
                     android:textColor="@color/app_color"
-                    android:textSize="13sp" />
+                    android:textSize="11sp" />
 
                 <View
                     android:layout_width="0dp"
@@ -72,6 +85,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textSize="11sp"
                     android:text="Owned By : " />
 
                 <TextView
@@ -79,6 +93,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="MSA"
+                    android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
 

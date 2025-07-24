@@ -343,7 +343,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_consolidate_report) {
             i = new Intent(MainActivity.this, ConsolidateReportActivity.class);
             startActivity(i);
-        }else if (item.getItemId() == R.id.nav_sales_person_report) {
+        } else if (item.getItemId() == R.id.nav_sales_person_history) {
+            i = new Intent(MainActivity.this, CustomerHistoryActivity.class);
+            startActivity(i);
+        } else if (item.getItemId() == R.id.nav_sales_person_report) {
             i = new Intent(MainActivity.this, SalesPersonReportActivity.class);
             startActivity(i);
         } else if (item.getItemId() == R.id.nav_asset_business_calc) {
@@ -595,7 +598,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
         AutoCompleteTextView non_product_name = (AutoCompleteTextView) dialog.findViewById(R.id.new_bill_non_product_name);
-        TextInputEditText non_product_price = (TextInputEditText) dialog.findViewById(R.id.new_bill_non_product_selling_price);
+        TextView non_product_price = (TextView) dialog.findViewById(R.id.new_bill_non_product_selling_price);
 
         List<String> accessories_items = accessoriesModelList.stream()
                 .map(AccessoriesModel::getName)
@@ -634,6 +637,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 if (resultModel.isPresent()) {
                     AccessoriesModel selectNonProductModel = resultModel.get();
                     non_product_name.setText(selectNonProductModel.getName());
+                    non_product_price.setText(String.valueOf(selectNonProductModel.getSellingPrice()));
                     selectedNonProduct[0] = selectNonProductModel;
 
                 }
@@ -801,7 +805,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedNonProduct[0].getName());
-                        billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                        billingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice());
                         billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
 
@@ -857,7 +861,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                             newBillingItemModel.setType(type[0]);
                             newBillingItemModel.setName(selectedNonProduct[0].getName());
-                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice());
                             newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         }
                         billingItemModelList.add(newBillingItemModel);

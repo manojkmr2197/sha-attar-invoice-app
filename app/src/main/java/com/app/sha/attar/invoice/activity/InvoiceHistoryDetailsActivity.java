@@ -500,7 +500,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
 
 
         AutoCompleteTextView non_product_name = (AutoCompleteTextView) dialog.findViewById(R.id.new_bill_non_product_name);
-        TextInputEditText non_product_price = (TextInputEditText) dialog.findViewById(R.id.new_bill_non_product_selling_price);
+        TextView non_product_price = (TextView) dialog.findViewById(R.id.new_bill_non_product_selling_price);
 
         List<String> accessories_items = accessoriesModelList.stream()
                 .map(AccessoriesModel::getName)
@@ -539,6 +539,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 if (resultModel.isPresent()) {
                     AccessoriesModel selectNonProductModel = resultModel.get();
                     non_product_name.setText(selectNonProductModel.getName());
+                    non_product_price.setText(String.valueOf(selectNonProductModel.getSellingPrice()));
                     selectedNonProduct[0] = selectNonProductModel;
 
                 }
@@ -706,7 +707,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                         }
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedNonProduct[0].getName());
-                        billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                        billingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice());
                         billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
 
@@ -762,7 +763,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                             newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                             newBillingItemModel.setType(type[0]);
                             newBillingItemModel.setName(selectedNonProduct[0].getName());
-                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice());
                             newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         }
                         itemModelList.add(newBillingItemModel);
@@ -822,7 +823,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
 
 
         AutoCompleteTextView non_product_name = (AutoCompleteTextView) dialog.findViewById(R.id.new_bill_non_product_name);
-        TextInputEditText non_product_price = (TextInputEditText) dialog.findViewById(R.id.new_bill_non_product_selling_price);
+        TextView non_product_price = (TextView) dialog.findViewById(R.id.new_bill_non_product_selling_price);
 
         List<String> accessories_items = accessoriesModelList.stream()
                 .map(AccessoriesModel::getName)
@@ -994,7 +995,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                         }
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedNonProduct[0].getName());
-                        billingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                        billingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                         billingItemModel.setProductModel(null);
@@ -1042,7 +1043,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                             newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                             newBillingItemModel.setType(type[0]);
                             newBillingItemModel.setName(selectedNonProduct[0].getName());
-                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                             newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         }
                         itemModelList.add(newBillingItemModel);

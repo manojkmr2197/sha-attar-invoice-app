@@ -42,9 +42,8 @@ public class AccessoriesViewAdapter  extends RecyclerView.Adapter<AccessoriesVie
         holder.name.setText(contentList.get(index).getName());
         holder.dealer.setText(contentList.get(index).getDealer());
         holder.owner.setText(contentList.get(index).getOwner());
-        holder.price.setText("Rs. "+String.valueOf(contentList.get(index).getPrice()));
-
-
+        holder.sellingPrice.setText("Rs. "+String.valueOf(contentList.get(index).getSellingPrice()));
+        holder.actualPrice.setText("Rs. "+String.valueOf(contentList.get(index).getActualPrice()));
 
         holder.edit.setOnClickListener(new View.OnClickListener() {
             @Override

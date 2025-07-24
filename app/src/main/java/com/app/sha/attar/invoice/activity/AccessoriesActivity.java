@@ -394,7 +394,8 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         dialog.setCanceledOnTouchOutside(false);
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         TextInputEditText name = (TextInputEditText) dialog.findViewById(R.id.accessories_add_name);
-        TextInputEditText price = (TextInputEditText) dialog.findViewById(R.id.accessories_add_price);
+        TextInputEditText selling_price = (TextInputEditText) dialog.findViewById(R.id.accessories_add_selling_price);
+        TextInputEditText actual_price = (TextInputEditText) dialog.findViewById(R.id.accessories_add_actual_price);
         TextInputEditText dealer = (TextInputEditText) dialog.findViewById(R.id.accessories_dealer_name);
         Spinner owner = (Spinner) dialog.findViewById(R.id.accessories_add_owner);
 
@@ -410,7 +411,8 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         TextView delete = (TextView) dialog.findViewById(R.id.accessories_add_delete);
         if (accessoriesModel != null) {
             name.setText(accessoriesModel.getName());
-            price.setText(String.valueOf(accessoriesModel.getPrice()));
+            selling_price.setText(String.valueOf(accessoriesModel.getSellingPrice()));
+            actual_price.setText(String.valueOf(accessoriesModel.getActualPrice()));
             dealer.setText(accessoriesModel.getDealer());
             if ("MTS".equalsIgnoreCase(accessoriesModel.getOwner())) {
                 owner.setSelection(0);
@@ -463,14 +465,19 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                     return;
                 }
 
-                if (StringUtils.isEmpty(price.getText().toString())) {
-                    Toast.makeText(AccessoriesActivity.this, "Please enter Product Price ..!", Toast.LENGTH_SHORT).show();
+                if (StringUtils.isEmpty(actual_price.getText().toString())) {
+                    Toast.makeText(AccessoriesActivity.this, "Please enter Actual Product Price ..!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (StringUtils.isEmpty(selling_price.getText().toString())) {
+                    Toast.makeText(AccessoriesActivity.this, "Please enter Selling Product Price ..!", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 Toast.makeText(context, "Loading .! ", Toast.LENGTH_LONG).show();
                 if (accessoriesModel != null) {
                     accessoriesModel.setName(name.getText().toString());
-                    accessoriesModel.setPrice(Double.valueOf(price.getText().toString()));
+                    accessoriesModel.setSellingPrice(Double.valueOf(selling_price.getText().toString()));
+                    accessoriesModel.setActualPrice(Double.valueOf(actual_price.getText().toString()));
                     accessoriesModel.setOwner(owner.getSelectedItem().toString());
                     accessoriesModel.setDealer(dealer.getText().toString());
 
@@ -503,7 +510,8 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
 
                     AccessoriesModel accessoriesModel = new AccessoriesModel();
                     accessoriesModel.setName(name.getText().toString());
-                    accessoriesModel.setPrice(Double.valueOf(price.getText().toString()));
+                    accessoriesModel.setSellingPrice(Double.valueOf(selling_price.getText().toString()));
+                    accessoriesModel.setActualPrice(Double.valueOf(actual_price.getText().toString()));
                     accessoriesModel.setId(getLatestProductID());
                     accessoriesModel.setDocumentId(SingleTon.generateAccessoriesDocument());
                     accessoriesModel.setOwner(owner.getSelectedItem().toString());

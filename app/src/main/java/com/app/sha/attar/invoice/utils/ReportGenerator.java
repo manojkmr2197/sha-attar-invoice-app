@@ -565,7 +565,7 @@ public class ReportGenerator {
         Row headerRow = sheet.createRow(0);
         int cellIndex = 0;
 
-        String[] headers = {"Name", "Price", "Owner", "Dealer"};
+        String[] headers = {"Name", "Selling Price", "Owner", "Dealer"," Actual Price",};
 
         for (String key : headers) {
             Cell cell = headerRow.createCell(cellIndex++);
@@ -581,7 +581,7 @@ public class ReportGenerator {
             cell0.setCellValue(entry.getName());
             cell0.setCellStyle(wrapStyle);
             Cell cell1 = row.createCell(1);
-            cell1.setCellValue("Rs. " + entry.getPrice());
+            cell1.setCellValue("Rs. " + entry.getSellingPrice());
             cell1.setCellStyle(wrapStyle);
             Cell cell2 = row.createCell(2);
             cell2.setCellValue(entry.getOwner());
@@ -589,7 +589,9 @@ public class ReportGenerator {
             Cell cell3 = row.createCell(3);
             cell3.setCellValue(SingleTon.getDealerName(entry.getDealer()));
             cell3.setCellStyle(wrapStyle);
-
+            Cell cell4 = row.createCell(4);
+            cell4.setCellValue("Rs. " + entry.getActualPrice());
+            cell4.setCellStyle(wrapStyle);
         }
 
     }

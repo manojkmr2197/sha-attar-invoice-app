@@ -22,6 +22,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
+import com.app.sha.attar.invoice.model.ExpenseModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.ReportGenerator;
@@ -58,9 +59,9 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
 
     List<BillingInvoiceModel> billingInvoiceModelList = new ArrayList<>();
 
-    TextView productActual, accessoriesActual,productSold, accessoriesSold, productProfit, accessoriesProfit, totalActual,totalSold, totalProfit, profitPerPerson, amountFromIk;
+    TextView productActual, accessoriesActual,productSold, accessoriesSold, productProfit, accessoriesProfit, totalActual,totalSold, totalProfit, totalExpense, netProfit;
 
-    double productActualValue,accessoriesActualValue,productSoldValue, accessoriesSoldValue, productProfitValue, accessoriesProfitValue, totalActualValue,totalSoldValue, totalProfitValue;
+    double productActualValue,accessoriesActualValue,productSoldValue, accessoriesSoldValue, productProfitValue, accessoriesProfitValue, totalActualValue,totalSoldValue, totalProfitValue,totalExpenseValue,netProfitValue;
 
     NumberFormat numberFormat = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
 
@@ -105,8 +106,8 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
         totalActual = (TextView) findViewById(R.id.consolidate_total_actual_amount);
         totalProfit = (TextView) findViewById(R.id.consolidate_total_profit);
         totalSold = (TextView) findViewById(R.id.consolidate_total_sold_amount);
-        profitPerPerson = (TextView) findViewById(R.id.consolidate_profit_per_person);
-        amountFromIk = (TextView) findViewById(R.id.consolidate_amount_from_ik);
+        totalExpense = (TextView) findViewById(R.id.consolidate_total_expense);
+        netProfit = (TextView) findViewById(R.id.consolidate_net_profit);
 
     }
 
@@ -128,8 +129,27 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
                 return;
             }
             if (checkInternet())
+                getTotalExpense(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
                 getInvoiceRecords(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
         }
+    }
+
+    private void getTotalExpense(long startOfDayValue, long endOfDayValue) {
+        totalExpenseValue =0;
+        dbObj.getExpenseDetail(new FirestoreCallback<List<ExpenseModel>>() {
+            @Override
+            public void onCallback(List<ExpenseModel> result) {
+                if (result.isEmpty()) {
+                    Toast.makeText(ConsolidateReportActivity.this, "No Expense found .!", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                result.forEach(data ->{
+                    totalExpenseValue = totalExpenseValue + data.getAmount();
+                });
+                totalExpense.setText(numberFormat.format(totalExpenseValue).replace("\u00A0", ""));
+            }
+        }, startOfDayValue, endOfDayValue);
+
     }
 
     private void getInvoiceRecords(long startOfDayValue, long endOfDayValue) {
@@ -182,8 +202,7 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
                 totalActual.setText(numberFormat.format(totalActualValue).replace("\u00A0", ""));
                 totalSold.setText(numberFormat.format(totalSoldValue).replace("\u00A0", ""));
                 totalProfit.setText(numberFormat.format(totalProfitValue).replace("\u00A0", ""));
-                profitPerPerson.setText(numberFormat.format(totalProfitValue/2).replace("\u00A0", ""));
-                amountFromIk.setText(numberFormat.format(totalActualValue+(totalProfitValue/2)).replace("\u00A0", ""));
+                netProfit.setText(numberFormat.format(totalProfitValue-totalExpenseValue).replace("\u00A0", ""));
 
                 Toast.makeText(ConsolidateReportActivity.this, "Invoice Data Loaded .!", Toast.LENGTH_SHORT).show();
             }

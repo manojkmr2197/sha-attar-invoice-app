@@ -4,7 +4,8 @@ public class AccessoriesModel {
 
     private Integer id;
     private String name;
-    private Double price;
+    private Double sellingPrice;
+    private Double actualPrice;
     private String documentId;
     private String owner;
     private String dealer;
@@ -12,11 +13,11 @@ public class AccessoriesModel {
     public AccessoriesModel() {
     }
 
-    public AccessoriesModel(Integer id, String name, Double price, String documentId) {
+    public AccessoriesModel(Integer id, String name, Double sellingPrice,Double actualPrice, String documentId) {
         this.id = id;
         this.name = name;
-
-        this.price = price;
+        this.sellingPrice = sellingPrice;
+        this.actualPrice = actualPrice;
         this.documentId =documentId;
     }
 
@@ -36,12 +37,20 @@ public class AccessoriesModel {
         this.name = name;
     }
 
-    public Double getPrice() {
-        return price;
+    public Double getSellingPrice() {
+        return sellingPrice;
     }
 
-    public void setPrice(Double price) {
-        this.price = price;
+    public void setSellingPrice(Double sellingPrice) {
+        this.sellingPrice = sellingPrice;
+    }
+
+    public Double getActualPrice() {
+        return actualPrice;
+    }
+
+    public void setActualPrice(Double actualPrice) {
+        this.actualPrice = actualPrice;
     }
 
     public String getDocumentId() {

@@ -27,6 +27,11 @@
                 android:title="Sales Person Details" />
 
             <item
+                android:id="@+id/nav_sales_person_history"
+                android:icon="@drawable/baseline_work_history_24"
+                android:title="Sales Person History" />
+
+            <item
                 android:id="@+id/nav_sales_person_report"
                 android:icon="@drawable/baseline_supervisor_account_24"
                 android:title="Sales Person Report" />
