@@ -56,6 +56,8 @@ public class ExpenseViewAdapter extends RecyclerView.Adapter<ExpenseViewHolder>{
             holder.date.setText(offsetDateTime.format(formatter));
         }
         holder.title.setText(contentList.get(index).getTitle());
+        holder.type.setText(contentList.get(index).getType());
+
         holder.amount.setText(numberFormat.format(contentList.get(index).getAmount()).replace("\u00A0", ""));
 
         List<String> specialList = Arrays.asList(context.getResources().getStringArray(R.array.spinner_special_expense_type));

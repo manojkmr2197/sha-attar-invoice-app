@@ -45,6 +45,7 @@
                     android:textAllCaps="true"
                     android:textColor="@color/white"
                     android:textSize="11sp"
+                    android:visibility="gone"
                     android:textStyle="bold" />
 
                 <View
@@ -58,6 +59,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="10sp"
                     android:text="5 ML"
+                    android:textSize="9sp"
                     android:textColor="@color/app_color"
                     android:textStyle="bold" />
 
@@ -77,6 +79,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.3"
                 android:text="Rs. 50"
+                android:textSize="9sp"
                 android:textColor="@color/app_color"
                 android:textStyle="bold" />
 
@@ -127,6 +130,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.3"
                 android:text="Rs. 4000"
+                android:textSize="9sp"
                 android:textColor="@color/app_color"
                 android:textStyle="bold" />
 

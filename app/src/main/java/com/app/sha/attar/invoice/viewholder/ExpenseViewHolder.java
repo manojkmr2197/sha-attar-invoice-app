@@ -12,7 +12,7 @@ import com.app.sha.attar.invoice.R;
 public class ExpenseViewHolder extends RecyclerView.ViewHolder {
 
     public Button delete, edit;
-    public TextView date,title,amount;
+    public TextView date,title,amount,type;
 
     public ExpenseViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -22,6 +22,7 @@ public class ExpenseViewHolder extends RecyclerView.ViewHolder {
 
         date = (TextView) itemView.findViewById(R.id.expense_item_date);
         title = (TextView) itemView.findViewById(R.id.expense_item_title);
+        type = (TextView) itemView.findViewById(R.id.expense_item_type);
         amount = (TextView) itemView.findViewById(R.id.expense_item_amount);
     }
 }

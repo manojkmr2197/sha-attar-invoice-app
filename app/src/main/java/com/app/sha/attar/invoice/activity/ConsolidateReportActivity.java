@@ -8,8 +8,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,6 +25,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.ExpenseModel;
+import com.app.sha.attar.invoice.model.SalesPersonModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.ReportGenerator;
@@ -43,6 +46,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ConsolidateReportActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -53,21 +57,28 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
     OffsetDateTime startOfDay;
     OffsetDateTime endOfDay;
 
-    TextView back,reportDate;
+    TextView back, reportDate;
     TextView start_tv, end_tv;
     Button submit_bt;
 
+    Spinner salePersonSpinner;
+
     List<BillingInvoiceModel> billingInvoiceModelList = new ArrayList<>();
 
-    TextView productActual, accessoriesActual,productSold, accessoriesSold, productProfit, accessoriesProfit, totalActual,totalSold, totalProfit, totalExpense, netProfit;
+    TextView productAttarActual, productSprayActual, accessoriesActual, productAttarSold, productSpraySold, accessoriesSold, productAttarProfit, productSprayProfit, accessoriesProfit, totalActual, totalSold, totalProfit, totalExpense, netProfit,totalPay,payCash,payUpi;
 
-    double productActualValue,accessoriesActualValue,productSoldValue, accessoriesSoldValue, productProfitValue, accessoriesProfitValue, totalActualValue,totalSoldValue, totalProfitValue,totalExpenseValue,netProfitValue;
+    double productAttarActualValue, productSprayActualValue, accessoriesActualValue, productAttarSoldValue, productSpraySoldValue, accessoriesSoldValue, productAttarProfitValue, productSprayProfitValue, accessoriesProfitValue, totalActualValue, totalSoldValue, totalProfitValue, totalExpenseValue,totalPaymentValue,totalCash,totalUpi;
 
     NumberFormat numberFormat = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
 
     DecimalFormat df = new DecimalFormat("#.00");
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm a");
     ZoneOffset istOffset = ZoneOffset.ofHoursMinutes(5, 30);
+
+    List<SalesPersonModel> salesPersonModelList;
+    List<String> salesPersonSpinnerList;
+
+    ArrayAdapter<String> salesAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,13 +106,32 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
         submit_bt = (Button) findViewById(R.id.consolidate_search);
         submit_bt.setOnClickListener(this);
 
+        salePersonSpinner = (Spinner) findViewById(R.id.consolidate_report_sales_spinner);
+        salesPersonModelList = new ArrayList<>();
+        salesPersonSpinnerList = new ArrayList<>();
+        salesPersonSpinnerList.add("ALL");
+        salesAdapter = new ArrayAdapter<>(
+                context,
+                android.R.layout.simple_spinner_item,
+                salesPersonSpinnerList
+        );
+
+        salesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        salePersonSpinner.setAdapter(salesAdapter);
+
+        loadSalesPersonInformation();
+
         reportDate = (TextView) findViewById(R.id.consolidate_report_date);
 
-        productActual = (TextView) findViewById(R.id.consolidate_product_actual);
+        productAttarActual = (TextView) findViewById(R.id.consolidate_product_attar_actual);
+        productSprayActual = (TextView) findViewById(R.id.consolidate_product_spray_actual);
         accessoriesActual = (TextView) findViewById(R.id.consolidate_accessories_actual);
-        productProfit = (TextView) findViewById(R.id.consolidate_product_profit);
+        productAttarProfit = (TextView) findViewById(R.id.consolidate_product_attar_profit);
+        productSprayProfit = (TextView) findViewById(R.id.consolidate_product_spray_profit);
         accessoriesProfit = (TextView) findViewById(R.id.consolidate_accessories_profit);
-        productSold = (TextView) findViewById(R.id.consolidate_product_sold);
+        productAttarSold = (TextView) findViewById(R.id.consolidate_product_attar_sold);
+        productSpraySold = (TextView) findViewById(R.id.consolidate_product_spray_sold);
         accessoriesSold = (TextView) findViewById(R.id.consolidate_accessories_sold);
         totalActual = (TextView) findViewById(R.id.consolidate_total_actual_amount);
         totalProfit = (TextView) findViewById(R.id.consolidate_total_profit);
@@ -109,6 +139,24 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
         totalExpense = (TextView) findViewById(R.id.consolidate_total_expense);
         netProfit = (TextView) findViewById(R.id.consolidate_net_profit);
 
+        totalPay = (TextView) findViewById(R.id.consolidate_payment_total);
+        payCash = (TextView) findViewById(R.id.consolidate_payment_cash);
+        payUpi = (TextView) findViewById(R.id.consolidate_payment_upi);
+
+    }
+
+    private void loadSalesPersonInformation() {
+        salesPersonModelList.clear();
+        dbObj.getSalePersonDetails(new FirestoreCallback<List<SalesPersonModel>>() {
+            @Override
+            public void onCallback(List<SalesPersonModel> result) {
+                salesPersonModelList.addAll(result);
+                salesPersonSpinnerList.addAll(result.stream()
+                        .map(SalesPersonModel::getName)
+                        .collect(Collectors.toList()));
+            }
+        });
+        salesAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -128,22 +176,27 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
                 Toast.makeText(context, "Select End date ..!", Toast.LENGTH_LONG).show();
                 return;
             }
-            if (checkInternet())
+            if (checkInternet()) {
                 getTotalExpense(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
-                getInvoiceRecords(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
+                if ("ALL".equalsIgnoreCase(salePersonSpinner.getSelectedItem().toString())) {
+                    getInvoiceRecords(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
+                } else {
+                    getInvoiceRecords(startOfDay.toEpochSecond(), endOfDay.toEpochSecond(), salePersonSpinner.getSelectedItem().toString());
+                }
+            }
         }
     }
 
     private void getTotalExpense(long startOfDayValue, long endOfDayValue) {
-        totalExpenseValue =0;
+        totalExpenseValue = 0;
         dbObj.getExpenseDetail(new FirestoreCallback<List<ExpenseModel>>() {
             @Override
             public void onCallback(List<ExpenseModel> result) {
                 if (result.isEmpty()) {
-                    Toast.makeText(ConsolidateReportActivity.this, "No Expense found .!", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(ConsolidateReportActivity.this, "No Expense found .!", Toast.LENGTH_LONG).show();
                     return;
                 }
-                result.forEach(data ->{
+                result.forEach(data -> {
                     totalExpenseValue = totalExpenseValue + data.getAmount();
                 });
                 totalExpense.setText(numberFormat.format(totalExpenseValue).replace("\u00A0", ""));
@@ -152,7 +205,14 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
 
     }
 
-    private void getInvoiceRecords(long startOfDayValue, long endOfDayValue) {
+    private void getInvoiceRecords(long startOfDayValue, long endOfDayValue, String salesPerson) {
+
+        String selectedPhone = salesPersonModelList.stream()
+                .filter(person -> person.getName().equals(salesPerson))
+                .map(SalesPersonModel::getPhoneNo)
+                .findFirst()
+                .orElse(null);
+
         dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
             @Override
             public void onCallback(List<BillingInvoiceModel> result) {
@@ -164,49 +224,98 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
                 billingInvoiceModelList.clear();
                 billingInvoiceModelList.addAll(result);
 
+                updateUIData(billingInvoiceModelList);
 
-                reportDate.setText("Report generated on "+startOfDay.format(formatter)+" - "+endOfDay.format(formatter));
+            }
+        }, startOfDayValue, endOfDayValue, selectedPhone);
+    }
 
-                Map<String, ReportGenerator.AggregatedData> productData = ReportGenerator.getAggregatedSalesReportData(billingInvoiceModelList);
-                Map<String, ReportGenerator.AccessoryAggregatedData> accessoryData = ReportGenerator.getAggregatedAccessoriesReportData(billingInvoiceModelList);
+    private void getInvoiceRecords(long startOfDayValue, long endOfDayValue) {
+        dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
+            @Override
+            public void onCallback(List<BillingInvoiceModel> result) {
 
-                productActualValue =0;
-                productSoldValue =0;
-                productProfitValue =0;
-                accessoriesActualValue =0;
-                accessoriesSoldValue =0;
-                accessoriesProfitValue =0;
+                billingInvoiceModelList.clear();
+                billingInvoiceModelList.addAll(result);
 
-                productData.forEach((key,value)->{
-                    productActualValue +=value.actualPrice;
-                    productSoldValue +=value.soldPrice;
-                    productProfitValue +=value.profit;
-                });
-                accessoryData.forEach((key,value)->{
-                    accessoriesActualValue +=value.actualPrice;
-                    accessoriesSoldValue +=value.soldPrice;
-                    accessoriesProfitValue +=value.profit;
-                });
+                updateUIData(billingInvoiceModelList);
 
-                productActual.setText(numberFormat.format(productActualValue).replace("\u00A0", ""));
-                productSold.setText(numberFormat.format(productSoldValue).replace("\u00A0", ""));
-                productProfit.setText(numberFormat.format(productProfitValue).replace("\u00A0", ""));
-                accessoriesActual.setText(numberFormat.format(accessoriesActualValue).replace("\u00A0", ""));
-                accessoriesSold.setText(numberFormat.format(accessoriesSoldValue).replace("\u00A0", ""));
-                accessoriesProfit.setText(numberFormat.format(accessoriesProfitValue).replace("\u00A0", ""));
-
-                totalActualValue = productActualValue+accessoriesActualValue;
-                totalSoldValue = productSoldValue+accessoriesSoldValue;
-                totalProfitValue = productProfitValue+accessoriesProfitValue;
-
-                totalActual.setText(numberFormat.format(totalActualValue).replace("\u00A0", ""));
-                totalSold.setText(numberFormat.format(totalSoldValue).replace("\u00A0", ""));
-                totalProfit.setText(numberFormat.format(totalProfitValue).replace("\u00A0", ""));
-                netProfit.setText(numberFormat.format(totalProfitValue-totalExpenseValue).replace("\u00A0", ""));
-
-                Toast.makeText(ConsolidateReportActivity.this, "Invoice Data Loaded .!", Toast.LENGTH_SHORT).show();
             }
         }, startOfDayValue, endOfDayValue);
+    }
+
+
+    private void updateUIData(List<BillingInvoiceModel> billingInvoiceModelList) {
+        reportDate.setText("Report generated on " + startOfDay.format(formatter) + " - " + endOfDay.format(formatter));
+
+        Map<String, ReportGenerator.AggregatedData> productAttarData = ReportGenerator.getAggregatedAttarSalesReportData(billingInvoiceModelList);
+        Map<String, ReportGenerator.AggregatedData> productSprayData = ReportGenerator.getAggregatedSpraySalesReportData(billingInvoiceModelList);
+        Map<String, ReportGenerator.AccessoryAggregatedData> accessoryData = ReportGenerator.getAggregatedAccessoriesReportData(billingInvoiceModelList);
+
+        productAttarActualValue = 0;
+        productAttarSoldValue = 0;
+        productAttarProfitValue = 0;
+        productSprayActualValue = 0;
+        productSpraySoldValue = 0;
+        productSprayProfitValue = 0;
+        accessoriesActualValue = 0;
+        accessoriesSoldValue = 0;
+        accessoriesProfitValue = 0;
+
+        totalPaymentValue = 0;
+        totalCash =0;
+        totalUpi = 0;
+
+        productAttarData.forEach((key, value) -> {
+            productAttarActualValue += value.actualPrice;
+            productAttarSoldValue += value.soldPrice;
+            productAttarProfitValue += value.profit;
+        });
+        productSprayData.forEach((key, value) -> {
+            productSprayActualValue += value.actualPrice;
+            productSpraySoldValue += value.soldPrice;
+            productSprayProfitValue += value.profit;
+        });
+        accessoryData.forEach((key, value) -> {
+            accessoriesActualValue += value.actualPrice;
+            accessoriesSoldValue += value.soldPrice;
+            accessoriesProfitValue += value.profit;
+        });
+
+        billingInvoiceModelList.stream().forEach(data ->{
+            if("CASH".equalsIgnoreCase(data.getPaymentMode())){
+                totalCash = totalCash+data.getSellingCost();
+            }
+            if("UPI".equalsIgnoreCase(data.getPaymentMode())){
+                totalUpi = totalUpi+data.getSellingCost();
+            }
+        });
+
+        productAttarActual.setText(numberFormat.format(productAttarActualValue).replace("\u00A0", ""));
+        productAttarSold.setText(numberFormat.format(productAttarSoldValue).replace("\u00A0", ""));
+        productAttarProfit.setText(numberFormat.format(productAttarProfitValue).replace("\u00A0", ""));
+        productSprayActual.setText(numberFormat.format(productSprayActualValue).replace("\u00A0", ""));
+        productSpraySold.setText(numberFormat.format(productSpraySoldValue).replace("\u00A0", ""));
+        productSprayProfit.setText(numberFormat.format(productSprayProfitValue).replace("\u00A0", ""));
+        accessoriesActual.setText(numberFormat.format(accessoriesActualValue).replace("\u00A0", ""));
+        accessoriesSold.setText(numberFormat.format(accessoriesSoldValue).replace("\u00A0", ""));
+        accessoriesProfit.setText(numberFormat.format(accessoriesProfitValue).replace("\u00A0", ""));
+
+        totalActualValue = productAttarActualValue + productSprayActualValue + accessoriesActualValue;
+        totalSoldValue = productAttarSoldValue + productSpraySoldValue + accessoriesSoldValue;
+        totalProfitValue = productAttarProfitValue + productSprayProfitValue + accessoriesProfitValue;
+
+        totalActual.setText(numberFormat.format(totalActualValue).replace("\u00A0", ""));
+        totalSold.setText(numberFormat.format(totalSoldValue).replace("\u00A0", ""));
+        totalProfit.setText(numberFormat.format(totalProfitValue).replace("\u00A0", ""));
+        netProfit.setText(numberFormat.format(totalProfitValue - totalExpenseValue).replace("\u00A0", ""));
+
+        payCash.setText(numberFormat.format(totalCash).replace("\u00A0", ""));
+        payUpi.setText(numberFormat.format(totalUpi).replace("\u00A0", ""));
+        totalPay.setText(numberFormat.format(totalPaymentValue).replace("\u00A0", ""));
+
+        Toast.makeText(ConsolidateReportActivity.this, "Invoice Data Loaded .!", Toast.LENGTH_SHORT).show();
+
     }
 
     private boolean checkInternet() {

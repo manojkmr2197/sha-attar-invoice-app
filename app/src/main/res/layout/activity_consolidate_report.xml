@@ -51,6 +51,26 @@
 
         <LinearLayout
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="7sp"
+                android:text="Sales Person :  " />
+
+            <Spinner
+                android:id="@+id/consolidate_report_sales_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
             <TextView
@@ -95,395 +115,623 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="5dp">
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/consolidate_report_date"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Report generated on "
-            android:textSize="13sp" />
+            android:orientation="vertical"
+            android:padding="5dp">
 
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            app:cardCornerRadius="5dp">
+            <TextView
+                android:id="@+id/consolidate_report_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Report generated on "
+                android:textSize="11sp" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:cardCornerRadius="5dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <!--Header-->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="200dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#75C3C2C0"
+                            android:gravity="center"
+                            android:text="Price / Items"
+                            android:textColor="@color/black"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#ffffff" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#75C3C2C0"
+                            android:gravity="center"
+                            android:text="Actual Price"
+                            android:textColor="@color/black"
+                            android:textSize="13sp"
+                            android:textStyle="bold|italic" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#ffffff" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#75C3C2C0"
+                            android:gravity="center"
+                            android:text="Sold Price"
+                            android:textColor="@color/black"
+                            android:textSize="13sp"
+                            android:textStyle="bold|italic" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#ffffff" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#75C3C2C0"
+                            android:gravity="center"
+                            android:text="Profit"
+                            android:textColor="@color/black"
+                            android:textSize="13sp"
+                            android:textStyle="bold|italic" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="#ffffff" />
+
+                    <!--Product-->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="200dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#75C3C2C0"
+                            android:gravity="center"
+                            android:text="Products"
+                            android:textColor="@color/black"
+                            android:textSize="14sp"
+                            android:textStyle="bold|italic" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#ffffff" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/consolidate_product_attar_actual"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:background="#ADD8E6"
+                                android:gravity="center"
+                                android:text="₹ 0.0"
+                                android:textColor="@color/app_color"
+                                android:textSize="12sp" />
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:background="#ffffff" />
+
+                            <TextView
+                                android:id="@+id/consolidate_product_spray_actual"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:background="#ADD8E6"
+                                android:gravity="center"
+                                android:text="₹ 0.0"
+                                android:textColor="@color/app_color"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#ffffff" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/consolidate_product_attar_sold"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:background="#FFB3B3"
+                                android:gravity="center"
+                                android:text="₹ 0.0"
+                                android:textColor="@color/app_color"
+                                android:textSize="12sp" />
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:background="#ffffff" />
+
+                            <TextView
+                                android:id="@+id/consolidate_product_spray_sold"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:background="#FFB3B3"
+                                android:gravity="center"
+                                android:text="₹ 0.0"
+                                android:textColor="@color/app_color"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#ffffff" />
+
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/consolidate_product_attar_profit"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:background="#9FE2BF"
+                                android:gravity="center"
+                                android:text="₹ 0.0"
+                                android:textColor="@color/app_color"
+                                android:textSize="12sp" />
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:background="#ffffff" />
+
+                            <TextView
+                                android:id="@+id/consolidate_product_spray_profit"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:background="#9FE2BF"
+                                android:gravity="center"
+                                android:text="₹ 0.0"
+                                android:textColor="@color/app_color"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="#ffffff" />
+                    <!--Accessories-->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="200dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#75C3C2C0"
+                            android:gravity="center"
+                            android:text="Accessories"
+                            android:textColor="@color/black"
+                            android:textSize="14sp"
+                            android:textStyle="bold|italic" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#ffffff" />
+
+                        <TextView
+                            android:id="@+id/consolidate_accessories_actual"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#ADD8E6"
+                            android:gravity="center"
+                            android:text="₹ 0.0"
+                            android:textColor="@color/app_color"
+                            android:textSize="12sp" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#ffffff" />
+
+                        <TextView
+                            android:id="@+id/consolidate_accessories_sold"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#FFB3B3"
+                            android:gravity="center"
+                            android:text="₹ 0.0"
+                            android:textColor="@color/app_color"
+                            android:textSize="12sp" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#ffffff" />
+
+                        <TextView
+                            android:id="@+id/consolidate_accessories_profit"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#9FE2BF"
+                            android:gravity="center"
+                            android:text="₹ 0.0"
+                            android:textColor="@color/app_color"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:cardCornerRadius="5dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <!--Header-->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="100dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#75C3C2C0"
+                            android:gravity="center"
+                            android:text="Payment"
+                            android:textColor="@color/black"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#ffffff" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#75C3C2C0"
+                            android:id="@+id/consolidate_payment_total"
+                            android:gravity="center"
+                            android:text=""
+                            android:textColor="@color/app_color"
+                            android:textSize="13sp"
+                            android:textStyle="bold|italic" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="#ffffff" />
+
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="100dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#75C3C2C0"
+                            android:gravity="center"
+                            android:text="Cash"
+                            android:textColor="@color/black"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#ffffff" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#75C3C2C0"
+                            android:gravity="center"
+                            android:text=""
+                            android:id="@+id/consolidate_payment_cash"
+                            android:textColor="@color/app_color"
+                            android:textSize="13sp"
+                            android:textStyle="bold|italic" />
+
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="#ffffff" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="100dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#75C3C2C0"
+                            android:gravity="center"
+                            android:text="UPI"
+                            android:textColor="@color/black"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#ffffff" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#75C3C2C0"
+                            android:gravity="center"
+                            android:text=""
+                            android:id="@+id/consolidate_payment_upi"
+                            android:textColor="@color/app_color"
+                            android:textSize="13sp"
+                            android:textStyle="bold|italic" />
+
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="#ffffff" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10sp"
+                android:background="#ADD8E6"
+                android:orientation="horizontal">
 
-                <!--Header-->
-                <LinearLayout
+                <TextView
                     android:layout_width="0dp"
-                    android:layout_height="200dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:gravity="center|end"
+                    android:text="Total Actual Amount :  "
+                    android:textColor="@color/black" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:background="#75C3C2C0"
-                        android:gravity="center"
-                        android:text="Price / Items"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#ffffff" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:background="#75C3C2C0"
-                        android:gravity="center"
-                        android:text="Actual Price"
-                        android:textColor="@color/black"
-                        android:textSize="13sp"
-                        android:textStyle="bold|italic" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#ffffff" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:background="#75C3C2C0"
-                        android:gravity="center"
-                        android:text="Sold Price"
-                        android:textColor="@color/black"
-                        android:textSize="13sp"
-                        android:textStyle="bold|italic" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#ffffff" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:background="#75C3C2C0"
-                        android:gravity="center"
-                        android:text="Profit"
-                        android:textColor="@color/black"
-                        android:textSize="13sp"
-                        android:textStyle="bold|italic" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="match_parent"
-                    android:background="#ffffff" />
-
-                <!--Product-->
-                <LinearLayout
+                <TextView
+                    android:id="@+id/consolidate_total_actual_amount"
                     android:layout_width="0dp"
-                    android:layout_height="200dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:gravity="start|center"
+                    android:padding="5sp"
+                    android:text="0.0"
+                    android:textColor="@color/app_color"
+                    android:textSize="15sp" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:background="#75C3C2C0"
-                        android:gravity="center"
-                        android:text="Products"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
-                        android:textStyle="bold|italic" />
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#ffffff" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:background="#ADD8E6"
-                        android:gravity="center"
-                        android:id="@+id/consolidate_product_actual"
-                        android:text="₹ 0.0"
-                        android:textColor="@color/app_color"
-                        android:textSize="12sp" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#ffffff" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:background="#FFB3B3"
-                        android:gravity="center"
-                        android:id="@+id/consolidate_product_sold"
-                        android:text="₹ 0.0"
-                        android:textColor="@color/app_color"
-                        android:textSize="12sp" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#ffffff" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:background="#9FE2BF"
-                        android:gravity="center"
-                        android:id="@+id/consolidate_product_profit"
-                        android:text="₹ 0.0"
-                        android:textColor="@color/app_color"
-                        android:textSize="12sp" />
-
-                </LinearLayout>
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="match_parent"
-                    android:background="#ffffff" />
-                <!--Accessories-->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="200dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:background="#75C3C2C0"
-                        android:gravity="center"
-                        android:text="Accessories"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
-                        android:textStyle="bold|italic" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#ffffff" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:background="#ADD8E6"
-                        android:gravity="center"
-                        android:id="@+id/consolidate_accessories_actual"
-                        android:text="₹ 0.0"
-                        android:textColor="@color/app_color"
-                        android:textSize="12sp" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#ffffff" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:background="#FFB3B3"
-                        android:gravity="center"
-                        android:id="@+id/consolidate_accessories_sold"
-                        android:text="₹ 0.0"
-                        android:textColor="@color/app_color"
-                        android:textSize="12sp" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#ffffff" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:background="#9FE2BF"
-                        android:gravity="center"
-                        android:id="@+id/consolidate_accessories_profit"
-                        android:text="₹ 0.0"
-                        android:textColor="@color/app_color"
-                        android:textSize="12sp" />
-                </LinearLayout>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10sp"
-            android:background="#ADD8E6"
-            android:orientation="horizontal">
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#ffffff" />
 
-            <TextView
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textColor="@color/black"
-                android:gravity="center|end"
-                android:text="Total Actual Amount :  "/>
+                android:background="#FFB3B3"
+                android:orientation="horizontal">
 
-            <TextView
-                android:layout_width="0dp"
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center|end"
+                    android:text="Total Sold Amount :  "
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/consolidate_total_sold_amount"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:gravity="start|center"
+                    android:padding="5sp"
+                    android:text="0.0"
+                    android:textColor="@color/app_color"
+                    android:textSize="15sp" />
+
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#ffffff" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:gravity="start|center"
-                android:id="@+id/consolidate_total_actual_amount"
-                android:padding="5sp"
-                android:text="0.0"
-                android:textColor="@color/app_color"
-                android:textSize="15sp" />
+                android:background="#9FE2BF"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center|end"
+                    android:text="Total Profit :  "
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/consolidate_total_profit"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:gravity="start|center"
+                    android:padding="5sp"
+                    android:text="0.0"
+                    android:textColor="@color/app_color"
+                    android:textSize="15sp" />
 
 
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#ffffff" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#9FE2BF"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center|end"
+                    android:text="Total Expense :  "
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/consolidate_total_expense"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:gravity="start|center"
+                    android:padding="5sp"
+                    android:text="0.0"
+                    android:textColor="@color/app_color"
+                    android:textSize="15sp" />
+
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#ffffff" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFACD"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center|end"
+                    android:text="Net Profit :  "
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/consolidate_net_profit"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:gravity="start|center"
+                    android:padding="5sp"
+                    android:text="0.0"
+                    android:textColor="@color/app_color"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+
+            </LinearLayout>
         </LinearLayout>
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#ffffff" />
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#FFB3B3"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textColor="@color/black"
-                android:gravity="center|end"
-                android:text="Total Sold Amount :  "/>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:gravity="start|center"
-                android:id="@+id/consolidate_total_sold_amount"
-                android:padding="5sp"
-                android:text="0.0"
-                android:textColor="@color/app_color"
-                android:textSize="15sp" />
-
-
-        </LinearLayout>
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#ffffff" />
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#9FE2BF"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textColor="@color/black"
-                android:gravity="center|end"
-                android:text="Total Profit :  "/>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:gravity="start|center"
-                android:id="@+id/consolidate_total_profit"
-                android:padding="5sp"
-                android:text="0.0"
-                android:textColor="@color/app_color"
-                android:textSize="15sp" />
-
-
-        </LinearLayout>
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#ffffff" />
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#9FE2BF"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textColor="@color/black"
-                android:gravity="center|end"
-                android:text="Total Expense :  "/>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:gravity="start|center"
-                android:padding="5sp"
-                android:id="@+id/consolidate_total_expense"
-                android:text="0.0"
-                android:textColor="@color/app_color"
-                android:textSize="15sp" />
-
-
-        </LinearLayout>
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#ffffff" />
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#FFFACD"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textColor="@color/black"
-                android:gravity="center|end"
-                android:textStyle="bold"
-                android:text="Net Profit :  "/>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:gravity="start|center"
-                android:padding="5sp"
-                android:id="@+id/consolidate_net_profit"
-                android:text="0.0"
-                android:textStyle="bold"
-                android:textColor="@color/app_color"
-                android:textSize="15sp" />
-
-
-        </LinearLayout>
-    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 </LinearLayout>

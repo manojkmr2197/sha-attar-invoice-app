@@ -71,7 +71,7 @@ public class ReportGenerator {
         }
     }
 
-    public static Map<String, AggregatedData> getAggregatedSalesReportData(List<BillingInvoiceModel> invoices) {
+    public static Map<String, AggregatedData> getAggregatedAttarSalesReportData(List<BillingInvoiceModel> invoices) {
         Map<String, AggregatedData> aggregationMap = new HashMap<>();
         for (BillingInvoiceModel invoice : invoices) {
             if (invoice == null) {
@@ -81,6 +81,43 @@ public class ReportGenerator {
             for (BillingItemModel item : invoice.getBillingItemModelList()) {
 
                 if (!item.getType().equals("PRODUCT")) {
+                    continue;
+                }
+
+                if (!item.getProductCategory().equals("ATTAR")) {
+                    continue;
+                }
+                String productName = item.getName();
+                int quantity = item.getUnits();
+                double soldPrice = item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount() / 100));
+                //double actualPrice = item.getUnitPrice() * quantity;
+                double actualPrice = item.getTotalPrice();
+                double profit = soldPrice - actualPrice;
+                aggregationMap.putIfAbsent(productName, new AggregatedData(0, 0, 0, 0, ""));
+                AggregatedData aggregatedData = aggregationMap.get(productName);
+                aggregatedData.quantity += quantity;
+                aggregatedData.soldPrice += soldPrice;
+                aggregatedData.actualPrice += actualPrice;
+                aggregatedData.profit += profit;
+                aggregatedData.owner = item.getProductModel().getOwner();
+            }
+        }
+        return aggregationMap;
+    }
+
+    public static Map<String, AggregatedData> getAggregatedSpraySalesReportData(List<BillingInvoiceModel> invoices) {
+        Map<String, AggregatedData> aggregationMap = new HashMap<>();
+        for (BillingInvoiceModel invoice : invoices) {
+            if (invoice == null) {
+                System.err.println("Null invoice encountered, skipping...");
+                continue;
+            }
+            for (BillingItemModel item : invoice.getBillingItemModelList()) {
+
+                if (!item.getType().equals("PRODUCT")) {
+                    continue;
+                }
+                if (!item.getProductCategory().equals("SPRAY")) {
                     continue;
                 }
                 String productName = item.getName();
@@ -155,8 +192,8 @@ public class ReportGenerator {
         report.setQuantity((item.getUnits() != null) ? item.getUnits() : 1);
         report.setProfit(profit);
         report.setSoldPrice(item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount() / 100)));
-        if (!StringUtils.isBlank(invoice.getRemarks()))
-            report.setCustomerInfo(invoice.getRemarks() + "(" + invoice.getCustomerPhone() + ")");
+        if (!StringUtils.isBlank(invoice.getCustomerName()))
+            report.setCustomerInfo(invoice.getCustomerName() + "(" + invoice.getCustomerPhone() + ")");
         return report;
     }
 
@@ -309,11 +346,20 @@ public class ReportGenerator {
     }
 
     private void prepareConsolidatedSaleReport(Workbook workbook, List<BillingInvoiceModel> invoices, OffsetDateTime startOfDay, OffsetDateTime endOfDay) {
+        Map<String, AggregatedData> salesAttarData = getAggregatedAttarSalesReportData(invoices);
+
+        prepareProductReport(workbook, startOfDay, endOfDay, salesAttarData,"Attar");
+
+        Map<String, AggregatedData> salesData = getAggregatedSpraySalesReportData(invoices);
+
+        prepareProductReport(workbook, startOfDay, endOfDay, salesData,"Spray");
+    }
+
+    private void prepareProductReport(Workbook workbook, OffsetDateTime startOfDay, OffsetDateTime endOfDay, Map<String, AggregatedData> salesData,String type) {
         CellStyle wrapStyle = workbook.createCellStyle();
         wrapStyle.setWrapText(true);
-        Map<String, AggregatedData> salesData = getAggregatedSalesReportData(invoices);
 
-        Sheet sheet = workbook.createSheet("Consolidated Sale Report");
+        Sheet sheet = workbook.createSheet("Consolidated "+type+" Report");
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -367,8 +413,6 @@ public class ReportGenerator {
             cell5.setCellStyle(wrapStyle);
 
         }
-
-
     }
 
     private void prepareAccessoriesSheet(Workbook workbook, List<BillingInvoiceModel> invoices) {
@@ -381,7 +425,7 @@ public class ReportGenerator {
         Row headerRow = sheet.createRow(0);
         int cellIndex = 0;
 
-        String[] headers = {"Date", "Accessory Name", "Owner", "Quantity", "Sold Price", "Actual Price", "Profit", "Customer Remarks"};
+        String[] headers = {"Date", "Accessory Name", "Owner", "Quantity", "Sold Price", "Actual Price", "Profit", "Sales Info"};
 
         for (String key : headers) {
             Cell cell = headerRow.createCell(cellIndex++);
@@ -430,7 +474,7 @@ public class ReportGenerator {
         Row headerRow = sheet.createRow(0);
         int cellIndex = 0;
 
-        String[] headers = {"Date", "Product Name", "Owner", "Quantity", "Sold Price", "Actual Price", "Profit", "Customer Remarks"};
+        String[] headers = {"Date", "Product Name", "Owner", "Quantity", "Sold Price", "Actual Price", "Profit", "Sales Info"};
 
         for (String key : headers) {
             Cell cell = headerRow.createCell(cellIndex++);
