@@ -412,6 +412,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         billingInvoiceModel.setCustomerName(customer_name.getText().toString());
         billingInvoiceModel.setCustomerPhone(customer_phone.getText().toString());
+        billingInvoiceModel.setPaymentMode(paymentMode);
         billingInvoiceModel.setDiscount(discount);
         billingInvoiceModel.setSellingCost(sellingAmount);
         billingInvoiceModel.setTotalCost(totalAmount);
@@ -741,6 +742,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     new_bill_owner.setText(selectProductModel.getOwner());
                     selectedProduct[0] = selectProductModel;
                     product_selling_cost.setText(String.valueOf(billingItemModel.getSellingItemPrice()));
+                    product_detail_ll.setVisibility(View.VISIBLE);
                 }
             } else if ("NON_PRODUCT".equalsIgnoreCase(billingItemModel.getType())) {
                 nonProductRadioButton.setChecked(true);

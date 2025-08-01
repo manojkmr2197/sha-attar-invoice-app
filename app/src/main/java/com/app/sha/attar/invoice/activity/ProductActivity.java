@@ -425,7 +425,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         Toast.makeText(this, "Report Generated: " + fileName, Toast.LENGTH_LONG).show();
 
         // Use FileProvider to get the URI
-        Uri fileUri = FileProvider.getUriForFile(this, "com.app.sha.attar.invoice.fileprovider", file);
+        Uri fileUri = FileProvider.getUriForFile(this, AppConstants.COM_APP_SHA_PERFUME_INVOICE_FILEPROVIDER, file);
 
         // Open the file using a file explorer
         Intent intent = new Intent(Intent.ACTION_VIEW);

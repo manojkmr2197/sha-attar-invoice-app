@@ -461,7 +461,8 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 sprayQtyList
         );
         sprayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
+        productQtySpinner.setAdapter(attarAdapter);
+        productQtySpinner.setSelection(0);
         productCategoryRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -590,7 +591,6 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                     new_bill_owner.setText(selectProductModel.getOwner());
                     selectedProduct[0] = selectProductModel;
                     product_detail_ll.setVisibility(View.VISIBLE);
-
                 }
 
             }
@@ -643,6 +643,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                     new_bill_owner.setText(selectProductModel.getOwner());
                     selectedProduct[0] = selectProductModel;
                     product_selling_cost.setText(String.valueOf(billingItemModel.getSellingItemPrice()));
+                    product_detail_ll.setVisibility(View.VISIBLE);
                 }
             } else if ("NON_PRODUCT".equalsIgnoreCase(billingItemModel.getType())) {
                 nonProductRadioButton.setChecked(true);

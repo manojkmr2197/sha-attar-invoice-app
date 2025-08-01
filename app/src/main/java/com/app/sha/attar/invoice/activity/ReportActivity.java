@@ -41,6 +41,7 @@ import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.ReportModel;
+import com.app.sha.attar.invoice.utils.AppConstants;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
@@ -613,7 +614,7 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         Toast.makeText(this, "Report Generated: " + fileName, Toast.LENGTH_LONG).show();
 
         // Use FileProvider to get the URI
-        Uri fileUri = FileProvider.getUriForFile(this, "com.app.sha.attar.invoice.fileprovider", file);
+        Uri fileUri = FileProvider.getUriForFile(this, AppConstants.COM_APP_SHA_PERFUME_INVOICE_FILEPROVIDER, file);
 
         // Open the file using a file explorer
         Intent intent = new Intent(Intent.ACTION_VIEW);

@@ -7,6 +7,7 @@ import com.app.sha.attar.invoice.activity.ProductActivity;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
+import com.app.sha.attar.invoice.model.ExpenseModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.model.ReportModel;
 
@@ -24,6 +25,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -37,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 
 public class ReportGenerator {
+
+
 
 
     public static class AggregatedData {
@@ -712,6 +716,56 @@ public class ReportGenerator {
         }
 
         return productModelList;
+
+    }
+
+    public void createExpenseExcelReport(List<ExpenseModel> expenseList, File file) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+
+        prepareExpenseSheet(workbook, expenseList);
+
+        // Write the output to a file
+        FileOutputStream fileOut = new FileOutputStream(file.getAbsolutePath());
+        workbook.write(fileOut);
+        fileOut.close();
+        workbook.close();
+    }
+
+    private void prepareExpenseSheet(Workbook workbook, List<ExpenseModel> expenseList) {
+
+        CellStyle wrapStyle = workbook.createCellStyle();
+        wrapStyle.setWrapText(true);
+        Sheet sheet = workbook.createSheet("Expense Details");
+        Row headerRow = sheet.createRow(0);
+        int cellIndex = 0;
+
+        String[] headers = {"Expense Date", "Category", "Title", "Price"};
+
+        for (String key : headers) {
+            Cell cell = headerRow.createCell(cellIndex++);
+            cell.setCellValue(key);
+            cell.setCellStyle(wrapStyle);
+        }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        ZoneOffset istOffset = ZoneOffset.ofHoursMinutes(5, 30);
+        int rowCount = 0;
+        for (ExpenseModel entry : expenseList) {
+            rowCount = rowCount + 1;
+            Row row = sheet.createRow(rowCount);
+            OffsetDateTime offsetDateTime = Instant.ofEpochSecond(entry.getExpenseDate()).atOffset(istOffset);
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(offsetDateTime.format(formatter));
+            cell0.setCellStyle(wrapStyle);
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(entry.getType());
+            cell1.setCellStyle(wrapStyle);
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue(entry.getTitle());
+            cell2.setCellStyle(wrapStyle);
+            Cell cell3 = row.createCell(3);
+            cell3.setCellValue("Rs. " +String.format("%.1f", entry.getAmount()));
+            cell3.setCellStyle(wrapStyle);
+        }
 
     }
 

@@ -12,4 +12,5 @@ public class AppConstants {
     public static final String ML_30 = "30ML";
     public static final String ML_50 = "50ML";
     public static final String ML_100 = "100ML";
+    public static final String COM_APP_SHA_PERFUME_INVOICE_FILEPROVIDER = "com.app.sha.perfume.invoice.fileprovider";
 }

@@ -48,9 +48,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
 
     implementation libs.commons.lang3
-
     implementation 'com.google.code.gson:gson:2.8.8'
-
     implementation 'org.apache.poi:poi:5.2.3'
     implementation 'org.apache.poi:poi-ooxml:5.2.3'
 

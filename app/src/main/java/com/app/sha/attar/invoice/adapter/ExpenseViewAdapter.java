@@ -65,6 +65,9 @@ public class ExpenseViewAdapter extends RecyclerView.Adapter<ExpenseViewHolder>{
         if(specialList.contains(contentList.get(index).getType())){
             holder.delete.setVisibility(View.INVISIBLE);
             holder.edit.setVisibility(View.INVISIBLE);
+        }else{
+            holder.delete.setVisibility(View.VISIBLE);
+            holder.edit.setVisibility(View.VISIBLE);
         }
 
         holder.delete.setOnClickListener(new View.OnClickListener() {

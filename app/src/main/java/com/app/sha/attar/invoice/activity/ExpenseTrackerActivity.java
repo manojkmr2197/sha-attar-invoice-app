@@ -4,8 +4,11 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -20,6 +23,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -27,9 +31,12 @@ import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.ExpenseViewAdapter;
 import com.app.sha.attar.invoice.listener.BillingClickListener;
 import com.app.sha.attar.invoice.model.ExpenseModel;
+import com.app.sha.attar.invoice.model.ProductModel;
+import com.app.sha.attar.invoice.utils.AppConstants;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
+import com.app.sha.attar.invoice.utils.ReportGenerator;
 import com.app.sha.attar.invoice.utils.SingleTon;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -41,6 +48,7 @@ import com.google.gson.Gson;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -61,7 +69,7 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
     Activity activity;
     FrameLayout data_fl, no_data_fl;
 
-    List<ExpenseModel> itemList = new ArrayList<>();
+    List<ExpenseModel> itemList;
 
     ExpenseViewAdapter expenseViewAdapter;
     RecyclerView recyclerView;
@@ -147,7 +155,7 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
                 }
             }
         };
-
+        itemList = new ArrayList<>();
         expenseViewAdapter = new ExpenseViewAdapter(context, itemList, clickListener);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(expenseViewAdapter);
@@ -203,11 +211,8 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
             createSpecialDialogBox(context);
         } else if (view.getId() == R.id.expense_download_tv) {
             //download xl
+            downloadExpenseList();
         } else if (view.getId() == R.id.expense_search) {
-            if ((customStartDt != null && customEndDt == null) || (customStartDt == null && customEndDt != null)) {
-                Toast.makeText(ExpenseTrackerActivity.this, "Please choose proper custom date range .!", Toast.LENGTH_LONG).show();
-                return;
-            }
             if (checkInternet()) {
                 System.out.println(customStartDt + " --- " + customEndDt);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -221,6 +226,34 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
                 }
             }
         }
+    }
+
+    private void downloadExpenseList() {
+        try {
+            saveExcelFile(itemList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Report Generation failed ..!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void saveExcelFile(List<ExpenseModel> productModelList) throws Exception {
+        String fileName = "Expense-" + System.currentTimeMillis() + ".xlsx";
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+        ReportGenerator reportGenerator = new ReportGenerator();
+        reportGenerator.createExpenseExcelReport(productModelList, file);
+
+        // Notify the user
+        Toast.makeText(this, "Report Generated: " + fileName, Toast.LENGTH_LONG).show();
+
+        // Use FileProvider to get the URI
+        Uri fileUri = FileProvider.getUriForFile(this, AppConstants.COM_APP_SHA_PERFUME_INVOICE_FILEPROVIDER, file);
+
+        // Open the file using a file explorer
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(fileUri, "application/vnd.ms-excel");
+        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(intent);
     }
 
     private void createSpecialDialogBox(Context context) {
@@ -481,6 +514,10 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
     }
 
     private void processExpense(OffsetDateTime customStartDt, OffsetDateTime customEndDt) {
+        if(customStartDt == null || customEndDt == null){
+            Toast.makeText(context, "Please choose the date range.!", Toast.LENGTH_SHORT).show();
+            return;
+        }
         dbObj.getExpenseDetail(new FirestoreCallback<List<ExpenseModel>>() {
             @Override
             public void onCallback(List<ExpenseModel> result) {
@@ -500,19 +537,25 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
     }
 
     private void processExpenseFilter(OffsetDateTime customStartDt, OffsetDateTime customEndDt,String expenseType) {
+        if(customStartDt == null || customEndDt == null){
+            Toast.makeText(context, "Please choose the date range.!", Toast.LENGTH_SHORT).show();
+            return;
+        }
         dbObj.getExpenseDetail(new FirestoreCallback<List<ExpenseModel>>() {
             @Override
             public void onCallback(List<ExpenseModel> result) {
+                itemList.clear();
                 if (result.isEmpty()) {
                     Toast.makeText(ExpenseTrackerActivity.this, "No Expense Data found .!", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                itemList.clear();
-                itemList.addAll(result);
-                Toast.makeText(ExpenseTrackerActivity.this, "Expense Data Loaded .!", Toast.LENGTH_LONG).show();
+                    data_fl.setVisibility(View.GONE);
+                    no_data_fl.setVisibility(View.VISIBLE);
+                }else {
+                    itemList.addAll(result);
+                    Toast.makeText(ExpenseTrackerActivity.this, "Expense Data Loaded .!", Toast.LENGTH_LONG).show();
 
-                data_fl.setVisibility(View.VISIBLE);
-                no_data_fl.setVisibility(View.GONE);
+                    data_fl.setVisibility(View.VISIBLE);
+                    no_data_fl.setVisibility(View.GONE);
+                }
                 expenseViewAdapter.notifyDataSetChanged();
             }
         }, customStartDt.toEpochSecond(), customEndDt.toEpochSecond(),expenseType);
