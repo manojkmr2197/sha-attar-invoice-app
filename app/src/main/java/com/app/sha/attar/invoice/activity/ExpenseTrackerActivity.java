@@ -387,7 +387,7 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
                 dialog.dismiss();
             }
         });
-        newExpenseDate = OffsetDateTime.now();
+
 
         if (expenseModel != null) {
             delete.setVisibility(View.VISIBLE);
@@ -449,10 +449,11 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
 
         } else {
             delete.setVisibility(View.GONE);
+            newExpenseDate = OffsetDateTime.now();
         }
         date.setText(newExpenseDate.format(formatter));
 
-        OffsetDateTime finalCurrentTime = newExpenseDate;
+        //OffsetDateTime finalCurrentTime = newExpenseDate;
         submitDialog.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -462,6 +463,7 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
                 }
 
                 if (expenseModel != null) {
+
                     expenseModel.setTitle(title.getText().toString());
                     expenseModel.setAmount(Double.valueOf(price.getText().toString()));
                     expenseModel.setType(type.getSelectedItem().toString());
@@ -487,7 +489,7 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
                             });
                 } else {
                     ExpenseModel newExpenseModel = new ExpenseModel();
-                    newExpenseModel.setExpenseDate(finalCurrentTime.toEpochSecond());
+                    newExpenseModel.setExpenseDate(newExpenseDate.toEpochSecond());
                     newExpenseModel.setTitle(title.getText().toString());
                     newExpenseModel.setAmount(Double.valueOf(price.getText().toString()));
                     newExpenseModel.setType(type.getSelectedItem().toString());
