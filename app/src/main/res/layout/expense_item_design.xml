@@ -72,7 +72,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.2"
-            android:background="#9FE2BF"
+            android:background="#FFB3B3"
             android:gravity="center"
             android:text=""
             android:textAllCaps="true"

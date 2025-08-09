@@ -7,6 +7,7 @@ import com.app.sha.attar.invoice.activity.ProductActivity;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
+import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.ExpenseModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.model.ReportModel;
@@ -647,6 +648,8 @@ public class ReportGenerator {
     public List<ProductModel> readExcelFile(Uri fileUri, Context context) throws Exception {
         List<ProductModel> productModelList = new ArrayList<>();
 
+        SharedPrefHelper helper = new SharedPrefHelper(context);
+        ConfigModel configModel = helper.getPerfumeActualMix();
         try (InputStream inputStream = context.getContentResolver().openInputStream(fileUri)) {
 
             Workbook workbook = WorkbookFactory.create(inputStream);
@@ -696,10 +699,10 @@ public class ReportGenerator {
                 double actualAttar1ml = Double.parseDouble(productModel.getPrice())/1000;
 
                 productModel.setPerfumeActualPriceMap(new HashMap<>());
-                productModel.getPerfumeActualPriceMap().put(AppConstants.ML_10, actualAttar1ml * 4);
-                productModel.getPerfumeActualPriceMap().put(AppConstants.ML_30, actualAttar1ml * 12);
-                productModel.getPerfumeActualPriceMap().put(AppConstants.ML_50, actualAttar1ml * 20);
-                productModel.getPerfumeActualPriceMap().put(AppConstants.ML_100, actualAttar1ml * 35);
+                productModel.getPerfumeActualPriceMap().put(AppConstants.ML_10, actualAttar1ml * configModel.getPerfume10mlMixer());
+                productModel.getPerfumeActualPriceMap().put(AppConstants.ML_30, actualAttar1ml * configModel.getPerfume30mlMixer());
+                productModel.getPerfumeActualPriceMap().put(AppConstants.ML_50, actualAttar1ml * configModel.getPerfume50mlMixer());
+                productModel.getPerfumeActualPriceMap().put(AppConstants.ML_100, actualAttar1ml * configModel.getPerfume100mlMixer());
 
                 productModel.setDocumentId(SingleTon.generateProductDocument());
 

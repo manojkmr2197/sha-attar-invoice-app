@@ -163,6 +163,19 @@ public class DBUtil {
                 .addOnFailureListener(e -> System.err.println("Error fetching documents: " + e.getMessage()));
     }
 
+    public void deleteExpenseRecordsBefore(FirestoreCallback<List<DocumentSnapshot>> callback, long beforeTimestamp) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Query Firestore for documents with IDs (timestamps) before the given timestamp
+        db.collection(DatabaseConstants.EXPENSE_COLLECTION)
+                .whereLessThan("expenseDate", beforeTimestamp)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    callback.onCallback(querySnapshot.getDocuments());
+                })
+                .addOnFailureListener(e -> System.err.println("Error fetching documents: " + e.getMessage()));
+    }
+
     public void getBillingItemDetailByDocId(FirestoreCallback<BillingInvoiceModel> callback, String documentId) {
 
         db.collection(DatabaseConstants.INVOICE_COLLECTION).document(documentId)

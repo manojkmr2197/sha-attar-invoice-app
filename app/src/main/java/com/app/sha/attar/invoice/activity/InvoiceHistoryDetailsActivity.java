@@ -169,9 +169,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 // Find which radio button is selected
-                if (R.id.new_billing_payment_cash == checkedId) {
+                if (R.id.invoice_history_detail_payment_cash == checkedId) {
                     paymentMode = "CASH";
-                } else if (R.id.new_billing_payment_upi == checkedId) {
+                } else if (R.id.invoice_history_detail_payment_upi == checkedId) {
                     paymentMode = "UPI";
                 }
             }

@@ -3,6 +3,7 @@ package com.app.sha.attar.invoice.activity;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -52,6 +53,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
@@ -80,7 +82,8 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
     FirebaseFirestore db;
 
     TextView startDatetv, endDatetv;
-    OffsetDateTime customStartDt = null, customEndDt = null;
+    TextView date;
+    OffsetDateTime customStartDt = null, customEndDt = null,newExpenseDate = null;
 
     Spinner expenseType;
     Button search;
@@ -358,7 +361,13 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         TextInputEditText title = (TextInputEditText) dialog.findViewById(R.id.expense_add_name);
         TextInputEditText price = (TextInputEditText) dialog.findViewById(R.id.expense_add_price);
-        TextView date = (TextView) dialog.findViewById(R.id.expense_add_date_tv);
+        date = (TextView) dialog.findViewById(R.id.expense_add_date_tv);
+        date.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                chooseDateTimePicker();
+            }
+        });
         Spinner type = (Spinner) dialog.findViewById(R.id.expense_add_type);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.spinner_expense_type, android.R.layout.simple_spinner_item);
@@ -378,11 +387,11 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
                 dialog.dismiss();
             }
         });
-        OffsetDateTime currentTime = OffsetDateTime.now();
+        newExpenseDate = OffsetDateTime.now();
 
         if (expenseModel != null) {
             delete.setVisibility(View.VISIBLE);
-            currentTime = Instant.ofEpochSecond(expenseModel.getExpenseDate()).atOffset(ZoneOffset.ofHoursMinutes(5, 30));
+            newExpenseDate = Instant.ofEpochSecond(expenseModel.getExpenseDate()).atOffset(ZoneOffset.ofHoursMinutes(5, 30));
             title.setText(expenseModel.getTitle());
             price.setText("" + expenseModel.getAmount());
 
@@ -441,9 +450,9 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
         } else {
             delete.setVisibility(View.GONE);
         }
-        date.setText(currentTime.format(formatter));
+        date.setText(newExpenseDate.format(formatter));
 
-        OffsetDateTime finalCurrentTime = currentTime;
+        OffsetDateTime finalCurrentTime = newExpenseDate;
         submitDialog.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -511,6 +520,49 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
 
 
         dialog.show();
+    }
+
+    private void chooseDateTimePicker() {
+        // Get current date and time
+        Calendar calendar = Calendar.getInstance();
+
+        // DatePickerDialog
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    // Update calendar with selected date
+                    calendar.set(Calendar.YEAR, year);
+                    calendar.set(Calendar.MONTH, month);
+                    calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+                    // TimePickerDialog
+                    new TimePickerDialog(
+                            this,
+                            (timeView, hourOfDay, minute) -> {
+                                // Update calendar with selected time
+                                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                                calendar.set(Calendar.MINUTE, minute);
+
+                                // Display selected date and time
+                                LocalDateTime localDatetime = calendar.toInstant()
+                                        .atZone(ZoneId.systemDefault())
+                                        .toLocalDateTime();
+
+                                // Create OffsetDateTime with 00:00 time
+                                newExpenseDate = localDatetime.atZone(ZoneId.of("Asia/Kolkata")).toOffsetDateTime();
+                                date.setText(newExpenseDate.format(formatter));
+                            },
+                            calendar.get(Calendar.HOUR_OF_DAY),
+                            calendar.get(Calendar.MINUTE),
+                            false // 24-hour format
+                    ).show();
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        );
+        datePickerDialog.show();
+
     }
 
     private void processExpense(OffsetDateTime customStartDt, OffsetDateTime customEndDt) {

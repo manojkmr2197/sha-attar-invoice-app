@@ -469,7 +469,7 @@
                             android:background="#75C3C2C0"
                             android:id="@+id/consolidate_payment_total"
                             android:gravity="center"
-                            android:text=""
+                            android:text="₹ 0.0"
                             android:textColor="@color/app_color"
                             android:textSize="13sp"
                             android:textStyle="bold|italic" />
@@ -510,7 +510,7 @@
                             android:layout_weight="1"
                             android:background="#75C3C2C0"
                             android:gravity="center"
-                            android:text=""
+                            android:text="₹ 0.0"
                             android:id="@+id/consolidate_payment_cash"
                             android:textColor="@color/app_color"
                             android:textSize="13sp"
@@ -552,7 +552,7 @@
                             android:layout_weight="1"
                             android:background="#75C3C2C0"
                             android:gravity="center"
-                            android:text=""
+                            android:text="₹ 0.0"
                             android:id="@+id/consolidate_payment_upi"
                             android:textColor="@color/app_color"
                             android:textSize="13sp"
@@ -673,7 +673,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#9FE2BF"
+                android:background="#FFFACD"
+                android:id="@+id/consolidate_total_expense_ll"
                 android:orientation="horizontal">
 
                 <TextView
@@ -706,7 +707,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#FFFACD"
+                android:id="@+id/consolidate_net_profit_ll"
+                android:background="#9FE2BF"
                 android:orientation="horizontal">
 
                 <TextView

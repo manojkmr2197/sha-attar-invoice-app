@@ -43,6 +43,7 @@ import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.ProductViewAdapter;
 import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
+import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.utils.AppConstants;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
@@ -549,7 +550,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     productModel.setStatus(available.isChecked() ? "Y" : "N");
 
                     double attar1ml = Double.parseDouble(attar6ml.getText().toString()) / 6;
-
+                    ConfigModel configModel = sharedPrefHelper.getPerfumeActualMix();
                     productModel.setAttarSellingPriceMap(new HashMap<>());
                     productModel.getAttarSellingPriceMap().put(AppConstants.ML_3, attar1ml * 3);
                     productModel.getAttarSellingPriceMap().put(AppConstants.ML_6, attar1ml * 6);
@@ -565,10 +566,10 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     double actualAttar1ml = Double.parseDouble(productModel.getPrice())/1000;
 
                     productModel.setPerfumeActualPriceMap(new HashMap<>());
-                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_10, actualAttar1ml * 4);
-                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_30, actualAttar1ml * 12);
-                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_50, actualAttar1ml * 20);
-                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_100, actualAttar1ml * 35);
+                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_10, actualAttar1ml * configModel.getPerfume10mlMixer());
+                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_30, actualAttar1ml * configModel.getPerfume30mlMixer());
+                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_50, actualAttar1ml * configModel.getPerfume50mlMixer());
+                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_100, actualAttar1ml * configModel.getPerfume100mlMixer());
 
 
                     db.collection(DatabaseConstants.PRODUCTS_COLLECTION)

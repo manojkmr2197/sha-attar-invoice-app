@@ -47,12 +47,14 @@ public class InvoiceHistoryDetailViewAdapter extends RecyclerView.Adapter<Invoic
         if("PRODUCT".equalsIgnoreCase(contentList.get(index).getType())) {
             holder.itemType.setText(contentList.get(index).getType());
             holder.itemQuantity.setText(contentList.get(index).getUnits() + " ML");
+            holder.itemName.setText(contentList.get(index).getName()+"-"+contentList.get(index).getProductCategory().substring(0,1));
         }else{
             holder.itemType.setText("ACCESSORIES");
+            holder.itemName.setText(contentList.get(index).getName());
             holder.itemQuantity.setVisibility(View.GONE);
         }
 
-        holder.itemName.setText(contentList.get(index).getName()+"-"+contentList.get(index).getProductCategory().substring(0,1));
+
         if(StringUtils.isNoneBlank(contentList.get(index).getCode())) {
             holder.itemCode.setText(contentList.get(index).getCode());
         }else{

@@ -2,6 +2,10 @@ package com.app.sha.attar.invoice.utils;
 
 import static com.app.sha.attar.invoice.utils.SharedConstants.ACCESSORIES_KEY;
 import static com.app.sha.attar.invoice.utils.SharedConstants.PACKAGING_KEY;
+import static com.app.sha.attar.invoice.utils.SharedConstants.PERFUME_100ML_MIXER;
+import static com.app.sha.attar.invoice.utils.SharedConstants.PERFUME_10ML_MIXER;
+import static com.app.sha.attar.invoice.utils.SharedConstants.PERFUME_30ML_MIXER;
+import static com.app.sha.attar.invoice.utils.SharedConstants.PERFUME_50ML_MIXER;
 import static com.app.sha.attar.invoice.utils.SharedConstants.PRODUCT_KEY;
 import static com.app.sha.attar.invoice.utils.SharedConstants.SHA_ATTAR;
 
@@ -9,6 +13,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.app.sha.attar.invoice.model.AccessoriesModel;
+import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.model.SalesPersonModel;
 import com.google.gson.Gson;
@@ -131,6 +136,25 @@ public class SharedPrefHelper {
     public void setPackageCost(int amount){
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(PACKAGING_KEY, String.valueOf(amount));
+        editor.apply();
+        editor.commit();
+    }
+
+    public ConfigModel getPerfumeActualMix(){
+        ConfigModel configModel = new ConfigModel();
+        configModel.setPerfume10mlMixer(sharedPreferences.getInt(PERFUME_10ML_MIXER, 4));
+        configModel.setPerfume30mlMixer(sharedPreferences.getInt(PERFUME_30ML_MIXER, 12));
+        configModel.setPerfume50mlMixer(sharedPreferences.getInt(PERFUME_50ML_MIXER, 20));
+        configModel.setPerfume100mlMixer(sharedPreferences.getInt(PERFUME_100ML_MIXER, 35));
+        return configModel;
+    }
+
+    public void setPerfumeActualMix(ConfigModel configModel){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(PERFUME_10ML_MIXER, configModel.getPerfume10mlMixer());
+        editor.putInt(PERFUME_30ML_MIXER, configModel.getPerfume30mlMixer());
+        editor.putInt(PERFUME_50ML_MIXER, configModel.getPerfume50mlMixer());
+        editor.putInt(PERFUME_100ML_MIXER, configModel.getPerfume100mlMixer());
         editor.apply();
         editor.commit();
     }

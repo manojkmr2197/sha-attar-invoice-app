@@ -29,7 +29,7 @@ public class PackageActivity extends AppCompatActivity implements View.OnClickLi
     Context context;
     Activity activity;
 
-    TextInputEditText amount_et;
+    TextInputEditText amount_et,perfume_10ml,perfume_30ml,perfume_50ml,perfume_100ml;
 
     SharedPrefHelper helper;
 
@@ -53,7 +53,19 @@ public class PackageActivity extends AppCompatActivity implements View.OnClickLi
         helper = new SharedPrefHelper(context);
         db = DBUtil.getInstance();
         amount_et = (TextInputEditText) findViewById(R.id.packaging_amount_et);
+
+        perfume_10ml = (TextInputEditText) findViewById(R.id.packaging_perfume_10ml);
+        perfume_30ml = (TextInputEditText) findViewById(R.id.packaging_perfume_30ml);
+        perfume_50ml = (TextInputEditText) findViewById(R.id.packaging_perfume_50ml);
+        perfume_100ml = (TextInputEditText) findViewById(R.id.packaging_perfume_100ml);
+
         amount_et.setText(String.valueOf(helper.getPackageCost()));
+        ConfigModel configModel = helper.getPerfumeActualMix();
+        perfume_10ml.setText(String.valueOf(configModel.getPerfume10mlMixer()));
+        perfume_30ml.setText(String.valueOf(configModel.getPerfume30mlMixer()));
+        perfume_50ml.setText(String.valueOf(configModel.getPerfume50mlMixer()));
+        perfume_100ml.setText(String.valueOf(configModel.getPerfume100mlMixer()));
+
 
         Button submit = (Button) findViewById(R.id.packaging_save);
         submit.setOnClickListener(this);
@@ -88,6 +100,11 @@ public class PackageActivity extends AppCompatActivity implements View.OnClickLi
     private void updateDatabase() {
         ConfigModel configModel =new ConfigModel();
         configModel.setPackageCost(Integer.parseInt(amount_et.getText().toString()));
+        configModel.setPerfume10mlMixer(Integer.parseInt(perfume_10ml.getText().toString()));
+        configModel.setPerfume30mlMixer(Integer.parseInt(perfume_30ml.getText().toString()));
+        configModel.setPerfume50mlMixer(Integer.parseInt(perfume_50ml.getText().toString()));
+        configModel.setPerfume100mlMixer(Integer.parseInt(perfume_100ml.getText().toString()));
+        helper.setPerfumeActualMix(configModel);
         db.collection(DatabaseConstants.APP_CONFIG_COLLECTION)
                 .document(DatabaseConstants.APP_CONFIG_DOCUMENT)
                 .set(configModel)

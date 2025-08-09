@@ -562,21 +562,40 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
             public void onCallback(List<DocumentSnapshot> result) {
 
                 if (result.isEmpty()) {
-                    Toast.makeText(ReportActivity.this, "No records found before the given date..!", Toast.LENGTH_LONG).show();
-                    return;
+                    Toast.makeText(ReportActivity.this, "No Invoice records found before the given date..!", Toast.LENGTH_LONG).show();
+                }else {
+                    FirebaseFirestore db = DBUtil.getInstance();
+                    for (DocumentSnapshot document : result) {
+                        db.collection(DatabaseConstants.INVOICE_COLLECTION)
+                                .document(document.getId())
+                                .delete()
+                                .addOnSuccessListener(aVoid -> System.out.println("Document deleted: " + document.getId()))
+                                .addOnFailureListener(e -> System.err.println("Failed to delete document: " + document.getId()));
+                    }
+                    Toast.makeText(ReportActivity.this, "Invoice Records deleted successfully..!", Toast.LENGTH_LONG).show();
                 }
-
-                FirebaseFirestore db = DBUtil.getInstance();
-                for (DocumentSnapshot document : result) {
-                    db.collection(DatabaseConstants.INVOICE_COLLECTION)
-                            .document(document.getId())
-                            .delete()
-                            .addOnSuccessListener(aVoid -> System.out.println("Document deleted: " + document.getId()))
-                            .addOnFailureListener(e -> System.err.println("Failed to delete document: " + document.getId()));
-                }
-                Toast.makeText(ReportActivity.this, "Records deleted successfully..!", Toast.LENGTH_LONG).show();
             }
         },historyStartDt.toEpochSecond());
+        dbObj.deleteExpenseRecordsBefore(new FirestoreCallback<List<DocumentSnapshot>>() {
+            @Override
+            public void onCallback(List<DocumentSnapshot> result) {
+                if (result.isEmpty()) {
+                    Toast.makeText(ReportActivity.this, "No Expense records found before the given date..!", Toast.LENGTH_LONG).show();
+                }else{
+                    FirebaseFirestore db = DBUtil.getInstance();
+                    for (DocumentSnapshot document : result) {
+                        db.collection(DatabaseConstants.EXPENSE_COLLECTION)
+                                .document(document.getId())
+                                .delete()
+                                .addOnSuccessListener(aVoid -> System.out.println("Expense Document deleted: " + document.getId()))
+                                .addOnFailureListener(e -> System.err.println("Failed to delete Expense document: " + document.getId()));
+                    }
+                    Toast.makeText(ReportActivity.this, "Expense Records deleted successfully..!", Toast.LENGTH_LONG).show();
+                }
+
+            }
+        },historyStartDt.toEpochSecond());
+
     }
 
     private void processReport(OffsetDateTime startOfDay, OffsetDateTime endOfDay) {
