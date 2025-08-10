@@ -563,15 +563,6 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_50, Double.parseDouble(perfume50ml.getText().toString()));
                     productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_100, Double.parseDouble(perfume100ml.getText().toString()));
 
-                    double actualAttar1ml = Double.parseDouble(productModel.getPrice())/1000;
-
-                    productModel.setPerfumeActualPriceMap(new HashMap<>());
-                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_10, actualAttar1ml * configModel.getPerfume10mlMixer());
-                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_30, actualAttar1ml * configModel.getPerfume30mlMixer());
-                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_50, actualAttar1ml * configModel.getPerfume50mlMixer());
-                    productModel.getPerfumeActualPriceMap().put(AppConstants.ML_100, actualAttar1ml * configModel.getPerfume100mlMixer());
-
-
                     db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
                             .document(productModel.getDocumentId())
                             .set(productModel)
@@ -623,13 +614,6 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     newProductModel.getPerfumeSellingPriceMap().put(AppConstants.ML_30, Double.parseDouble(perfume30ml.getText().toString()));
                     newProductModel.getPerfumeSellingPriceMap().put(AppConstants.ML_50, Double.parseDouble(perfume50ml.getText().toString()));
                     newProductModel.getPerfumeSellingPriceMap().put(AppConstants.ML_100, Double.parseDouble(perfume100ml.getText().toString()));
-
-                    double actualAttar1ml = Double.parseDouble(newProductModel.getPrice())/1000;
-                    newProductModel.setPerfumeActualPriceMap(new HashMap<>());
-                    newProductModel.getPerfumeActualPriceMap().put(AppConstants.ML_10, actualAttar1ml * 4);
-                    newProductModel.getPerfumeActualPriceMap().put(AppConstants.ML_30, actualAttar1ml * 12);
-                    newProductModel.getPerfumeActualPriceMap().put(AppConstants.ML_50, actualAttar1ml * 20);
-                    newProductModel.getPerfumeActualPriceMap().put(AppConstants.ML_100, actualAttar1ml * 35);
 
                     db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
                             .document(newProductModel.getDocumentId())

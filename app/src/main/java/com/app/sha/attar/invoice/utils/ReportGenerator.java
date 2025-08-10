@@ -696,14 +696,6 @@ public class ReportGenerator {
                 productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_50, Double.parseDouble(formatter.formatCellValue(perfume50mlCell).replace("Rs.","").trim()));
                 productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_100, Double.parseDouble(formatter.formatCellValue(perfume100mlCell).replace("Rs.","").trim()));
 
-                double actualAttar1ml = Double.parseDouble(productModel.getPrice())/1000;
-
-                productModel.setPerfumeActualPriceMap(new HashMap<>());
-                productModel.getPerfumeActualPriceMap().put(AppConstants.ML_10, actualAttar1ml * configModel.getPerfume10mlMixer());
-                productModel.getPerfumeActualPriceMap().put(AppConstants.ML_30, actualAttar1ml * configModel.getPerfume30mlMixer());
-                productModel.getPerfumeActualPriceMap().put(AppConstants.ML_50, actualAttar1ml * configModel.getPerfume50mlMixer());
-                productModel.getPerfumeActualPriceMap().put(AppConstants.ML_100, actualAttar1ml * configModel.getPerfume100mlMixer());
-
                 productModel.setDocumentId(SingleTon.generateProductDocument());
 
                 productModelList.add(productModel);

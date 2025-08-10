@@ -46,6 +46,7 @@ import com.app.sha.attar.invoice.listener.TimeApi;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
+import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.model.TimeResponse;
 import com.app.sha.attar.invoice.utils.DBUtil;
@@ -694,7 +695,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                             billingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                         }else {
                             billingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")));
-                            billingItemModel.setTotalPrice((selectedProduct[0].getPerfumeActualPriceMap().get(productQtySpinner.getSelectedItem().toString())) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            billingItemModel.setTotalPrice(getPerfumeActualPrice(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")),fullPrice / 1000)  + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                             billingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                         }
                     } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
@@ -747,7 +748,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                                 newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                             }else{
                                 newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML","")));
-                                newBillingItemModel.setTotalPrice((Double.valueOf(selectedProduct[0].getPerfumeActualPriceMap().get(productQtySpinner.getSelectedItem().toString()))) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                                newBillingItemModel.setTotalPrice(getPerfumeActualPrice(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")),fullPrice / 1000)  + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                                 newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                             }
 
@@ -778,6 +779,26 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         });
         dialog.show();
 
+    }
+
+    private double getPerfumeActualPrice(int ml,double unitPrice) {
+        double actualPerfumePrice = 0;
+        ConfigModel configModel = sharedPrefHelper.getPerfumeActualMix();
+        switch (ml){
+            case 10 :
+                actualPerfumePrice = unitPrice * configModel.getPerfume10mlMixer();
+                break;
+            case 30 :
+                actualPerfumePrice = unitPrice * configModel.getPerfume30mlMixer();
+                break;
+            case 50 :
+                actualPerfumePrice = unitPrice * configModel.getPerfume50mlMixer();
+                break;
+            case 100 :
+                actualPerfumePrice = unitPrice * configModel.getPerfume100mlMixer();
+                break;
+        }
+        return actualPerfumePrice;
     }
 
     private void createNewBillDialogOLD(Context context, BillingItemModel billingItemModel) {

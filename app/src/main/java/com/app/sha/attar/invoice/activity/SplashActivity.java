@@ -83,6 +83,7 @@ public class SplashActivity extends AppCompatActivity {
             public void onCallback(ConfigModel result) {
                 if (result != null) {
                     helper.setPackageCost(result.getPackageCost());
+                    helper.setPerfumeActualMix(result);
                 } else {
                     helper.setPackageCost(15);
                 }

@@ -14,8 +14,8 @@
             android:title="Accessories" />
         <item
             android:id="@+id/nav_packaging"
-            android:icon="@drawable/delivery"
-            android:title="Packaging" />
+            android:icon="@drawable/baseline_construction_24"
+            android:title="Utilities" />
 
     </group>
 
