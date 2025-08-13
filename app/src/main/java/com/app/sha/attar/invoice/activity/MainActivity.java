@@ -240,7 +240,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
         billingAdapter = new BillingViewAdapter(context, billingItemModelList, listener);
-        bill_recycler.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        layoutManager.setStackFromEnd(true);
+        bill_recycler.setLayoutManager(layoutManager);
         bill_recycler.setAdapter(billingAdapter);
 
         billingAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
@@ -820,13 +822,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedNonProduct[0].getName());
-                        billingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice());
+                        billingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice()+ Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
 
                     }
                     billingItemModelList.add(billingItemModel);
                     billingAdapter.notifyDataSetChanged();
+                    if (billingAdapter.getItemCount() > 0)
+                        bill_recycler.post(() -> bill_recycler.scrollToPosition(billingAdapter.getItemCount() - 1));
                     manageBillingLayout();
                 } else {
                     int iterCount = 0;
@@ -876,12 +880,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                             newBillingItemModel.setType(type[0]);
                             newBillingItemModel.setName(selectedNonProduct[0].getName());
-                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice());
+                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice()+ Integer.valueOf(sharedPrefHelper.getPackageCost()));
                             newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         }
                         billingItemModelList.add(newBillingItemModel);
                     }
                     billingAdapter.notifyDataSetChanged();
+                    if (billingAdapter.getItemCount() > 0)
+                        bill_recycler.post(() -> bill_recycler.scrollToPosition(billingAdapter.getItemCount() - 1));
                     manageBillingLayout();
 
                 }

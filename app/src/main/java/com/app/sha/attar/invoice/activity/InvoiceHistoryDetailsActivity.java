@@ -197,7 +197,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             }
         };
         invoiceAdapter =new InvoiceHistoryDetailViewAdapter(context,itemModelList,clickListener);
-        itemRecyclerview.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        layoutManager.setStackFromEnd(true);
+        itemRecyclerview.setLayoutManager(layoutManager);
         itemRecyclerview.setAdapter(invoiceAdapter);
 
         invoiceAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
@@ -721,7 +723,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                         }
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedNonProduct[0].getName());
-                        billingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice());
+                        billingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice()+ Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
 
@@ -777,7 +779,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                             newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                             newBillingItemModel.setType(type[0]);
                             newBillingItemModel.setName(selectedNonProduct[0].getName());
-                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice());
+                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice()+ Integer.valueOf(sharedPrefHelper.getPackageCost()));
                             newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         }
                         itemModelList.add(newBillingItemModel);
