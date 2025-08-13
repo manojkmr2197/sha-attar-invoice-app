@@ -3,14 +3,19 @@ package com.app.sha.attar.invoice.activity;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
@@ -105,7 +110,8 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
             Window window = this.getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.setStatusBarColor(this.getResources().getColor(R.color.white));
+            window.setStatusBarColor(getResources().getColor(android.R.color.transparent, getTheme()));
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         }
 
         no_data_fl = (FrameLayout) findViewById(R.id.expense_no_data_ll);
@@ -260,10 +266,15 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
     }
 
     private void createSpecialDialogBox(Context context) {
-        BottomSheetDialog dialog = new BottomSheetDialog(context);
+        Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_special_expense_create);
         dialog.setCanceledOnTouchOutside(false);
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        dialog.getWindow().setGravity(Gravity.TOP);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         TextInputEditText price = (TextInputEditText) dialog.findViewById(R.id.expense_special_add_price);
         Spinner type = (Spinner) dialog.findViewById(R.id.expense_special_add_type);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -355,10 +366,15 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
 
     private void createDialogBox(Context context, ExpenseModel expenseModel) {
 
-        BottomSheetDialog dialog = new BottomSheetDialog(context);
+        Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_expense_create);
         dialog.setCanceledOnTouchOutside(false);
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        dialog.getWindow().setGravity(Gravity.TOP);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         TextInputEditText title = (TextInputEditText) dialog.findViewById(R.id.expense_add_name);
         TextInputEditText price = (TextInputEditText) dialog.findViewById(R.id.expense_add_price);
         date = (TextView) dialog.findViewById(R.id.expense_add_date_tv);
@@ -563,6 +579,7 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
         );
+        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
         datePickerDialog.show();
 
     }

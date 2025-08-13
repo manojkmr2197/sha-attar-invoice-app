@@ -2,6 +2,7 @@ package com.app.sha.attar.invoice.viewholder;
 
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -14,7 +15,7 @@ public class InvoiceHistoryViewHolder extends RecyclerView.ViewHolder {
 
     public Button edit,delete;
     public TextView id,date,name,phone,discount,sellingPrice,actualPrice,profit;
-
+    public ImageView printBt;
     public LinearLayout owner_view;
 
     public InvoiceHistoryViewHolder(@NonNull View itemView) {
@@ -30,5 +31,6 @@ public class InvoiceHistoryViewHolder extends RecyclerView.ViewHolder {
         actualPrice = (TextView) itemView.findViewById(R.id.invoice_history_item_actual_amount);
         profit = (TextView) itemView.findViewById(R.id.invoice_history_item_profit);
         owner_view = (LinearLayout) itemView.findViewById(R.id.invoice_history_item_owner_detail_ll);
+        printBt = (ImageView) itemView.findViewById(R.id.invoice_history_item_print);
     }
 }

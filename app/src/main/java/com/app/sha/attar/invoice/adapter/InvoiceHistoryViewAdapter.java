@@ -35,6 +35,7 @@ public class InvoiceHistoryViewAdapter extends RecyclerView.Adapter<InvoiceHisto
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm a");
     ZoneOffset istOffset = ZoneOffset.ofHoursMinutes(5, 30);
     DecimalFormat df = new DecimalFormat("#.00");
+
     public InvoiceHistoryViewAdapter(Context context, List<BillingInvoiceModel> contentList, BillingClickListener clickListener, Boolean owner) {
         this.context = context;
         this.contentList = contentList;
@@ -53,7 +54,7 @@ public class InvoiceHistoryViewAdapter extends RecyclerView.Adapter<InvoiceHisto
 
         int index = holder.getAdapterPosition();
 
-        holder.id.setText(contentList.get(index).getBillingDate()+"");
+        holder.id.setText(contentList.get(index).getBillingDate() + "");
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             OffsetDateTime offsetDateTime = Instant.ofEpochSecond(contentList.get(index).getBillingDate()).atOffset(istOffset);
@@ -62,32 +63,45 @@ public class InvoiceHistoryViewAdapter extends RecyclerView.Adapter<InvoiceHisto
 
         holder.name.setText(contentList.get(index).getCustomerName().trim());
         holder.phone.setText(contentList.get(index).getCustomerPhone().trim());
-        holder.discount.setText(contentList.get(index).getDiscount()+" %");
-        holder.sellingPrice.setText("Rs. "+df.format(contentList.get(index).getSellingCost()));
+        holder.discount.setText(contentList.get(index).getDiscount() + " %");
+        holder.sellingPrice.setText("Rs. " + df.format(contentList.get(index).getSellingCost()));
 
-        if (owner){
+        if (contentList.get(index).getIsPrint()) {
+            holder.printBt.setImageDrawable(context.getDrawable(R.drawable.baseline_print_inactive24));
+        } else {
+            holder.printBt.setImageDrawable(context.getDrawable(R.drawable.baseline_print_active24));
+        }
+
+        if (owner) {
             holder.owner_view.setVisibility(View.VISIBLE);
 
             final Double[] actualPrice = {0.0};
-            contentList.get(index).getBillingItemModelList().stream().forEach(data -> actualPrice[0] +=data.getTotalPrice());
+            contentList.get(index).getBillingItemModelList().stream().forEach(data -> actualPrice[0] += data.getTotalPrice());
 
-            holder.actualPrice.setText("Rs. "+df.format(actualPrice[0]));
-            holder.profit.setText("Rs. "+df.format((contentList.get(index).getSellingCost()-actualPrice[0])));
-        }else{
+            holder.actualPrice.setText("Rs. " + df.format(actualPrice[0]));
+            holder.profit.setText("Rs. " + df.format((contentList.get(index).getSellingCost() - actualPrice[0])));
+        } else {
             holder.owner_view.setVisibility(View.GONE);
         }
 
         holder.edit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                clickListener.click(index,"EDIT");
+                clickListener.click(index, "EDIT");
             }
         });
 
         holder.delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                clickListener.click(index,"DELETE");
+                clickListener.click(index, "DELETE");
+            }
+        });
+
+        holder.printBt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                clickListener.click(index, "PRINT");
             }
         });
 

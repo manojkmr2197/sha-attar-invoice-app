@@ -1,10 +1,14 @@
 package com.app.sha.attar.invoice.activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -17,34 +21,35 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.InvoiceHistoryViewAdapter;
 import com.app.sha.attar.invoice.listener.BillingClickListener;
-import com.app.sha.attar.invoice.listener.ClickListener;
-import com.app.sha.attar.invoice.listener.TimeApi;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
-import com.app.sha.attar.invoice.model.TimeResponse;
+import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
-import com.app.sha.attar.invoice.utils.RetrofitClient;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
+import com.dantsu.escposprinter.EscPosPrinter;
+import com.dantsu.escposprinter.connection.bluetooth.BluetoothConnection;
+import com.dantsu.escposprinter.connection.bluetooth.BluetoothPrintersConnections;
+import com.dantsu.escposprinter.textparser.PrinterTextParserImg;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -53,17 +58,17 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class InvoiceHistoryActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private static final int PERMISSION_BLUETOOTH = 1;
+    private static final int PERMISSION_BLUETOOTH_ADMIN = 2;
+    private static final int PERMISSION_BLUETOOTH_CONNECT = 3;
+    private static final int PERMISSION_BLUETOOTH_SCAN = 4;
     Context context;
     Activity activity;
 
@@ -71,16 +76,16 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
     OffsetDateTime endOfDay;
 
     TextView back;
-    TextView start_tv,end_tv;
+    TextView start_tv, end_tv;
     Button submit_bt;
 
     LinearLayout filter_ll;
-    FrameLayout data_ll,no_data_ll;
+    FrameLayout data_ll, no_data_ll;
     FloatingActionButton add_fab;
 
     RecyclerView data_recycler_view;
 
-    List<BillingInvoiceModel> contentList =new ArrayList<>();
+    List<BillingInvoiceModel> contentList = new ArrayList<>();
     InvoiceHistoryViewAdapter adapter;
     BillingClickListener listener;
 
@@ -101,12 +106,13 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
             Window window = this.getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.setStatusBarColor(this.getResources().getColor(R.color.white));
+            window.setStatusBarColor(getResources().getColor(android.R.color.transparent, getTheme()));
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         }
         context = InvoiceHistoryActivity.this;
         activity = InvoiceHistoryActivity.this;
         dbObj = new DBUtil();
-        db  = DBUtil.getInstance();
+        db = DBUtil.getInstance();
         sharedPrefHelper = new SharedPrefHelper(context);
         back = (TextView) findViewById(R.id.invoice_history_back);
         back.setOnClickListener(this);
@@ -119,7 +125,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         submit_bt = (Button) findViewById(R.id.invoice_history_search);
         submit_bt.setOnClickListener(this);
 
-        filter_ll = (LinearLayout)findViewById(R.id.invoice_history_filter_ll);
+        filter_ll = (LinearLayout) findViewById(R.id.invoice_history_filter_ll);
         data_ll = (FrameLayout) findViewById(R.id.invoice_history_data_ll);
         no_data_ll = (FrameLayout) findViewById(R.id.invoice_history_no_data_ll);
 
@@ -127,41 +133,174 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         add_fab.setOnClickListener(this);
 
         Intent intent = getIntent();
-        owner= intent.getBooleanExtra("owner",false);
+        owner = intent.getBooleanExtra("owner", false);
 
         listener = new BillingClickListener() {
             @Override
-            public void click(int index,String type) {
+            public void click(int index, String type) {
 
-                if(checkInternet() && type.equalsIgnoreCase("EDIT")) {
+                if (checkInternet() && type.equalsIgnoreCase("EDIT")) {
                     //callDetailActivity(context, filteredList.get(index));
                     System.out.println("clicked item : " + index);
                     Intent i = new Intent(InvoiceHistoryActivity.this, InvoiceHistoryDetailsActivity.class);
                     i.putExtra("invoiceId", String.valueOf(contentList.get(index).getBillingDate()));
                     startActivity(i);
-                }else if(checkInternet() && type.equalsIgnoreCase("DELETE")){
+                } else if (checkInternet() && type.equalsIgnoreCase("DELETE")) {
                     deleteConfirmationPopup(index);
+                } else if (checkInternet() && type.equalsIgnoreCase("PRINT")) {
+                    printConfirmationPopup(contentList.get(index));
                 }
             }
         };
 
         data_recycler_view = (RecyclerView) findViewById(R.id.invoice_history_recyclerView);
-        adapter = new InvoiceHistoryViewAdapter(context,contentList,listener,owner);
+        adapter = new InvoiceHistoryViewAdapter(context, contentList, listener, owner);
         data_recycler_view.setLayoutManager(new LinearLayoutManager(this));
         data_recycler_view.setAdapter(adapter);
 
-        if(!owner){
+        if (!owner) {
             filter_ll.setVisibility(View.GONE);
             getServerDate();
         }
+
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S && ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH}, InvoiceHistoryActivity.PERMISSION_BLUETOOTH);
+        } else if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S && ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_ADMIN}, InvoiceHistoryActivity.PERMISSION_BLUETOOTH_ADMIN);
+        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S && ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, InvoiceHistoryActivity.PERMISSION_BLUETOOTH_CONNECT);
+        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S && ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_SCAN}, InvoiceHistoryActivity.PERMISSION_BLUETOOTH_SCAN);
+        } else {
+            // Your code HERE
+        }
+    }
+
+    private void printConfirmationPopup(BillingInvoiceModel billData) {
+        // Create and configure the AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Confirmation");
+        if (!billData.getIsPrint()) {
+            builder.setMessage("Do you want to print the bill?");
+        } else {
+            builder.setMessage("Already Bill printed. Do you want to print it again?");
+        }
+        builder.setCancelable(true);
+
+        // Set positive button
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            printSmallFontReceipt(billData);
+            dialog.dismiss();
+        });
+
+        // Set negative button
+        builder.setNegativeButton("No", (dialog, which) -> {
+            dialog.dismiss();
+        });
+
+        // Create and show the dialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+
+
+    }
+
+    private void printSmallFontReceipt(BillingInvoiceModel billData) {
+        try {
+            BluetoothConnection printerConnection = BluetoothPrintersConnections.selectFirstPaired();
+
+            if (printerConnection == null) {
+                Toast.makeText(this, "No Bluetooth printer found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Toast.makeText(this, "Printing .!", Toast.LENGTH_SHORT).show();
+            // 80mm paper → 72mm printable width → very small font by using 72 chars per line
+            EscPosPrinter printer = new EscPosPrinter(printerConnection, 203, 72f, 72);
+
+            // Load logo
+            Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.app_logo);
+
+            // Date in top right corner
+            String dateStr = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
+
+            // Build product list with 3-column format
+            StringBuilder productLines = new StringBuilder();
+            for (BillingItemModel p : billData.getBillingItemModelList()) {
+
+                productLines.append(String.format(
+                        "[L]%-40s %-7s %10.2f\n", // Name, Qty, Price
+                        p.getName().length() > 40 ? p.getName().substring(0, 40) : p.getName(), // trim if too long
+                        String.format("%d ML", p.getUnits()),
+                        String.format("Rs. %d", p.getSellingItemPrice())
+                ));
+            }
+
+            // Calculate grand total
+            //double totalAmount = products.stream().mapToDouble(p -> p.qty * p.price).sum();
+
+            // Build receipt content
+            String textToPrint = "";
+            if (billData.getDiscount() > 0) {
+                textToPrint =
+                        "[C]<img>" + PrinterTextParserImg.bitmapToHexadecimalString(printer, logo) + "</img>\n" +
+                                "[R]" + dateStr + "\n" +
+                                "[L]\n" +
+                                "[C]<u>ORDER N°" + billData.getBillingDate() + "</u>\n" +
+                                "[L]\n" +
+                                "[L]----------------------------------------------------------------------\n" +
+                                "<font size='small'>" + productLines.toString() + "</font>" +
+                                "[L]----------------------------------------------------------------------\n" +
+                                "[L]<b>Sum:</b>[R]" + String.format("%.2f", billData.getTotalCost()) + "\n" +
+                                "[L]<b>Discount:</b>[R]" + String.format("%.2f", billData.getDiscount()) + "\n" +
+                                "[L]<b>Total:</b>[R]" + String.format("%.2f", billData.getSellingCost()) + "\n\n";
+
+            } else {
+                textToPrint =
+                        "[C]<img>" + PrinterTextParserImg.bitmapToHexadecimalString(printer, logo) + "</img>\n" +
+                                "[R]" + dateStr + "\n" +
+                                "[L]\n" +
+                                "[C]<u>ORDER N°" + billData.getBillingDate() + "</u>\n" +
+                                "[L]\n" +
+                                "[L]----------------------------------------------------------------------\n" +
+                                "<font size='small'>" + productLines.toString() + "</font>" +
+                                "[L]----------------------------------------------------------------------\n" +
+                                "[L]<b>Total:</b>[R]" + String.format("%.2f", billData.getSellingCost()) + "\n\n";
+            }
+            printer.printFormattedTextAndCut(textToPrint);
+            Toast.makeText(this, "Updating .!", Toast.LENGTH_SHORT).show();
+            updatePrintStatusToDatabase(billData);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Printing Failed .!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void updatePrintStatusToDatabase(BillingInvoiceModel billingInvoiceModel) {
+        billingInvoiceModel.setIsPrint(true);
+        db.collection(DatabaseConstants.INVOICE_COLLECTION)
+                .document(String.valueOf(billingInvoiceModel.getBillingDate()))
+                .set(billingInvoiceModel)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Toast.makeText(context, "Printing Success .!", Toast.LENGTH_SHORT).show();
+                        adapter.notifyDataSetChanged();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(context, "Internal server error..!", Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     private void getServerDate() {
         SharedPrefHelper sharedPrefHelper = new SharedPrefHelper(context);
         OffsetDateTime offsetDateTime = null;
-        if(StringUtils.isNotBlank(sharedPrefHelper.getSystemTime())) {
+        if (StringUtils.isNotBlank(sharedPrefHelper.getSystemTime())) {
             offsetDateTime = OffsetDateTime.parse(sharedPrefHelper.getSystemTime()).withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));
-        }else {
+        } else {
             offsetDateTime = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));
         }
         startOfDay = offsetDateTime.withHour(0).withMinute(0).withSecond(0).minusDays(1);
@@ -203,20 +342,20 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                     contentList.remove(index);
                     adapter.notifyDataSetChanged();
                 })
-                .addOnFailureListener(e ->  Toast.makeText(InvoiceHistoryActivity.this, "Invoice deleted failed..!", Toast.LENGTH_LONG).show());
+                .addOnFailureListener(e -> Toast.makeText(InvoiceHistoryActivity.this, "Invoice deleted failed..!", Toast.LENGTH_LONG).show());
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if(startOfDay != null && endOfDay != null){
+        if (startOfDay != null && endOfDay != null) {
             getInvoiceRecords(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
         }
     }
 
 
     private void getInvoiceRecords(long startOfDay, long endOfDay) {
-        if(!owner){
+        if (!owner) {
             dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
                 @Override
                 public void onCallback(List<BillingInvoiceModel> result) {
@@ -236,8 +375,8 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                     adapter.notifyDataSetChanged();
 
                 }
-            }, startOfDay, endOfDay,sharedPrefHelper.getLoginUserPhone());
-        }else{
+            }, startOfDay, endOfDay, sharedPrefHelper.getLoginUserPhone());
+        } else {
             dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
                 @Override
                 public void onCallback(List<BillingInvoiceModel> result) {
@@ -266,25 +405,25 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
     public void onClick(View view) {
         if (R.id.invoice_history_back == view.getId()) {
             finish();
-        } else if(R.id.invoice_history_start_date_tv == view.getId()){
+        } else if (R.id.invoice_history_start_date_tv == view.getId()) {
             showStartDatePickerDialog();
-        } else if(R.id.invoice_history_end_date_tv == view.getId()){
+        } else if (R.id.invoice_history_end_date_tv == view.getId()) {
             showEndDatePickerDialog();
-        } else if(R.id.invoice_history_search == view.getId()){
-            if(startOfDay == null){
+        } else if (R.id.invoice_history_search == view.getId()) {
+            if (startOfDay == null) {
                 Toast.makeText(context, "Select Start date ..!", Toast.LENGTH_LONG).show();
                 return;
             }
-            if(endOfDay == null){
+            if (endOfDay == null) {
                 Toast.makeText(context, "Select End date ..!", Toast.LENGTH_LONG).show();
                 return;
             }
             if (checkInternet())
                 getInvoiceRecords(startOfDay.toEpochSecond(), endOfDay.toEpochSecond());
-        } else if(R.id.invoice_history_add_fab == view.getId()){
+        } else if (R.id.invoice_history_add_fab == view.getId()) {
             //call intent to  invoice detail activity
             Intent i = new Intent(InvoiceHistoryActivity.this, InvoiceHistoryDetailsActivity.class);
-            i.putExtra("owner",owner);
+            i.putExtra("owner", owner);
             startActivity(i);
         }
     }
@@ -357,7 +496,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                 month,
                 day
         );
-        datePickerDialog.getDatePicker().setMinDate((startOfDay != null)?startOfDay.toInstant().toEpochMilli():System.currentTimeMillis());
+        datePickerDialog.getDatePicker().setMinDate((startOfDay != null) ? startOfDay.toInstant().toEpochMilli() : System.currentTimeMillis());
         datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
         datePickerDialog.show();
 

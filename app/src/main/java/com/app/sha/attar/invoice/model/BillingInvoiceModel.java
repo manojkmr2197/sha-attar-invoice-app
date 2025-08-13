@@ -11,7 +11,7 @@ public class BillingInvoiceModel {
     String customerName;
     String customerPhone;
     String paymentMode;
-    String isPrint;
+    Boolean isPrint;
     String remarks;
     Double sellingCost;
     List<BillingItemModel> billingItemModelList;
@@ -98,11 +98,11 @@ public class BillingInvoiceModel {
         this.paymentMode = paymentMode;
     }
 
-    public String getIsPrint() {
+    public Boolean getIsPrint() {
         return isPrint;
     }
 
-    public void setIsPrint(String isPrint) {
+    public void setIsPrint(Boolean isPrint) {
         this.isPrint = isPrint;
     }
 }

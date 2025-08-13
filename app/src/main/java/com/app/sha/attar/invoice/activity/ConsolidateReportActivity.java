@@ -93,7 +93,8 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
             Window window = this.getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.setStatusBarColor(this.getResources().getColor(R.color.white));
+            window.setStatusBarColor(getResources().getColor(android.R.color.transparent, getTheme()));
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         }
         context = ConsolidateReportActivity.this;
         activity = ConsolidateReportActivity.this;
