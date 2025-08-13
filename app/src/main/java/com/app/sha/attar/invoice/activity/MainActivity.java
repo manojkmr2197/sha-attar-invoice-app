@@ -234,7 +234,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
         billingAdapter = new BillingViewAdapter(context, billingItemModelList, listener);
-        bill_recycler.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        layoutManager.setStackFromEnd(true);
+        bill_recycler.setLayoutManager(layoutManager);
         bill_recycler.setAdapter(billingAdapter);
 
         billingAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {

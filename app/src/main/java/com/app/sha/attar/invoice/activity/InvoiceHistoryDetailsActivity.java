@@ -195,7 +195,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             }
         };
         invoiceAdapter =new InvoiceHistoryDetailViewAdapter(context,itemModelList,clickListener);
-        itemRecyclerview.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        layoutManager.setStackFromEnd(true);
+        itemRecyclerview.setLayoutManager(layoutManager);
         itemRecyclerview.setAdapter(invoiceAdapter);
 
         invoiceAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
