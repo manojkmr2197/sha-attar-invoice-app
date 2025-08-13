@@ -172,11 +172,16 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                         Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
 
                         if (pairedDevices.size() > 0) {
-                            StringBuilder devicesList = new StringBuilder("");
+                            boolean state = false;
                             for (BluetoothDevice device : pairedDevices) {
-                                devicesList.append(device.getName()).append(" (").append(device.getAddress()).append(")\n");
+                                if (device.getName().contains("RP3230") && !state) {
+                                    printConfirmationPopup(contentList.get(index), device.getName());
+                                    state =true;
+                                }
                             }
-                            printConfirmationPopup(contentList.get(index),devicesList.toString());
+                            if(!state){
+                                Toast.makeText(context, "Printer not connected properly.!", Toast.LENGTH_SHORT).show();
+                            }
                         } else {
                             Toast.makeText(context, "No paired devices found", Toast.LENGTH_SHORT).show();
                         }
@@ -230,11 +235,11 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
 
     }
 
-    private void printConfirmationPopup(BillingInvoiceModel billData,String printer) {
+    private void printConfirmationPopup(BillingInvoiceModel billData, String printer) {
         // Create and configure the AlertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Confirmation ("+printer+")");
-        if (!billData.getIsPrint()) {
+        builder.setTitle("Confirmation (" + printer + ")");
+        if (billData.getIsPrint() == null || !billData.getIsPrint()) {
             builder.setMessage("Do you want to print the bill?");
         } else {
             builder.setMessage("Already Bill printed. Do you want to print it again?");
@@ -243,8 +248,10 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
 
         // Set positive button
         builder.setPositiveButton("Yes", (dialog, which) -> {
-            printSmallFontReceipt(billData);
             dialog.dismiss();
+            Toast.makeText(this, "Please Wait", Toast.LENGTH_SHORT).show();
+            printSmallFontReceipt(billData);
+
         });
 
         // Set negative button
@@ -267,60 +274,67 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                 Toast.makeText(this, "No Bluetooth printer found", Toast.LENGTH_SHORT).show();
                 return;
             }
+
+
             Toast.makeText(this, "Printing .!", Toast.LENGTH_SHORT).show();
             // 80mm paper → 72mm printable width → very small font by using 72 chars per line
-            EscPosPrinter printer = new EscPosPrinter(printerConnection, 203, 72f, 72);
+            EscPosPrinter printer = new EscPosPrinter(printerConnection, 203, 72f, 32);
 
             // Load logo
-            Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.app_logo);
+            Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.app_logo_printing);
 
             // Date in top right corner
             String dateStr = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
+            int lineWidth = 42;
+            String separator = new String(new char[lineWidth]).replace('\0', '-');
 
             // Build product list with 3-column format
             StringBuilder productLines = new StringBuilder();
+            //productLines.append(String.format("[L]%-20s %6s %10s\n", "", "", ""));
             for (BillingItemModel p : billData.getBillingItemModelList()) {
+                String name = p.getName().length() > 20 ? p.getName().substring(0, 20) : p.getName();
+                String qty = p.getUnits() != null ? p.getUnits() + "ML" : "";
+                String price = "Rs." + String.format("%.2f", p.getSellingItemPrice());
 
-                productLines.append(String.format(
-                        "[L]%-40s %-7s %10.2f\n", // Name, Qty, Price
-                        p.getName().length() > 40 ? p.getName().substring(0, 40) : p.getName(), // trim if too long
-                        String.format("%d ML", p.getUnits()),
-                        String.format("Rs. %d", p.getSellingItemPrice())
-                ));
+                productLines.append(String.format("[L]%-20s %6s %10s\n", name, qty, price));
             }
+            //productLines.append(String.format("[L]%-20s %6s %10s\n", "", "", ""));
 
-            // Calculate grand total
-            //double totalAmount = products.stream().mapToDouble(p -> p.qty * p.price).sum();
 
-            // Build receipt content
-            String textToPrint = "";
+            StringBuilder receipt = new StringBuilder();
+
+// Logo
+            receipt.append("[C]<img>")
+                    .append(PrinterTextParserImg.bitmapToHexadecimalString(printer, logo))
+                    .append("</img>\n");
+
+// Header: Centered, bold, underline
+            receipt.append("[L]<u><b>ORDER No: ")
+                    .append(billData.getBillingDate())
+                    .append("</b></u>\n");
+
+
+// Separator
+            receipt.append("[L]").append(separator).append("\n");
+            receipt.append(String.format("[L]%-20s %6s %10s\n", "PRODUCT", "QTY", "PRICE"));
+            receipt.append("[L]").append(separator).append("\n");
+// Product lines in small font
+            receipt.append(productLines.toString());
+            receipt.append("[L]").append(separator).append("\n");
+
+// Totals (Right aligned)
             if (billData.getDiscount() > 0) {
-                textToPrint =
-                        "[C]<img>" + PrinterTextParserImg.bitmapToHexadecimalString(printer, logo) + "</img>\n" +
-                                "[R]" + dateStr + "\n" +
-                                "[L]\n" +
-                                "[C]<u>ORDER N°" + billData.getBillingDate() + "</u>\n" +
-                                "[L]\n" +
-                                "[L]----------------------------------------------------------------------\n" +
-                                "<font size='small'>" + productLines.toString() + "</font>" +
-                                "[L]----------------------------------------------------------------------\n" +
-                                "[L]<b>Sum:</b>[R]" + String.format("%.2f", billData.getTotalCost()) + "\n" +
-                                "[L]<b>Discount:</b>[R]" + String.format("%.2f", billData.getDiscount()) + "\n" +
-                                "[L]<b>Total:</b>[R]" + String.format("%.2f", billData.getSellingCost()) + "\n\n";
-
-            } else {
-                textToPrint =
-                        "[C]<img>" + PrinterTextParserImg.bitmapToHexadecimalString(printer, logo) + "</img>\n" +
-                                "[R]" + dateStr + "\n" +
-                                "[L]\n" +
-                                "[C]<u>ORDER N°" + billData.getBillingDate() + "</u>\n" +
-                                "[L]\n" +
-                                "[L]----------------------------------------------------------------------\n" +
-                                "<font size='small'>" + productLines.toString() + "</font>" +
-                                "[L]----------------------------------------------------------------------\n" +
-                                "[L]<b>Total:</b>[R]" + String.format("%.2f", billData.getSellingCost()) + "\n\n";
+                receipt.append("[R]<b>Sum:</b>").append("Rs.").append(String.format("%.2f", billData.getTotalCost())).append("\n");
+                receipt.append("[R]<b>Discount:</b>").append(String.format("%.2f", billData.getDiscount())).append("%\n");
             }
-            printer.printFormattedTextAndCut(textToPrint);
+            receipt.append("[R]<b>Total:</b>").append("Rs.").append(String.format("%.2f", billData.getSellingCost())).append("\n");
+
+// Footer: Centered thank you
+            receipt.append("\n[C]Thank you for shopping!\n\n");
+
+// Print
+            printer.printFormattedTextAndCut(receipt.toString());
+
             Toast.makeText(this, "Updating .!", Toast.LENGTH_SHORT).show();
             updatePrintStatusToDatabase(billData);
 

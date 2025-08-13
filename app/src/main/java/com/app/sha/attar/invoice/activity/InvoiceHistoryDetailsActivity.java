@@ -1199,6 +1199,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         billingInvoiceModel.setSellingCost(sellingAmount);
         billingInvoiceModel.setTotalCost(totalAmount);
         billingInvoiceModel.setBillingItemModelList(itemModelList);
+        billingInvoiceModel.setIsPrint(false);
         itemModelList.stream().forEach(item -> {
             item.setInvoiceId(billingInvoiceModel.getBillingDate());
         });

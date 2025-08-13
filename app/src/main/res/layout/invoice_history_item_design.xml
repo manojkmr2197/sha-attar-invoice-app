@@ -40,7 +40,6 @@
                     android:layout_gravity="center"
                     android:src="@drawable/baseline_print_active24"
                     android:scaleType="fitCenter"
-                    android:visibility="gone"
                     android:adjustViewBounds="true"
                     android:alpha="0.6" /> <!-- Optional transparency -->
 
