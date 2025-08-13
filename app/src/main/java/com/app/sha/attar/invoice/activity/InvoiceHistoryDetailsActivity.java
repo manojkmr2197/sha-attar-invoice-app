@@ -389,6 +389,8 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         discountTv.setText(discount+" %");
         sellingAmountTv.setText("Rs. " + sellingAmount);
         invoiceAdapter.notifyDataSetChanged();
+        if (invoiceAdapter.getItemCount() > 0)
+            itemRecyclerview.post(() -> itemRecyclerview.scrollToPosition(invoiceAdapter.getItemCount() - 1));
     }
 
     private void createNewBillDialog(Context context, BillingItemModel billingItemModel) {

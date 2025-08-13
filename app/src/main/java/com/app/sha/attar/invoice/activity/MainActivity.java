@@ -1,7 +1,6 @@
 package com.app.sha.attar.invoice.activity;
 
 
-
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -101,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     List<ProductModel> productModelList = new ArrayList<>();
     List<AccessoriesModel> accessoriesModelList = new ArrayList<>();
 
-    FrameLayout  empty_ll;
+    FrameLayout empty_ll;
     LinearLayout content_ll;
 
     RecyclerView bill_recycler;
@@ -119,9 +118,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     TextView customer_name, customer_phone;
 
     RadioGroup paymentGroup;
-    RadioButton cashRadioBt,upiRadioBt;
+    RadioButton cashRadioBt, upiRadioBt;
 
-    Double totalAmount =  0.0, sellingAmount = 0.0, discount = 0.0;
+    Double totalAmount = 0.0, sellingAmount = 0.0, discount = 0.0;
 
     SharedPrefHelper sharedPrefHelper;
     DBUtil dbObj;
@@ -129,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private static final int REQUEST_WRITE_PERMISSION = 786;
 
-    String paymentMode="";
+    String paymentMode = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -158,13 +157,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onClick(View v) {
 
-                if("ADMIN".equalsIgnoreCase(sharedPrefHelper.getLoginUserType())){
+                if ("ADMIN".equalsIgnoreCase(sharedPrefHelper.getLoginUserType())) {
                     if (!mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
                         mDrawerLayout.openDrawer(GravityCompat.START);
                     } else {
                         mDrawerLayout.closeDrawer(GravityCompat.START);
                     }
-                }else{
+                } else {
                     Toast.makeText(context, "You are not a Admin .! ", Toast.LENGTH_LONG).show();
                 }
             }
@@ -222,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         home_invoice_tv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-               getServerDate();
+                getServerDate();
             }
         });
 
@@ -242,7 +241,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         billingAdapter = new BillingViewAdapter(context, billingItemModelList, listener);
         bill_recycler.setLayoutManager(new LinearLayoutManager(this));
-        bill_recycler.scrollToPosition((billingItemModelList.size()>0)?billingItemModelList.size() - 1:0);
         bill_recycler.setAdapter(billingAdapter);
 
         billingAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
@@ -250,7 +248,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onChanged() {
                 super.onChanged();
                 //bill_recycler.scrollToPosition((billingItemModelList.size()>0)?billingItemModelList.size() - 1:0);
-                bill_recycler.post(() -> bill_recycler.scrollToPosition(billingAdapter.getItemCount() - 1));
+                if (billingAdapter.getItemCount() > 0)
+                    bill_recycler.post(() -> bill_recycler.scrollToPosition(billingAdapter.getItemCount() - 1));
             }
         });
 
@@ -313,7 +312,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         billing_discount.setText("%  " + discount);
         billing_selling_amount.setText("Rs. " + sellingAmount);
         billingAdapter.notifyDataSetChanged();
-        bill_recycler.post(() -> bill_recycler.scrollToPosition(billingAdapter.getItemCount() - 1));
+        if (billingAdapter.getItemCount() > 0)
+            bill_recycler.post(() -> bill_recycler.scrollToPosition(billingAdapter.getItemCount() - 1));
     }
 
     @Override
@@ -339,15 +339,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_packaging) {
             i = new Intent(MainActivity.this, PackageActivity.class);
             startActivity(i);
-        }  else if (item.getItemId() == R.id.nav_report) {
+        } else if (item.getItemId() == R.id.nav_report) {
             i = new Intent(MainActivity.this, ReportActivity.class);
             startActivity(i);
-        }  else if (item.getItemId() == R.id.nav_sales_person) {
+        } else if (item.getItemId() == R.id.nav_sales_person) {
             i = new Intent(MainActivity.this, SalesPersonActivity.class);
             startActivity(i);
         } else if (item.getItemId() == R.id.nav_invoice) {
             i = new Intent(MainActivity.this, InvoiceHistoryActivity.class);
-            i.putExtra("owner",true);
+            i.putExtra("owner", true);
             startActivity(i);
         } else if (item.getItemId() == R.id.nav_consolidate_report) {
             i = new Intent(MainActivity.this, ConsolidateReportActivity.class);
@@ -361,7 +361,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_asset_business_calc) {
             i = new Intent(MainActivity.this, AssetBusinessCalcActivity.class);
             startActivity(i);
-        }else if (item.getItemId() == R.id.nav_expense_tracker) {
+        } else if (item.getItemId() == R.id.nav_expense_tracker) {
             i = new Intent(MainActivity.this, ExpenseTrackerActivity.class);
             startActivity(i);
         }
@@ -593,12 +593,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selectedValue = parent.getItemAtPosition(position).toString();
-                if(selectedProduct[0] != null){
-                    if(productCategoryType[0].equalsIgnoreCase("ATTAR")){
-                        product_selling_cost.setText(""+selectedProduct[0].getAttarSellingPriceMap().get(selectedValue));
+                if (selectedProduct[0] != null) {
+                    if (productCategoryType[0].equalsIgnoreCase("ATTAR")) {
+                        product_selling_cost.setText("" + selectedProduct[0].getAttarSellingPriceMap().get(selectedValue));
                         productQtyValue[0] = selectedValue;
-                    }else if(productCategoryType[0].equalsIgnoreCase("SPRAY")){
-                        product_selling_cost.setText(""+selectedProduct[0].getPerfumeSellingPriceMap().get(selectedValue));
+                    } else if (productCategoryType[0].equalsIgnoreCase("SPRAY")) {
+                        product_selling_cost.setText("" + selectedProduct[0].getPerfumeSellingPriceMap().get(selectedValue));
                         productQtyValue[0] = selectedValue;
                     }
                 }
@@ -720,31 +720,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 product_ll.setVisibility(View.VISIBLE);
                 non_product_ll.setVisibility(View.GONE);
 
-                if("ATTAR".equalsIgnoreCase(billingItemModel.getProductCategory())){
+                if ("ATTAR".equalsIgnoreCase(billingItemModel.getProductCategory())) {
                     productCategoryAttarRadioButton.setChecked(true);
                     productCategorySprayRadioButton.setChecked(false);
 
-                    if (getString(R.string.ML_6).equalsIgnoreCase(billingItemModel.getUnits()+"ML")) {
+                    if (getString(R.string.ML_6).equalsIgnoreCase(billingItemModel.getUnits() + "ML")) {
                         productQtySpinner.setSelection(0);
-                    } else if (getString(R.string.ML_3).equalsIgnoreCase(billingItemModel.getUnits()+"ML"))  {
+                    } else if (getString(R.string.ML_3).equalsIgnoreCase(billingItemModel.getUnits() + "ML")) {
                         productQtySpinner.setSelection(1);
-                    }else if (getString(R.string.ML_12).equalsIgnoreCase(billingItemModel.getUnits()+"ML"))  {
+                    } else if (getString(R.string.ML_12).equalsIgnoreCase(billingItemModel.getUnits() + "ML")) {
                         productQtySpinner.setSelection(2);
-                    }else if (getString(R.string.ML_24).equalsIgnoreCase(billingItemModel.getUnits()+"ML"))  {
+                    } else if (getString(R.string.ML_24).equalsIgnoreCase(billingItemModel.getUnits() + "ML")) {
                         productQtySpinner.setSelection(3);
                     }
 
-                }else if("SPRAY".equalsIgnoreCase(billingItemModel.getProductCategory())){
+                } else if ("SPRAY".equalsIgnoreCase(billingItemModel.getProductCategory())) {
                     productCategoryAttarRadioButton.setChecked(false);
                     productCategorySprayRadioButton.setChecked(true);
 
-                    if (getString(R.string.ML_10).equalsIgnoreCase(billingItemModel.getUnits()+"ML")) {
+                    if (getString(R.string.ML_10).equalsIgnoreCase(billingItemModel.getUnits() + "ML")) {
                         productQtySpinner.setSelection(0);
-                    } else if (getString(R.string.ML_30).equalsIgnoreCase(billingItemModel.getUnits()+"ML"))  {
+                    } else if (getString(R.string.ML_30).equalsIgnoreCase(billingItemModel.getUnits() + "ML")) {
                         productQtySpinner.setSelection(1);
-                    }else if (getString(R.string.ML_50).equalsIgnoreCase(billingItemModel.getUnits()+"ML"))  {
+                    } else if (getString(R.string.ML_50).equalsIgnoreCase(billingItemModel.getUnits() + "ML")) {
                         productQtySpinner.setSelection(2);
-                    }else if (getString(R.string.ML_100).equalsIgnoreCase(billingItemModel.getUnits()+"ML"))  {
+                    } else if (getString(R.string.ML_100).equalsIgnoreCase(billingItemModel.getUnits() + "ML")) {
                         productQtySpinner.setSelection(3);
                     }
                 }
@@ -785,7 +785,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             Toast.makeText(MainActivity.this, "Please Choose the Product Name..!", Toast.LENGTH_LONG).show();
                             return;
                         }
-                        if (StringUtils.isEmpty(productQtyValue[0])){
+                        if (StringUtils.isEmpty(productQtyValue[0])) {
                             Toast.makeText(MainActivity.this, "Please Choose the Quantity..!", Toast.LENGTH_LONG).show();
                             return;
                         }
@@ -800,13 +800,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         billingItemModel.setCode(selectedProduct[0].getCode());
                         Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                         billingItemModel.setUnitPrice(fullPrice / 1000);
-                        if("ATTAR".equalsIgnoreCase(billingItemModel.getProductCategory())){
+                        if ("ATTAR".equalsIgnoreCase(billingItemModel.getProductCategory())) {
                             billingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")));
                             billingItemModel.setTotalPrice((Double.parseDouble(productQtySpinner.getSelectedItem().toString().replace("ML", "")) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                             billingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
-                        }else {
+                        } else {
                             billingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")));
-                            billingItemModel.setTotalPrice(getPerfumeActualPrice(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")),fullPrice / 1000) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            billingItemModel.setTotalPrice(getPerfumeActualPrice(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")), fullPrice / 1000) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                             billingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                         }
                     } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
@@ -829,12 +829,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     billingAdapter.notifyDataSetChanged();
                     manageBillingLayout();
                 } else {
-                    int iterCount =0;
-                    if(StringUtils.isBlank(occurance.getText().toString())){
+                    int iterCount = 0;
+                    if (StringUtils.isBlank(occurance.getText().toString())) {
                         occurance.setText("1");
                     }
                     iterCount = Integer.valueOf(occurance.getText().toString());
-                    for (int i=0;i<iterCount;i++) {
+                    for (int i = 0; i < iterCount; i++) {
                         BillingItemModel newBillingItemModel = new BillingItemModel();
 
                         if ("PRODUCT".equalsIgnoreCase(type[0])) {
@@ -853,13 +853,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             newBillingItemModel.setCode(selectedProduct[0].getCode());
                             Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                             newBillingItemModel.setUnitPrice(fullPrice / 1000);
-                            if("ATTAR".equalsIgnoreCase(newBillingItemModel.getProductCategory())){
-                                newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML","")));
+                            if ("ATTAR".equalsIgnoreCase(newBillingItemModel.getProductCategory())) {
+                                newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")));
                                 newBillingItemModel.setTotalPrice((Double.parseDouble(productQtySpinner.getSelectedItem().toString().replace("ML", "")) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                                 newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
-                            }else{
-                                newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML","")));
-                                newBillingItemModel.setTotalPrice(getPerfumeActualPrice(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")),fullPrice / 1000) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            } else {
+                                newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")));
+                                newBillingItemModel.setTotalPrice(getPerfumeActualPrice(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")), fullPrice / 1000) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                                 newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
                             }
 
@@ -892,20 +892,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    private double getPerfumeActualPrice(int ml,double unitPrice) {
+    private double getPerfumeActualPrice(int ml, double unitPrice) {
         double actualPerfumePrice = 0;
         ConfigModel configModel = sharedPrefHelper.getPerfumeActualMix();
-        switch (ml){
-            case 10 :
+        switch (ml) {
+            case 10:
                 actualPerfumePrice = unitPrice * configModel.getPerfume10mlMixer();
                 break;
-            case 30 :
+            case 30:
                 actualPerfumePrice = unitPrice * configModel.getPerfume30mlMixer();
                 break;
-            case 50 :
+            case 50:
                 actualPerfumePrice = unitPrice * configModel.getPerfume50mlMixer();
                 break;
-            case 100 :
+            case 100:
                 actualPerfumePrice = unitPrice * configModel.getPerfume100mlMixer();
                 break;
         }
@@ -959,17 +959,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Toast.makeText(MainActivity.this, "Loading.!", Toast.LENGTH_SHORT).show();
 
         OffsetDateTime offsetDateTime = null;
-        if(StringUtils.isNotBlank(sharedPrefHelper.getSystemTime())) {
+        if (StringUtils.isNotBlank(sharedPrefHelper.getSystemTime())) {
             offsetDateTime = OffsetDateTime.parse(sharedPrefHelper.getSystemTime()).withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));
-        }else {
+        } else {
             offsetDateTime = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.ofHoursMinutes(5, 30));
         }
 
-        if(SingleTon.compareDateTime(offsetDateTime)) {
+        if (SingleTon.compareDateTime(offsetDateTime)) {
             Intent i = new Intent(MainActivity.this, InvoiceHistoryActivity.class);
-            i.putExtra("owner",false);
+            i.putExtra("owner", false);
             startActivity(i);
-        }else{
+        } else {
             Toast.makeText(MainActivity.this, "Please check Mobile Date/Time", Toast.LENGTH_LONG).show();
         }
 

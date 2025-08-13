@@ -293,12 +293,12 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
             }
         });
 
-        productAttarActual.setText("A - " + numberFormat.format(productAttarActualValue).replace("\u00A0", ""));
-        productAttarSold.setText("A - " + numberFormat.format(productAttarSoldValue).replace("\u00A0", ""));
-        productAttarProfit.setText("A - " + numberFormat.format(productAttarProfitValue).replace("\u00A0", ""));
-        productSprayActual.setText("S - " + numberFormat.format(productSprayActualValue).replace("\u00A0", ""));
-        productSpraySold.setText("S - " + numberFormat.format(productSpraySoldValue).replace("\u00A0", ""));
-        productSprayProfit.setText("S - " + numberFormat.format(productSprayProfitValue).replace("\u00A0", ""));
+        productAttarActual.setText("(A) " + numberFormat.format(productAttarActualValue).replace("\u00A0", ""));
+        productAttarSold.setText("(A) " + numberFormat.format(productAttarSoldValue).replace("\u00A0", ""));
+        productAttarProfit.setText("(A) " + numberFormat.format(productAttarProfitValue).replace("\u00A0", ""));
+        productSprayActual.setText("(S) " + numberFormat.format(productSprayActualValue).replace("\u00A0", ""));
+        productSpraySold.setText("(S) " + numberFormat.format(productSpraySoldValue).replace("\u00A0", ""));
+        productSprayProfit.setText("(S) " + numberFormat.format(productSprayProfitValue).replace("\u00A0", ""));
         accessoriesActual.setText(numberFormat.format(accessoriesActualValue).replace("\u00A0", ""));
         accessoriesSold.setText(numberFormat.format(accessoriesSoldValue).replace("\u00A0", ""));
         accessoriesProfit.setText(numberFormat.format(accessoriesProfitValue).replace("\u00A0", ""));

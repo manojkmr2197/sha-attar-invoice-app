@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -61,6 +63,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 
 public class InvoiceHistoryActivity extends AppCompatActivity implements View.OnClickListener {
@@ -69,6 +72,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
     private static final int PERMISSION_BLUETOOTH_ADMIN = 2;
     private static final int PERMISSION_BLUETOOTH_CONNECT = 3;
     private static final int PERMISSION_BLUETOOTH_SCAN = 4;
+    private static final int REQUEST_ENABLE_BT = 10;
     Context context;
     Activity activity;
 
@@ -94,6 +98,8 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
 
     boolean owner;
     SharedPrefHelper sharedPrefHelper;
+
+    BluetoothAdapter bluetoothAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -148,7 +154,35 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                 } else if (checkInternet() && type.equalsIgnoreCase("DELETE")) {
                     deleteConfirmationPopup(index);
                 } else if (checkInternet() && type.equalsIgnoreCase("PRINT")) {
-                    printConfirmationPopup(contentList.get(index));
+                    if (!bluetoothAdapter.isEnabled()) {
+                        Toast.makeText(context, "Please turn ON Bluetooth", Toast.LENGTH_SHORT).show();
+                        return;
+                    } else {
+                        // Get Paired Devices
+                        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                            // TODO: Consider calling
+                            //    ActivityCompat#requestPermissions
+                            // here to request the missing permissions, and then overriding
+                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                            //                                          int[] grantResults)
+                            // to handle the case where the user grants the permission. See the documentation
+                            // for ActivityCompat#requestPermissions for more details.
+                            return;
+                        }
+                        Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+
+                        if (pairedDevices.size() > 0) {
+                            StringBuilder devicesList = new StringBuilder("");
+                            for (BluetoothDevice device : pairedDevices) {
+                                devicesList.append(device.getName()).append(" (").append(device.getAddress()).append(")\n");
+                            }
+                            printConfirmationPopup(contentList.get(index),devicesList.toString());
+                        } else {
+                            Toast.makeText(context, "No paired devices found", Toast.LENGTH_SHORT).show();
+                        }
+
+                    }
+
                 }
             }
         };
@@ -162,24 +196,44 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
             filter_ll.setVisibility(View.GONE);
             getServerDate();
         }
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S && ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH}, InvoiceHistoryActivity.PERMISSION_BLUETOOTH);
-        } else if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S && ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_ADMIN}, InvoiceHistoryActivity.PERMISSION_BLUETOOTH_ADMIN);
-        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S && ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, InvoiceHistoryActivity.PERMISSION_BLUETOOTH_CONNECT);
-        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S && ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_SCAN}, InvoiceHistoryActivity.PERMISSION_BLUETOOTH_SCAN);
+        if (bluetoothAdapter == null) {
+            Toast.makeText(this, "Bluetooth is not supported on this device", Toast.LENGTH_SHORT).show();
         } else {
-            // Your code HERE
+            // Check if Bluetooth is OFF
+            if (!bluetoothAdapter.isEnabled()) {
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            } else {
+                // Bluetooth is ON, now check permissions
+                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) {
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH}, PERMISSION_BLUETOOTH);
+                    } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_ADMIN}, PERMISSION_BLUETOOTH_ADMIN);
+                    } else {
+                        // Your Bluetooth logic here
+                    }
+                } else {
+                    // For Android 12 (S) and above
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, PERMISSION_BLUETOOTH_CONNECT);
+                    } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_SCAN}, PERMISSION_BLUETOOTH_SCAN);
+                    } else {
+                        // Your Bluetooth logic here
+                    }
+                }
+            }
         }
+
     }
 
-    private void printConfirmationPopup(BillingInvoiceModel billData) {
+    private void printConfirmationPopup(BillingInvoiceModel billData,String printer) {
         // Create and configure the AlertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Confirmation");
+        builder.setTitle("Confirmation ("+printer+")");
         if (!billData.getIsPrint()) {
             builder.setMessage("Do you want to print the bill?");
         } else {
@@ -501,4 +555,17 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         datePickerDialog.show();
 
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (resultCode == RESULT_OK) {
+                // Bluetooth enabled successfully
+            } else {
+                // User denied to enable Bluetooth
+            }
+        }
+    }
+
 }
