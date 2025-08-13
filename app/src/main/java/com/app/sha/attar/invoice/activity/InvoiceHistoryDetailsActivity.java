@@ -4,16 +4,21 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -134,7 +139,8 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             Window window = this.getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.setStatusBarColor(this.getResources().getColor(R.color.white));
+            window.setStatusBarColor(getResources().getColor(android.R.color.transparent, getTheme()));
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         }
         context = InvoiceHistoryDetailsActivity.this;
         activity = InvoiceHistoryDetailsActivity.this;
@@ -196,7 +202,8 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             @Override
             public void onChanged() {
                 super.onChanged();
-                itemRecyclerview.scrollToPosition((itemModelList.size()>0)?itemModelList.size() - 1:0);
+                if (invoiceAdapter.getItemCount() > 0)
+                    itemRecyclerview.post(() -> itemRecyclerview.scrollToPosition(invoiceAdapter.getItemCount() - 1));
             }
         });
 
@@ -297,6 +304,8 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 itemModelList.clear();
                 itemModelList.addAll(result.getBillingItemModelList());
                 invoiceAdapter.notifyDataSetChanged();
+                if (invoiceAdapter.getItemCount() > 0)
+                    itemRecyclerview.post(() -> itemRecyclerview.scrollToPosition(invoiceAdapter.getItemCount() - 1));
 
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                     OffsetDateTime offsetDateTime = Instant.ofEpochSecond(result.getBillingDate()).atOffset(istOffset);
@@ -391,10 +400,14 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
 
     private void createNewBillDialog(Context context, BillingItemModel billingItemModel) {
 
-        BottomSheetDialog dialog = new BottomSheetDialog(context);
+        Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_billing_create);
         dialog.setCanceledOnTouchOutside(false);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        dialog.getWindow().setGravity(Gravity.TOP);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         ProductModel[] selectedProduct = new ProductModel[1];
         AccessoriesModel[] selectedNonProduct = new AccessoriesModel[1];

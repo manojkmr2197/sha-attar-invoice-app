@@ -7,10 +7,13 @@ import static java.lang.Boolean.TRUE;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,7 +21,9 @@ import android.os.Environment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -124,7 +129,8 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             Window window = this.getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.setStatusBarColor(this.getResources().getColor(R.color.white));
+            window.setStatusBarColor(getResources().getColor(android.R.color.transparent, getTheme()));
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         }
 
         no_data_fl = (FrameLayout) findViewById(R.id.product_no_data_ll);
@@ -421,10 +427,14 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
 
 
     private void createDialogBox(Context context, ProductModel productModel) {
-        BottomSheetDialog dialog = new BottomSheetDialog(context);
+        Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_product_create);
         dialog.setCanceledOnTouchOutside(false);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        dialog.getWindow().setGravity(Gravity.TOP);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         TextInputEditText name = (TextInputEditText) dialog.findViewById(R.id.product_add_name);
         TextInputEditText dealer = (TextInputEditText) dialog.findViewById(R.id.product_dealer_name);
         TextInputEditText price = (TextInputEditText) dialog.findViewById(R.id.product_add_price);

@@ -5,18 +5,23 @@ package com.app.sha.attar.invoice.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -135,7 +140,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Window window = this.getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.setStatusBarColor(this.getResources().getColor(R.color.white));
+            window.setStatusBarColor(getResources().getColor(android.R.color.transparent, getTheme()));
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         }
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.home_drawer_layout);
@@ -229,14 +235,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         billingAdapter = new BillingViewAdapter(context, billingItemModelList, listener);
         bill_recycler.setLayoutManager(new LinearLayoutManager(this));
-        bill_recycler.scrollToPosition((billingItemModelList.size()>0)?billingItemModelList.size() - 1:0);
         bill_recycler.setAdapter(billingAdapter);
 
         billingAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
             public void onChanged() {
                 super.onChanged();
-                bill_recycler.scrollToPosition((billingItemModelList.size()>0)?billingItemModelList.size() - 1:0);
+                if (billingAdapter.getItemCount() > 0)
+                    bill_recycler.post(() -> bill_recycler.scrollToPosition(billingAdapter.getItemCount() - 1));
             }
         });
 
@@ -315,6 +321,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         billing_discount.setText("%  " + discount);
         billing_selling_amount.setText("Rs. " + sellingAmount);
         billingAdapter.notifyDataSetChanged();
+        if (billingAdapter.getItemCount() > 0)
+            bill_recycler.post(() -> bill_recycler.scrollToPosition(billingAdapter.getItemCount() - 1));
     }
 
     @Override
@@ -495,10 +503,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void createNewBillDialog(Context context, BillingItemModel billingItemModel) {
 
-        BottomSheetDialog dialog = new BottomSheetDialog(context);
+        Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_billing_create);
         dialog.setCanceledOnTouchOutside(false);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        dialog.getWindow().setGravity(Gravity.TOP);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         ProductModel[] selectedProduct = new ProductModel[1];
         AccessoriesModel[] selectedNonProduct = new AccessoriesModel[1];
