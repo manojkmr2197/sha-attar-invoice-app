@@ -278,25 +278,27 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
 
             Toast.makeText(this, "Printing .!", Toast.LENGTH_SHORT).show();
             // 80mm paper → 72mm printable width → very small font by using 72 chars per line
-            EscPosPrinter printer = new EscPosPrinter(printerConnection, 203, 72f, 32);
+            EscPosPrinter printer = new EscPosPrinter(printerConnection, 203, 72f, 48);
 
             // Load logo
-            Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.app_logo_printing);
+            Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.app_print_logo);
 
             // Date in top right corner
-            String dateStr = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
-            int lineWidth = 42;
+            String dateStr = new SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.getDefault()).format(new Date());
+            int lineWidth = 48;
             String separator = new String(new char[lineWidth]).replace('\0', '-');
+            String star_separator = new String(new char[lineWidth]).replace('\0', '*');
 
             // Build product list with 3-column format
             StringBuilder productLines = new StringBuilder();
             //productLines.append(String.format("[L]%-20s %6s %10s\n", "", "", ""));
             for (BillingItemModel p : billData.getBillingItemModelList()) {
                 String name = p.getName().length() > 20 ? p.getName().substring(0, 20) : p.getName();
-                String qty = p.getUnits() != null ? p.getUnits() + "ML" : "";
+                String qty = p.getUnits() != null ? p.getUnits() + " ML" : "";
                 String price = "Rs." + String.format("%.2f", p.getSellingItemPrice());
 
-                productLines.append(String.format("[L]%-20s %6s %10s\n", name, qty, price));
+                productLines.append(String.format("[L]%-24s %8s %12s\n", name, qty, price));
+                //productLines.append(String.format("[L]%-20s %6s %10s\n", name, qty, price));
             }
             //productLines.append(String.format("[L]%-20s %6s %10s\n", "", "", ""));
 
@@ -304,19 +306,35 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
             StringBuilder receipt = new StringBuilder();
 
 // Logo
-            receipt.append("[C]<img>")
+            receipt.append("\n[C]<img>")
                     .append(PrinterTextParserImg.bitmapToHexadecimalString(printer, logo))
                     .append("</img>\n");
 
-// Header: Centered, bold, underline
+
+            receipt.append("[C]<b>SHA'S ATTAR & PERFUMES")
+                    .append("</b>\n");
+
+            receipt.append("[C](Make your own Perfume)")
+                    .append("\n\n");
+
+            // bill Date
+            receipt.append("[R]Date: ")
+                    .append(dateStr.toUpperCase())
+                    .append("\n\n");
+
+            // Header: Centered, bold, underline
             receipt.append("[L]<u><b>ORDER No: ")
                     .append(billData.getBillingDate())
                     .append("</b></u>\n");
 
+            receipt.append("[L]<b>Bill by: </b>")
+                    .append(billData.getCustomerName().toUpperCase())
+                    .append("\n");
+
 
 // Separator
             receipt.append("[L]").append(separator).append("\n");
-            receipt.append(String.format("[L]%-20s %6s %10s\n", "PRODUCT", "QTY", "PRICE"));
+            receipt.append(String.format("[L]%-24s %8s %12s\n", "PRODUCT", "QTY", "PRICE"));
             receipt.append("[L]").append(separator).append("\n");
 // Product lines in small font
             receipt.append(productLines.toString());
@@ -324,14 +342,26 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
 
 // Totals (Right aligned)
             if (billData.getDiscount() > 0) {
-                receipt.append("[R]<b>Sum:</b>").append("Rs.").append(String.format("%.2f", billData.getTotalCost())).append("\n");
-                receipt.append("[R]<b>Discount:</b>").append(String.format("%.2f", billData.getDiscount())).append("%\n");
+                receipt.append("[C]<b>Bill Amount:[R]").append("Rs.").append(String.format("%.2f", billData.getTotalCost())).append("  </b>\n");
+                receipt.append("[C]<b>Discount:[R]").append(String.format("%.1f", billData.getDiscount())).append("%  </b>\n");
             }
-            receipt.append("[R]<b>Total:</b>").append("Rs.").append(String.format("%.2f", billData.getSellingCost())).append("\n");
+            receipt.append("[C]<b><font size='big'>Total:[R]").append("<u>Rs.").append(String.format("%.2f", billData.getSellingCost())).append("</u></font></b>  \n\n");
 
+            receipt.append("[L]Payment: ")
+                    .append(billData.getPaymentMode())
+                    .append("\n");
+            receipt.append("[L]").append(star_separator).append("\n");
 // Footer: Centered thank you
-            receipt.append("\n[C]Thank you for shopping!\n\n");
 
+            receipt.append("[L]A11, Gemini Parson Complex, Basement Floor, \n" +
+                    "[L]Kodambakkam High Road, Nungambakkam.\n" +
+                    "[L]Chennai-600006\n");
+
+            receipt.append("[C]Phone No : +91 978 977 5134\n");
+            receipt.append("[L]").append(star_separator).append("\n");
+            receipt.append("[C]Thank you for shopping with us!\n");
+            receipt.append("[C]**All sales are final**\n");
+            receipt.append("[L]").append(star_separator).append("\n");
 // Print
             printer.printFormattedTextAndCut(receipt.toString());
 
