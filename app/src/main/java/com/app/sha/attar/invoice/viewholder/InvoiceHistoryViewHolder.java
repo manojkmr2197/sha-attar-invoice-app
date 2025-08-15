@@ -15,7 +15,7 @@ public class InvoiceHistoryViewHolder extends RecyclerView.ViewHolder {
 
     public Button edit,delete;
     public TextView id,date,name,phone,discount,sellingPrice,actualPrice,profit;
-    public ImageView printBt;
+    public ImageView printBt,shareBt;
     public LinearLayout owner_view;
 
     public InvoiceHistoryViewHolder(@NonNull View itemView) {
@@ -32,5 +32,6 @@ public class InvoiceHistoryViewHolder extends RecyclerView.ViewHolder {
         profit = (TextView) itemView.findViewById(R.id.invoice_history_item_profit);
         owner_view = (LinearLayout) itemView.findViewById(R.id.invoice_history_item_owner_detail_ll);
         printBt = (ImageView) itemView.findViewById(R.id.invoice_history_item_print);
+        shareBt = (ImageView) itemView.findViewById(R.id.invoice_history_item_share);
     }
 }

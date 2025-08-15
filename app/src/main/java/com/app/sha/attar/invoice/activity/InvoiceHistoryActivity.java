@@ -40,6 +40,7 @@ import com.app.sha.attar.invoice.utils.BluetoothPrinterHelper;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
+import com.app.sha.attar.invoice.utils.PDFHelper;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
 import com.dantsu.escposprinter.EscPosPrinter;
@@ -103,6 +104,8 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
     BluetoothAdapter bluetoothAdapter;
     public BluetoothPrinterHelper bluetoothPrinterHelper;
 
+    PDFHelper pdfHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,7 +125,8 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         dbObj = new DBUtil();
         db = DBUtil.getInstance();
         sharedPrefHelper = new SharedPrefHelper(context);
-        bluetoothPrinterHelper = new BluetoothPrinterHelper(context,activity);
+        bluetoothPrinterHelper = new BluetoothPrinterHelper(context, activity);
+        pdfHelper = new PDFHelper(context);
         back = (TextView) findViewById(R.id.invoice_history_back);
         back.setOnClickListener(this);
 
@@ -156,6 +160,8 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                     startActivity(i);
                 } else if (checkInternet() && type.equalsIgnoreCase("DELETE")) {
                     deleteConfirmationPopup(index);
+                } else if (checkInternet() && type.equalsIgnoreCase("SHARE")) {
+                    shareInvoiceDetails(index);
                 } else if (checkInternet() && type.equalsIgnoreCase("PRINT")) {
                     if (!bluetoothAdapter.isEnabled()) {
                         Toast.makeText(context, "Please turn ON Bluetooth", Toast.LENGTH_SHORT).show();
@@ -238,6 +244,10 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
 
     }
 
+    private void shareInvoiceDetails(int index) {
+        pdfHelper.createPdfAndShare(contentList.get(index));
+    }
+
     private void printConfirmationPopup(BillingInvoiceModel billData, String printer) {
         // Create and configure the AlertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -255,7 +265,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
             try {
                 if (bluetoothPrinterHelper.printSmallFontReceipt(billData))
                     updatePrintStatusToDatabase(billData);
-            }catch (Exception e){
+            } catch (Exception e) {
                 Toast.makeText(context, "Printer not available. Please restart the printer.!", Toast.LENGTH_LONG).show();
             }
         });
