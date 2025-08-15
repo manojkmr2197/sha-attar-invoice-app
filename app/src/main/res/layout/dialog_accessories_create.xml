@@ -114,6 +114,13 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/accessories_add_checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Available"
+            android:textColorHint="@color/app_color" />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

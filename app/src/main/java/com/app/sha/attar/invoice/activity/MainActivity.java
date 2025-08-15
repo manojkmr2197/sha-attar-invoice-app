@@ -618,6 +618,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         TextView non_product_price = (TextView) dialog.findViewById(R.id.new_bill_non_product_selling_price);
 
         List<String> accessories_items = accessoriesModelList.stream()
+                .filter(product -> "Y".equals(product.getStatus()))
                 .map(AccessoriesModel::getName)
                 .collect(Collectors.toList());
 

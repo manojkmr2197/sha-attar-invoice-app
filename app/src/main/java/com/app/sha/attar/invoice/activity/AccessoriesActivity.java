@@ -29,6 +29,7 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -91,11 +92,11 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
     AccessoriesViewAdapter adapter;
 
     TextInputEditText search_et;
-    Spinner ownerSpinner,dealerSpinner;
+    Spinner ownerSpinner,dealerSpinner,statusSpinner;
 
     List<String> dealerList = new ArrayList<>();
 
-    String searchText, searchOwner="ALL",searchDealer="ALL";
+    String searchText, searchOwner="ALL",searchDealer="ALL", searchStockStatus = "ALL";
 
     DBUtil dbObj;
     SharedPrefHelper sharedPrefHelper;
@@ -141,6 +142,7 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         search_et = (TextInputEditText) findViewById(R.id.accessories_search_et);
         ownerSpinner = (Spinner) findViewById(R.id.accessories_spinner);
         dealerSpinner = (Spinner) findViewById(R.id.accessories_spinner_dealer);
+        statusSpinner = (Spinner) findViewById(R.id.accessories_spinner_availability);
 
         dbObj = new DBUtil();
         sharedPrefHelper = new SharedPrefHelper(context);
@@ -176,6 +178,14 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         dealerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         dealerSpinner.setAdapter(dealerAdapter);
 
+        ArrayAdapter<CharSequence> stock_status_adapter = ArrayAdapter.createFromResource(this,
+                R.array.spinner_stock_status, android.R.layout.simple_spinner_item);
+
+        stock_status_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        statusSpinner.setAdapter(stock_status_adapter);
+
+
         adapter = new AccessoriesViewAdapter(context, filteredList, listener);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
@@ -206,8 +216,12 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                 if (searchDealer.equalsIgnoreCase("ALL")) {
                     searchDealer = "";
                 }
+                searchStockStatus = statusSpinner.getSelectedItem().toString();
+                if (searchStockStatus.equalsIgnoreCase("ALL")) {
+                    searchStockStatus = "";
+                }
 
-                filter(searchText, searchOwner,searchDealer);
+                filter(searchText, searchOwner,searchDealer,searchStockStatus);
             }
         });
 
@@ -228,7 +242,11 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                 if (searchDealer.equalsIgnoreCase("ALL")) {
                     searchDealer = "";
                 }
-                filter(searchText, searchOwner,searchDealer);
+                searchStockStatus = statusSpinner.getSelectedItem().toString();
+                if (searchStockStatus.equalsIgnoreCase("ALL")) {
+                    searchStockStatus = "";
+                }
+                filter(searchText, searchOwner,searchDealer,searchStockStatus);
             }
 
             @Override
@@ -257,7 +275,11 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                 if (searchDealer.equalsIgnoreCase("ALL")) {
                     searchDealer = "";
                 }
-                filter(searchText, searchOwner,searchDealer);
+                searchStockStatus = statusSpinner.getSelectedItem().toString();
+                if (searchStockStatus.equalsIgnoreCase("ALL")) {
+                    searchStockStatus = "";
+                }
+                filter(searchText, searchOwner,searchDealer,searchStockStatus);
             }
 
             @Override
@@ -265,7 +287,30 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
 
             }
         });
+        statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                searchText = search_et.getText().toString();
+                searchOwner = ownerSpinner.getSelectedItem().toString();
+                if (searchOwner.equalsIgnoreCase("ALL")) {
+                    searchOwner = "";
+                }
+                searchDealer = dealerSpinner.getSelectedItem().toString();
+                if (searchDealer.equalsIgnoreCase("ALL")) {
+                    searchDealer = "";
+                }
+                searchStockStatus = adapterView.getItemAtPosition(i).toString();
+                if (searchStockStatus.equalsIgnoreCase("ALL")) {
+                    searchStockStatus = "";
+                }
+                filter(searchText, searchOwner, searchDealer, searchStockStatus);
+            }
 
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
 
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -294,11 +339,12 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
 
     }
 
-    public void filter(String text, String owner,String dealer) {
+    public void filter(String text, String owner,String dealer,String stockStatus) {
         filteredList.clear();
         text = (text == null) ? "" : text;
         owner = (owner == null) ? "" : owner;
         dealer = (dealer == null) ? "" : dealer;
+        stockStatus = (stockStatus == null || stockStatus.equalsIgnoreCase("ALL")) ? "" : stockStatus;
         if (text.isEmpty() && owner.isEmpty()) {
             filteredList.addAll(itemList);
         } else if (!text.isEmpty() && owner.isEmpty()) {
@@ -327,6 +373,13 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         if(!filteredList.isEmpty() && !dealer.isEmpty()){
             for (int i = filteredList.size() - 1; i >= 0; i--) {
                 if (!filteredList.get(i).getDealer().toLowerCase().contains(dealer.toLowerCase())) {
+                    filteredList.remove(i);
+                }
+            }
+        }
+        if (!filteredList.isEmpty() && !stockStatus.isEmpty()) {
+            for (int i = filteredList.size() - 1; i >= 0; i--) {
+                if (!filteredList.get(i).getStatus().equalsIgnoreCase((stockStatus.equalsIgnoreCase("Available")) ? "Y" : "N")) {
                     filteredList.remove(i);
                 }
             }
@@ -410,6 +463,7 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         TextInputEditText actual_price = (TextInputEditText) dialog.findViewById(R.id.accessories_add_actual_price);
         TextInputEditText dealer = (TextInputEditText) dialog.findViewById(R.id.accessories_dealer_name);
         Spinner owner = (Spinner) dialog.findViewById(R.id.accessories_add_owner);
+        CheckBox available = (CheckBox) dialog.findViewById(R.id.accessories_add_checkbox);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.spinner_owners, android.R.layout.simple_spinner_item);
@@ -430,6 +484,11 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                 owner.setSelection(0);
             } else if ("IK".equalsIgnoreCase(accessoriesModel.getOwner())) {
                 owner.setSelection(1);
+            }
+            if ("Y".equalsIgnoreCase(accessoriesModel.getStatus())) {
+                available.setChecked(true);
+            } else {
+                available.setChecked(false);
             }
 
             delete.setVisibility(View.VISIBLE);
@@ -492,7 +551,7 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                     accessoriesModel.setActualPrice(Double.valueOf(actual_price.getText().toString()));
                     accessoriesModel.setOwner(owner.getSelectedItem().toString());
                     accessoriesModel.setDealer(dealer.getText().toString());
-
+                    accessoriesModel.setStatus(available.isChecked() ? "Y" : "N");
                     db.collection(DatabaseConstants.ACCESSORIES_COLLECTION)
                             .document(accessoriesModel.getDocumentId())
                             .set(accessoriesModel)
@@ -528,7 +587,7 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                     accessoriesModel.setDocumentId(SingleTon.generateAccessoriesDocument());
                     accessoriesModel.setOwner(owner.getSelectedItem().toString());
                     accessoriesModel.setDealer(dealer.getText().toString());
-
+                    accessoriesModel.setStatus(available.isChecked() ? "Y" : "N");
                     db.collection(DatabaseConstants.ACCESSORIES_COLLECTION)
                             .document(accessoriesModel.getDocumentId())
                             .set(accessoriesModel)
@@ -610,8 +669,11 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         if (searchDealer.equalsIgnoreCase("ALL")) {
             searchDealer = "";
         }
+        if (searchStockStatus.equalsIgnoreCase("ALL")) {
+            searchStockStatus = "";
+        }
 
-        filter(searchText, searchOwner,searchDealer);
+        filter(searchText, searchOwner,searchDealer,searchStockStatus);
         adapter.notifyDataSetChanged();
     }
 

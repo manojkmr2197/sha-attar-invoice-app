@@ -36,6 +36,7 @@ import com.app.sha.attar.invoice.adapter.InvoiceHistoryViewAdapter;
 import com.app.sha.attar.invoice.listener.BillingClickListener;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
+import com.app.sha.attar.invoice.utils.BluetoothPrinterHelper;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
@@ -100,6 +101,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
     SharedPrefHelper sharedPrefHelper;
 
     BluetoothAdapter bluetoothAdapter;
+    public BluetoothPrinterHelper bluetoothPrinterHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,6 +122,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         dbObj = new DBUtil();
         db = DBUtil.getInstance();
         sharedPrefHelper = new SharedPrefHelper(context);
+        bluetoothPrinterHelper = new BluetoothPrinterHelper(context,activity);
         back = (TextView) findViewById(R.id.invoice_history_back);
         back.setOnClickListener(this);
 
@@ -176,10 +179,10 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                             for (BluetoothDevice device : pairedDevices) {
                                 if (device.getName().contains("RP3230") && !state) {
                                     printConfirmationPopup(contentList.get(index), device.getName());
-                                    state =true;
+                                    state = true;
                                 }
                             }
-                            if(!state){
+                            if (!state) {
                                 Toast.makeText(context, "Printer not connected properly.!", Toast.LENGTH_SHORT).show();
                             }
                         } else {
@@ -249,9 +252,12 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         // Set positive button
         builder.setPositiveButton("Yes", (dialog, which) -> {
             dialog.dismiss();
-            Toast.makeText(this, "Please Wait", Toast.LENGTH_SHORT).show();
-            printSmallFontReceipt(billData);
-
+            try {
+                if (bluetoothPrinterHelper.printSmallFontReceipt(billData))
+                    updatePrintStatusToDatabase(billData);
+            }catch (Exception e){
+                Toast.makeText(context, "Printer not available. Please restart the printer.!", Toast.LENGTH_LONG).show();
+            }
         });
 
         // Set negative button
@@ -266,114 +272,6 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
 
     }
 
-    private void printSmallFontReceipt(BillingInvoiceModel billData) {
-        try {
-            BluetoothConnection printerConnection = BluetoothPrintersConnections.selectFirstPaired();
-
-            if (printerConnection == null) {
-                Toast.makeText(this, "No Bluetooth printer found", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-
-            Toast.makeText(this, "Printing .!", Toast.LENGTH_SHORT).show();
-            // 80mm paper → 72mm printable width → very small font by using 72 chars per line
-            EscPosPrinter printer = new EscPosPrinter(printerConnection, 203, 72f, 48);
-
-            // Load logo
-            Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.app_print_logo);
-
-            // Date in top right corner
-            String dateStr = new SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.getDefault()).format(new Date());
-            int lineWidth = 48;
-            String separator = new String(new char[lineWidth]).replace('\0', '-');
-            String star_separator = new String(new char[lineWidth]).replace('\0', '*');
-
-            // Build product list with 3-column format
-            StringBuilder productLines = new StringBuilder();
-            //productLines.append(String.format("[L]%-20s %6s %10s\n", "", "", ""));
-            for (BillingItemModel p : billData.getBillingItemModelList()) {
-                String name = p.getName().length() > 20 ? p.getName().substring(0, 20) : p.getName();
-                String qty = p.getUnits() != null ? p.getUnits() + " ML" : "";
-                String price = "Rs." + String.format("%.2f", p.getSellingItemPrice());
-
-                productLines.append(String.format("[L]%-24s %8s %12s\n", name, qty, price));
-                //productLines.append(String.format("[L]%-20s %6s %10s\n", name, qty, price));
-            }
-            //productLines.append(String.format("[L]%-20s %6s %10s\n", "", "", ""));
-
-
-            StringBuilder receipt = new StringBuilder();
-
-// Logo
-            receipt.append("\n[C]<img>")
-                    .append(PrinterTextParserImg.bitmapToHexadecimalString(printer, logo))
-                    .append("</img>\n");
-
-
-            receipt.append("[C]<b>SHA'S ATTAR & PERFUMES")
-                    .append("</b>\n");
-
-            receipt.append("[C](Make your own Perfume)")
-                    .append("\n\n");
-
-            // bill Date
-            receipt.append("[R]Date: ")
-                    .append(dateStr.toUpperCase())
-                    .append("\n\n");
-
-            // Header: Centered, bold, underline
-            receipt.append("[L]<u><b>ORDER No: ")
-                    .append(billData.getBillingDate())
-                    .append("</b></u>\n");
-
-            receipt.append("[L]<b>Bill by: </b>")
-                    .append(billData.getCustomerName().toUpperCase())
-                    .append("\n");
-
-
-// Separator
-            receipt.append("[L]").append(separator).append("\n");
-            receipt.append(String.format("[L]%-24s %8s %12s\n", "PRODUCT", "QTY", "PRICE"));
-            receipt.append("[L]").append(separator).append("\n");
-// Product lines in small font
-            receipt.append(productLines.toString());
-            receipt.append("[L]").append(separator).append("\n");
-
-// Totals (Right aligned)
-            if (billData.getDiscount() > 0) {
-                receipt.append("[C]<b>Bill Amount:[R]").append("Rs.").append(String.format("%.2f", billData.getTotalCost())).append("  </b>\n");
-                receipt.append("[C]<b>Discount:[R]").append(String.format("%.1f", billData.getDiscount())).append("%  </b>\n");
-            }
-            receipt.append("[C]<b><font size='big'>Total:[R]").append("<u>Rs.").append(String.format("%.2f", billData.getSellingCost())).append("</u></font></b>  \n\n");
-
-            receipt.append("[L]Payment: ")
-                    .append(billData.getPaymentMode())
-                    .append("\n");
-            receipt.append("[L]").append(star_separator).append("\n");
-// Footer: Centered thank you
-
-            receipt.append("[L]A11, Gemini Parson Complex, Basement Floor, \n" +
-                    "[L]Kodambakkam High Road, Nungambakkam.\n" +
-                    "[L]Chennai-600006\n");
-
-            receipt.append("[C]Phone No : +91 978 977 5134\n");
-            receipt.append("[L]").append(star_separator).append("\n");
-            receipt.append("[C]Thank you for shopping with us!\n");
-            receipt.append("[C]**All sales are final**\n");
-            receipt.append("[L]").append(star_separator).append("\n");
-// Print
-            printer.printFormattedTextAndCut(receipt.toString());
-
-            Toast.makeText(this, "Updating .!", Toast.LENGTH_SHORT).show();
-            updatePrintStatusToDatabase(billData);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Printing Failed .!", Toast.LENGTH_SHORT).show();
-        }
-    }
-
     private void updatePrintStatusToDatabase(BillingInvoiceModel billingInvoiceModel) {
         billingInvoiceModel.setIsPrint(true);
         db.collection(DatabaseConstants.INVOICE_COLLECTION)
@@ -382,7 +280,6 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void unused) {
-                        Toast.makeText(context, "Printing Success .!", Toast.LENGTH_SHORT).show();
                         adapter.notifyDataSetChanged();
                     }
                 }).addOnFailureListener(new OnFailureListener() {

@@ -66,7 +66,7 @@ public class InvoiceHistoryViewAdapter extends RecyclerView.Adapter<InvoiceHisto
         holder.discount.setText(contentList.get(index).getDiscount() + " %");
         holder.sellingPrice.setText("Rs. " + df.format(contentList.get(index).getSellingCost()));
 
-        if (Boolean.TRUE.equals(contentList.get(index).getIsPrint())) {
+        if (contentList.get(index).getIsPrint() != null && Boolean.TRUE.equals(contentList.get(index).getIsPrint())) {
             holder.printBt.setImageDrawable(context.getDrawable(R.drawable.baseline_print_inactive24));
         } else {
             holder.printBt.setImageDrawable(context.getDrawable(R.drawable.baseline_print_active24));
