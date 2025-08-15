@@ -350,7 +350,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
 
 
     private void getInvoiceRecords(long startOfDay, long endOfDay) {
-        if (!owner) {
+        if (!owner && !"ADMIN".equalsIgnoreCase(sharedPrefHelper.getLoginUserType())) {
             dbObj.getBillingInvoiceDetail(new FirestoreCallback<List<BillingInvoiceModel>>() {
                 @Override
                 public void onCallback(List<BillingInvoiceModel> result) {

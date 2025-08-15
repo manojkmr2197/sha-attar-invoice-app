@@ -164,7 +164,7 @@ public class BluetoothPrinterHelper {
 
                 if (printerConnection == null) {
                     activity.runOnUiThread(() -> {
-                        Toast.makeText(context, "No Bluetooth printer found", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "Printer not available. Please restart the printer.!", Toast.LENGTH_SHORT).show();
                         printingDialog.dismiss();
                     });
                     return;
