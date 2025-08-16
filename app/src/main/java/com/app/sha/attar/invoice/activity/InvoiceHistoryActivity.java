@@ -210,38 +210,61 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
             filter_ll.setVisibility(View.GONE);
             getServerDate();
         }
+        enableBluetooth();
+
+    }
+
+    private void enableBluetooth() {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         if (bluetoothAdapter == null) {
-            Toast.makeText(this, "Bluetooth is not supported on this device", Toast.LENGTH_SHORT).show();
-        } else {
-            // Check if Bluetooth is OFF
-            if (!bluetoothAdapter.isEnabled()) {
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            Toast.makeText(this, "Bluetooth not supported on this device", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (bluetoothAdapter.isEnabled()) {
+            Toast.makeText(this, "Bluetooth is already enabled", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH}, PERMISSION_BLUETOOTH);
+                return;
+            } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_ADMIN}, PERMISSION_BLUETOOTH_ADMIN);
+                return;
             } else {
-                // Bluetooth is ON, now check permissions
-                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) {
-                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
-                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH}, PERMISSION_BLUETOOTH);
-                    } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
-                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_ADMIN}, PERMISSION_BLUETOOTH_ADMIN);
-                    } else {
-                        // Your Bluetooth logic here
-                    }
-                } else {
-                    // For Android 12 (S) and above
-                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, PERMISSION_BLUETOOTH_CONNECT);
-                    } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_SCAN}, PERMISSION_BLUETOOTH_SCAN);
-                    } else {
-                        // Your Bluetooth logic here
-                    }
-                }
+                // Your Bluetooth logic here
+            }
+        } else {
+            // For Android 12 (S) and above
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, PERMISSION_BLUETOOTH_CONNECT);
+                return;
+            } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_SCAN}, PERMISSION_BLUETOOTH_SCAN);
+                return;
+            } else {
+                // Your Bluetooth logic here
             }
         }
 
+        // Permission granted, request to enable Bluetooth
+        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                enableBluetooth(); // Retry enabling Bluetooth
+            } else {
+                Toast.makeText(this, "Bluetooth permission is required", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void shareInvoiceDetails(int index) {
