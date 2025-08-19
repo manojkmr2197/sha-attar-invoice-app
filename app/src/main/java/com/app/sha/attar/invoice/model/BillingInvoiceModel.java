@@ -12,6 +12,8 @@ public class BillingInvoiceModel {
     String customerPhone;
     String paymentMode;
     Boolean isPrint;
+    Boolean isCourier;
+    Double courierAmount;
     String remarks;
     Double sellingCost;
     List<BillingItemModel> billingItemModelList;
@@ -104,5 +106,21 @@ public class BillingInvoiceModel {
 
     public void setIsPrint(Boolean isPrint) {
         this.isPrint = isPrint;
+    }
+
+    public Boolean getIsCourier() {
+        return isCourier;
+    }
+
+    public void setIsCourier(Boolean isCourier) {
+        this.isCourier = isCourier;
+    }
+
+    public Double getCourierAmount() {
+        return courierAmount;
+    }
+
+    public void setCourierAmount(Double courierAmount) {
+        this.courierAmount = courierAmount;
     }
 }

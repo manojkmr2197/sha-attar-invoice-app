@@ -83,6 +83,12 @@ public class InvoiceHistoryViewAdapter extends RecyclerView.Adapter<InvoiceHisto
         } else {
             holder.owner_view.setVisibility(View.GONE);
         }
+        if(contentList.get(index).getIsCourier() != null && Boolean.TRUE.equals(contentList.get(index).getIsCourier())){
+            holder.courier_view.setVisibility(View.VISIBLE);
+            holder.courierAmount.setText(""+contentList.get(index).getCourierAmount());
+        }else{
+            holder.courier_view.setVisibility(View.GONE);
+        }
 
         holder.edit.setOnClickListener(new View.OnClickListener() {
             @Override

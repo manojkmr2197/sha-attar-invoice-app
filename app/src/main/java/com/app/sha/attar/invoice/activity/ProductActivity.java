@@ -7,6 +7,7 @@ import static java.lang.Boolean.TRUE;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -798,34 +799,83 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                         Toast.makeText(context, "No Products Found .!", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    Toast.makeText(context, "Loading .!", Toast.LENGTH_SHORT).show();
-                    for (ProductModel productModel: productModelList){
-                        db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
-                                .document(productModel.getDocumentId())
-                                .set(productModel)
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void unused) {
-                                        //Toast.makeText(context, "Products - " + productModel.getName() + " Added", Toast.LENGTH_SHORT).show();
-                                        System.out.println("Product Added successfully."+productModel.getName());
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        //Toast.makeText(context, "Error while saving product. Please try again", Toast.LENGTH_SHORT).show();
-                                        System.out.println("Error while saving product." + e);
-                                    }
-                                });
 
-                    }
-                    Toast.makeText(context, "Products Loaded .!", Toast.LENGTH_SHORT).show();
-                    setTotalProductItem();
+                    confirmationBulkUploadPopup(productModelList);
+
                 }catch (Exception e){
                     e.printStackTrace();
                     Toast.makeText(ProductActivity.this, "Internal Server Error. Please try again later.!", Toast.LENGTH_LONG).show();
                 }
 
             }
+        }
+    }
+
+    private void confirmationBulkUploadPopup(List<ProductModel> productModelList) {
+        // Create and configure the AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Confirmation");
+        builder.setMessage("Are you sure you want to proceed?");
+        builder.setCancelable(true);
+
+        // Set positive button
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            Toast.makeText(context, "Processing.!", Toast.LENGTH_LONG).show();
+            clearOldProducts();
+            for (ProductModel productModel: productModelList){
+                db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
+                        .document(productModel.getDocumentId())
+                        .set(productModel)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void unused) {
+                                //Toast.makeText(context, "Products - " + productModel.getName() + " Added", Toast.LENGTH_SHORT).show();
+                                System.out.println("Product Added successfully."+productModel.getName());
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                //Toast.makeText(context, "Error while saving product. Please try again", Toast.LENGTH_SHORT).show();
+                                System.out.println("Error while saving product." + e);
+                            }
+                        });
+
+            }
+            Toast.makeText(context, "Products Loaded .!", Toast.LENGTH_SHORT).show();
+            setTotalProductItem();
+            dialog.dismiss();
+        });
+
+        // Set negative button
+        builder.setNegativeButton("No", (dialog, which) -> {
+            dialog.dismiss();
+        });
+
+        // Create and show the dialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+
+    }
+
+    private void clearOldProducts() {
+        for (ProductModel productModel: itemList){
+            db.collection(DatabaseConstants.PRODUCTS_COLLECTION)
+                    .document(productModel.getDocumentId())
+                    .delete()
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+                            //Toast.makeText(context, "Products - " + productModel.getName() + " Added", Toast.LENGTH_SHORT).show();
+                            System.out.println("Old Product Deleted successfully."+productModel.getName());
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            //Toast.makeText(context, "Error while saving product. Please try again", Toast.LENGTH_SHORT).show();
+                            System.out.println("Error while Deletint Old product." + e);
+                        }
+                    });
+
         }
     }
 

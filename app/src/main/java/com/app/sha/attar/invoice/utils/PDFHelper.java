@@ -279,9 +279,19 @@ public class PDFHelper {
             canvas.drawText("Discount: " + String.format("%.1f", billData.getDiscount()) + "%", pageWidth / 2f, y, paint);
             y += 30;
         }
-        paint.setTextSize(22f);
-        canvas.drawText("Total: Rs." + String.format("%.2f", billData.getSellingCost()), pageWidth / 2f, y, paint);
-        y += 40;
+
+        if (billData.getIsCourier() != null && billData.getIsCourier()) {
+            canvas.drawText("Courier Charge: " + String.format("%.1f", billData.getCourierAmount()) + "%", pageWidth / 2f, y, paint);
+            y += 30;
+            double sellingWithCourier = billData.getSellingCost() + billData.getCourierAmount();
+            paint.setTextSize(22f);
+            canvas.drawText("Total: Rs." + String.format("%.2f", sellingWithCourier), pageWidth / 2f, y, paint);
+            y += 40;
+        } else {
+            paint.setTextSize(22f);
+            canvas.drawText("Total: Rs." + String.format("%.2f", billData.getSellingCost()), pageWidth / 2f, y, paint);
+            y += 40;
+        }
 
         // Footer
         paint.setTextAlign(Paint.Align.LEFT);
@@ -308,7 +318,7 @@ public class PDFHelper {
         paint.setTextAlign(Paint.Align.CENTER);
         canvas.drawText("Thank you for shopping with us!", pageWidth / 2f, y, paint);
         y += 25;
-        canvas.drawText("**All sales are final**", pageWidth / 2f, y, paint);
+        canvas.drawText("**ALL SALES ARE FINAL**", pageWidth / 2f, y, paint);
         y += 25;
         paint.setTextAlign(Paint.Align.LEFT);
         canvas.drawText(starLine, 0, y, paint);
@@ -321,7 +331,7 @@ public class PDFHelper {
 
     private void SavePDFFileAndShare(BillingInvoiceModel billData, PdfDocument pdfDocument) {
         // Save PDF
-        String fileName = "invoice-" + billData.getBillingDate()+"-"+ OffsetDateTime.now().toEpochSecond() + ".pdf";
+        String fileName = "invoice-" + billData.getBillingDate() + "-" + OffsetDateTime.now().toEpochSecond() + ".pdf";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
         try {
             pdfDocument.writeTo(new FileOutputStream(file));

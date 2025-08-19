@@ -114,8 +114,14 @@ public class BluetoothPrinterHelper {
                 receipt.append("[C]<b>Bill Amount:[R]").append("Rs.").append(String.format("%.2f", billData.getTotalCost())).append("  </b>\n");
                 receipt.append("[C]<b>Discount:[R]").append(String.format("%.1f", billData.getDiscount())).append("%  </b>\n");
             }
-            receipt.append("[C]<b><font size='big'>Total:[R]").append("<u>Rs.").append(String.format("%.2f", billData.getSellingCost())).append("</u></font></b>  \n\n");
+            if(billData.getIsCourier()!= null && billData.getIsCourier()){
+                receipt.append("[C]<b>Courier Charge:[R]").append(String.format("%.1f", billData.getCourierAmount())).append("%  </b>\n");
+                double sellingWithCourier = billData.getSellingCost() + billData.getCourierAmount();
+                receipt.append("[C]<b><font size='big'>Total:[R]").append("<u>Rs.").append(String.format("%.2f", sellingWithCourier)).append("</u></font></b>  \n\n");
 
+            }else {
+                receipt.append("[C]<b><font size='big'>Total:[R]").append("<u>Rs.").append(String.format("%.2f", billData.getSellingCost())).append("</u></font></b>  \n\n");
+            }
             receipt.append("[L]Payment: ")
                     .append(billData.getPaymentMode())
                     .append("\n");
@@ -129,7 +135,7 @@ public class BluetoothPrinterHelper {
             receipt.append("[C]Phone No : +91 978 977 5134\n");
             receipt.append("[L]").append(star_separator).append("\n");
             receipt.append("[C]Thank you for shopping with us!\n");
-            receipt.append("[C]**All sales are final**\n");
+            receipt.append("[C]**ALL SALES ARE FINAL**\n");
             receipt.append("[L]").append(star_separator).append("\n");
 // Print
             new Thread(() -> {

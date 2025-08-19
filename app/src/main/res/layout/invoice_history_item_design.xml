@@ -87,8 +87,8 @@
                                 android:id="@+id/invoice_history_item_name"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textAllCaps="true"
                                 android:text="Name"
+                                android:textAllCaps="true"
                                 android:textSize="15sp" />
 
                             <TextView
@@ -138,6 +138,65 @@
                             android:textColor="@color/white"
                             android:textSize="13sp"
                             android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/invoice_history_item_courier_ll"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3sp">
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="1" />
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="0.75"
+                                android:layout_marginTop="3sp"
+                                android:alpha="0.5"
+                                android:background="@color/black" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3sp">
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="1" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="5sp"
+                                android:textColor="@color/app_color"
+                                android:text="Courier Charge "
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/invoice_history_item_courier_charge"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="#ADD8E6"
+                                android:padding="3dp"
+                                android:text="Rs.500"
+                                android:textAllCaps="true"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+
+                        </LinearLayout>
+
                     </LinearLayout>
 
                     <LinearLayout
@@ -233,6 +292,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
+
             <View
                 android:layout_width="0dp"
                 android:layout_height="1dp"
@@ -243,10 +303,10 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_gravity="center"
-                android:src="@drawable/baseline_print_active24"
-                android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
-                android:alpha="0.6" /> <!-- Optional transparency -->
+                android:alpha="0.6"
+                android:scaleType="fitCenter"
+                android:src="@drawable/baseline_print_active24" /> <!-- Optional transparency -->
             <View
                 android:layout_width="0dp"
                 android:layout_height="1dp"
@@ -257,10 +317,10 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_gravity="center"
-                android:src="@drawable/baseline_share_24"
-                android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
-                android:alpha="0.6" /> <!-- Optional transparency -->
+                android:alpha="0.6"
+                android:scaleType="fitCenter"
+                android:src="@drawable/baseline_share_24" /> <!-- Optional transparency -->
             <View
                 android:layout_width="0dp"
                 android:layout_height="1dp"

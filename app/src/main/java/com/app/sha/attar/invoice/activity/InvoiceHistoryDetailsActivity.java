@@ -26,6 +26,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -117,6 +118,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
     TextView totalAmountTv, discountTv, sellingAmountTv;
     Button addItemBt, addInvoiceBt;
 
+    CheckBox courier_checkBox;
+    EditText courier_amount;
+
     List<BillingItemModel> itemModelList = new ArrayList<>();
 
 
@@ -181,6 +185,20 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 } else if (R.id.invoice_history_detail_payment_upi == checkedId) {
                     paymentMode = "UPI";
                 }
+            }
+        });
+
+        courier_checkBox = findViewById(R.id.invoice_history_detail_is_courier_checkBox);
+        courier_amount = findViewById(R.id.invoice_history_detail_courier_amount);
+
+        courier_checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                // Expand and show EditText
+                courier_amount.setVisibility(View.VISIBLE);
+            } else {
+                // Hide EditText
+                courier_amount.setText("0.0");
+                courier_amount.setVisibility(View.GONE);
             }
         });
 
@@ -289,6 +307,21 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 }else{
                     cashRadioBt.setChecked(false);
                     upiRadioBt.setChecked(true);
+                }
+
+                if(billingInvoiceModel.getIsCourier()!=null && billingInvoiceModel.getCourierAmount() != null){
+                    courier_checkBox.setChecked(billingInvoiceModel.getIsCourier());
+                    if(billingInvoiceModel.getIsCourier()) {
+                        courier_amount.setVisibility(View.VISIBLE);
+                        courier_amount.setText("" + billingInvoiceModel.getCourierAmount());
+                    }
+                    else {
+                        courier_amount.setText("");
+                        courier_amount.setVisibility(View.GONE);
+                    }
+                }else{
+                    courier_checkBox.setChecked(false);
+                    courier_amount.setVisibility(View.GONE);
                 }
 
                 totalAmountTv.setText("Rs. " + df.format(billingInvoiceModel.getTotalCost()));
@@ -1190,7 +1223,10 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             Toast.makeText(context, "Please Choose Payment mode..!", Toast.LENGTH_LONG).show();
             return;
         }
-
+        if (courier_checkBox.isChecked() && StringUtils.isEmpty(courier_amount.getText().toString())) {
+            Toast.makeText(context, "Please Enter Courier Amount..!", Toast.LENGTH_LONG).show();
+            return;
+        }
 
         billingInvoiceModel.setCustomerName(customerName.getText().toString());
         billingInvoiceModel.setCustomerPhone(customerPhone.getText().toString());
@@ -1200,6 +1236,8 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         billingInvoiceModel.setTotalCost(totalAmount);
         billingInvoiceModel.setBillingItemModelList(itemModelList);
         billingInvoiceModel.setIsPrint(false);
+        billingInvoiceModel.setIsCourier(courier_checkBox.isChecked());
+        billingInvoiceModel.setCourierAmount(StringUtils.isNotBlank(courier_amount.getText().toString())?Double.parseDouble(courier_amount.getText().toString()):0.0);
         itemModelList.stream().forEach(item -> {
             item.setInvoiceId(billingInvoiceModel.getBillingDate());
         });

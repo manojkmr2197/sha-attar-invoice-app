@@ -28,6 +28,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -116,6 +117,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     LinearLayout billing_discount_ll;
 
     TextView customer_name, customer_phone;
+
+    CheckBox courier_checkBox;
+    EditText courier_amount;
 
     RadioGroup paymentGroup;
     RadioButton cashRadioBt, upiRadioBt;
@@ -213,6 +217,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         customer_phone = (TextView) findViewById(R.id.billing_customer_phone);
         billing_discount_ll.setOnClickListener(this);
         billing_button.setOnClickListener(this);
+
+        courier_checkBox = findViewById(R.id.new_billing_is_courier_checkBox);
+        courier_amount = findViewById(R.id.new_billing_courier_amount);
+
+        courier_checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                // Expand and show EditText
+                courier_amount.setVisibility(View.VISIBLE);
+            } else {
+                // Hide EditText
+                courier_amount.setText("0.0");
+                courier_amount.setVisibility(View.GONE);
+            }
+        });
 
         bill_recycler = (RecyclerView) findViewById(R.id.home_recyclerView);
 
@@ -414,6 +432,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return;
         }
 
+        if (courier_checkBox.isChecked() && StringUtils.isEmpty(courier_amount.getText().toString())) {
+            Toast.makeText(MainActivity.this, "Please Enter Courier Amount..!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
 
         BillingInvoiceModel billingInvoiceModel = new BillingInvoiceModel();
 
@@ -428,6 +451,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         billingInvoiceModel.setSellingCost(sellingAmount);
         billingInvoiceModel.setTotalCost(totalAmount);
         billingInvoiceModel.setIsPrint(false);
+        billingInvoiceModel.setIsCourier(courier_checkBox.isChecked());
+        billingInvoiceModel.setCourierAmount(StringUtils.isNotBlank(courier_amount.getText().toString())?Double.parseDouble(courier_amount.getText().toString()):0.0);
         billingInvoiceModel.setBillingItemModelList(billingItemModelList);
         billingItemModelList.stream().forEach(item -> {
             item.setInvoiceId(billingInvoiceModel.getBillingDate());
