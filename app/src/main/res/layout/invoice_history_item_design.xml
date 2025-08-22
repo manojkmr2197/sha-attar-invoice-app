@@ -311,6 +311,20 @@
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_weight="1" />
+
+            <!-- Background image -->
+            <ImageView
+                android:id="@+id/invoice_history_item_whatsapp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:adjustViewBounds="true"
+                android:alpha="0.6"
+                android:src="@drawable/whatsapp_logo" /> <!-- Optional transparency -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
             <!-- Background image -->
             <ImageView
                 android:id="@+id/invoice_history_item_share"

@@ -64,4 +64,10 @@
         <item>ELECTRICITY</item>
     </string-array>
 
+    <string-array name="spinner_sales_type_items">
+        <item>ALL</item>
+        <item>STORE</item>
+        <item>COURIER</item>
+    </string-array>
+
 </resources>

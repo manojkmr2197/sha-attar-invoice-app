@@ -117,6 +117,12 @@ public class InvoiceHistoryViewAdapter extends RecyclerView.Adapter<InvoiceHisto
                 clickListener.click(index, "SHARE");
             }
         });
+        holder.whatsappBt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                clickListener.click(index, "WHATSAPP");
+            }
+        });
 
 
     }

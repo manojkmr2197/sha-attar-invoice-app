@@ -11,13 +11,17 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.text.InputType;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -28,6 +32,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -54,6 +59,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -162,6 +168,8 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                     deleteConfirmationPopup(index);
                 } else if (checkInternet() && type.equalsIgnoreCase("SHARE")) {
                     shareInvoiceDetails(index);
+                } else if (checkInternet() && type.equalsIgnoreCase("WHATSAPP")) {
+                    shareInvoiceDetailsToWhatsapp(index);
                 } else if (checkInternet() && type.equalsIgnoreCase("PRINT")) {
                     if (!bluetoothAdapter.isEnabled()) {
                         Toast.makeText(context, "Please turn ON Bluetooth", Toast.LENGTH_SHORT).show();
@@ -180,7 +188,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                         }
                         Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
 
-                        if (pairedDevices.size() > 0) {
+                        if (!pairedDevices.isEmpty()) {
                             boolean state = false;
                             for (BluetoothDevice device : pairedDevices) {
                                 if (device.getName().contains("RP3230") && !state) {
@@ -212,6 +220,68 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         }
         enableBluetooth();
 
+    }
+
+    private void shareInvoiceDetailsToWhatsapp(int index) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter WhatsApp Number");
+
+        final EditText input = new EditText(this);
+        input.setHint("e.g. 9876543210");  // With country code
+        input.setInputType(InputType.TYPE_CLASS_PHONE);
+        builder.setView(input);
+
+        builder.setPositiveButton("Submit", (dialog, which) -> {
+
+            if (!input.getText().toString().trim().isEmpty()) {
+                String phoneNumber = "91"+input.getText().toString().trim();
+                // Example invoice text
+                String invoiceText = sharedPrefHelper.getWhatsappShareContent();
+
+                // Get PDF file (for demo: assuming it's in internal storage)
+                String fileName = pdfHelper.createPdfAndShare(contentList.get(index));
+                // Share PDF
+                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+
+                if (file.exists()) {
+                    sendInvoiceToWhatsApp(phoneNumber, invoiceText, file);
+                } else {
+                    Toast.makeText(this, "Invoice PDF not found", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(this, "Enter a valid number", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+
+        builder.show();
+
+
+    }
+
+
+    private void sendInvoiceToWhatsApp(String phoneNumber, String message, File pdfFile) {
+        try {
+
+            // ✅ Get URI for File using FileProvider
+            Uri fileUri =FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", pdfFile);
+
+            // ✅ Create Intent
+            Intent sendIntent = new Intent(Intent.ACTION_SEND);
+            //sendIntent.setType("*/*");  // For both text and file
+            sendIntent.setType("application/pdf");
+            sendIntent.setPackage("com.whatsapp");
+            sendIntent.putExtra("jid", phoneNumber + "@s.whatsapp.net"); // For direct message
+            sendIntent.putExtra(Intent.EXTRA_TEXT, message);
+            sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+            sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            startActivity(sendIntent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "WhatsApp not installed or error occurred", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void enableBluetooth() {
@@ -268,7 +338,15 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
     }
 
     private void shareInvoiceDetails(int index) {
-        pdfHelper.createPdfAndShare(contentList.get(index));
+        String fileName = pdfHelper.createPdfAndShare(contentList.get(index));
+        // Share PDF
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+        Uri uri = FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", file);
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("application/pdf");
+        shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        context.startActivity(Intent.createChooser(shareIntent, "Share receipt"));
     }
 
     private void printConfirmationPopup(BillingInvoiceModel billData, String printer) {

@@ -8,6 +8,7 @@ import static com.app.sha.attar.invoice.utils.SharedConstants.PERFUME_30ML_MIXER
 import static com.app.sha.attar.invoice.utils.SharedConstants.PERFUME_50ML_MIXER;
 import static com.app.sha.attar.invoice.utils.SharedConstants.PRODUCT_KEY;
 import static com.app.sha.attar.invoice.utils.SharedConstants.SHA_ATTAR;
+import static com.app.sha.attar.invoice.utils.SharedConstants.WHATSAPP_ATTACH_CONTENT;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -155,6 +156,17 @@ public class SharedPrefHelper {
         editor.putInt(PERFUME_30ML_MIXER, configModel.getPerfume30mlMixer());
         editor.putInt(PERFUME_50ML_MIXER, configModel.getPerfume50mlMixer());
         editor.putInt(PERFUME_100ML_MIXER, configModel.getPerfume100mlMixer());
+        editor.apply();
+        editor.commit();
+    }
+
+    public String getWhatsappShareContent(){
+        return sharedPreferences.getString(WHATSAPP_ATTACH_CONTENT, "Thank you.! Visit Again.!");
+    }
+
+    public void setWhatsappShareContent(String content){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(WHATSAPP_ATTACH_CONTENT, content);
         editor.apply();
         editor.commit();
     }

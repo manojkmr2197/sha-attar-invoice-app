@@ -7,6 +7,7 @@ public class ConfigModel {
     Integer perfume30mlMixer;
     Integer perfume50mlMixer;
     Integer perfume100mlMixer;
+    String whatsappContent;
 
     public Integer getPackageCost() {
         return packageCost;
@@ -46,5 +47,13 @@ public class ConfigModel {
 
     public void setPerfume100mlMixer(Integer perfume100mlMixer) {
         this.perfume100mlMixer = perfume100mlMixer;
+    }
+
+    public String getWhatsappContent() {
+        return whatsappContent;
+    }
+
+    public void setWhatsappContent(String whatsappContent) {
+        this.whatsappContent = whatsappContent;
     }
 }

@@ -10,6 +10,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -62,14 +63,14 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
     TextView start_tv, end_tv;
     Button submit_bt;
 
-    Spinner salePersonSpinner;
+    Spinner salePersonSpinner, salesTypeSpinner;
 
     List<BillingInvoiceModel> billingInvoiceModelList = new ArrayList<>();
 
     LinearLayout totalExpenseLL, netProfitLL;
-    TextView productAttarActual, productSprayActual, accessoriesActual, productAttarSold, productSpraySold, accessoriesSold, productAttarProfit, productSprayProfit, accessoriesProfit, totalActual, totalSold, totalProfit, totalExpense, netProfit, totalPay, payCash, payUpi,courierCount,courierAmount;
+    TextView productAttarActual, productSprayActual, accessoriesActual, productAttarSold, productSpraySold, accessoriesSold, productAttarProfit, productSprayProfit, accessoriesProfit, totalActual, totalSold, totalProfit, totalExpense, netProfit, totalPay, payCash, payUpi, courierCount, courierAmount;
 
-    double productAttarActualValue, productSprayActualValue, accessoriesActualValue, productAttarSoldValue, productSpraySoldValue, accessoriesSoldValue, productAttarProfitValue, productSprayProfitValue, accessoriesProfitValue, totalActualValue, totalSoldValue, totalProfitValue, totalExpenseValue, totalPaymentValue, totalCash, totalUpi,courierAmountValue;
+    double productAttarActualValue, productSprayActualValue, accessoriesActualValue, productAttarSoldValue, productSpraySoldValue, accessoriesSoldValue, productAttarProfitValue, productSprayProfitValue, accessoriesProfitValue, totalActualValue, totalSoldValue, totalProfitValue, totalExpenseValue, totalPaymentValue, totalCash, totalUpi, courierAmountValue;
     int courierCountValue;
     NumberFormat numberFormat = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
 
@@ -122,6 +123,15 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
         salesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         salePersonSpinner.setAdapter(salesAdapter);
+
+        salesTypeSpinner = (Spinner) findViewById(R.id.consolidate_report_sales_type_spinner);
+
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.spinner_sales_type_items, android.R.layout.simple_spinner_item);
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        salesTypeSpinner.setAdapter(adapter);
 
         loadSalesPersonInformation();
 
@@ -249,6 +259,16 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
     private void updateUIData(List<BillingInvoiceModel> billingInvoiceModelList) {
         reportDate.setText("Report generated on " + startOfDay.format(formatter) + " - " + endOfDay.format(formatter));
 
+        String salesType = salesTypeSpinner.getSelectedItem().toString();
+
+        if (!"ALL".equalsIgnoreCase(salesType)) {
+            billingInvoiceModelList = billingInvoiceModelList.stream()
+                    .filter(model -> "COURIER".equalsIgnoreCase(salesType)
+                            ? Boolean.TRUE.equals(model.getIsCourier())
+                            : model.getIsCourier() == null || Boolean.FALSE.equals(model.getIsCourier()))
+                    .collect(Collectors.toList());
+        }
+
         Map<String, ReportGenerator.AggregatedData> productAttarData = ReportGenerator.getAggregatedAttarSalesReportData(billingInvoiceModelList);
         Map<String, ReportGenerator.AggregatedData> productSprayData = ReportGenerator.getAggregatedSpraySalesReportData(billingInvoiceModelList);
         Map<String, ReportGenerator.AccessoryAggregatedData> accessoryData = ReportGenerator.getAggregatedAccessoriesReportData(billingInvoiceModelList);
@@ -270,8 +290,8 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
         totalCash = 0;
         totalUpi = 0;
 
-        courierAmountValue =0;
-        courierCountValue =0;
+        courierAmountValue = 0;
+        courierCountValue = 0;
 
         productAttarData.forEach((key, value) -> {
             productAttarActualValue += value.actualPrice;
@@ -296,9 +316,9 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
             if ("UPI".equalsIgnoreCase(data.getPaymentMode())) {
                 totalUpi = totalUpi + data.getSellingCost();
             }
-            if(data.getIsCourier()!=null && data.getIsCourier()){
-                courierCountValue = courierCountValue+1;
-                courierAmountValue = courierAmountValue+data.getCourierAmount();
+            if (data.getIsCourier() != null && data.getIsCourier()) {
+                courierCountValue = courierCountValue + 1;
+                courierAmountValue = courierAmountValue + data.getCourierAmount();
             }
         });
 
@@ -326,7 +346,7 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
         totalPaymentValue = totalCash + totalUpi;
         totalPay.setText(numberFormat.format(totalPaymentValue).replace("\u00A0", ""));
 
-        courierCount.setText(numberFormat.format(courierCountValue).replace("\u00A0", ""));
+        courierCount.setText(String.valueOf(courierCountValue));
         courierAmount.setText(numberFormat.format(courierAmountValue).replace("\u00A0", ""));
 
         if ("ALL".equalsIgnoreCase(salePersonSpinner.getSelectedItem().toString())) {

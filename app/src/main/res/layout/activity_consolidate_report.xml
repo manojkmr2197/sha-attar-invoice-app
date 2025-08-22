@@ -54,20 +54,56 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="7sp"
-                android:text="Sales Person :  " />
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="7sp"
+                    android:text="Sales Person " />
 
-            <Spinner
-                android:id="@+id/consolidate_report_sales_spinner"
-                android:layout_width="match_parent"
+                <Spinner
+                    android:id="@+id/consolidate_report_sales_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAlignment="center"
+                    android:textSize="12sp" />
+            </LinearLayout>
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:alpha="0.2"
+                android:background="@color/black" />
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textAlignment="center"
-                android:textSize="12sp" />
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="7sp"
+                    android:text="Sales Type " />
+
+                <Spinner
+                    android:id="@+id/consolidate_report_sales_type_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAlignment="center"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
 
         </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="3sp"
+            android:alpha="0.2"
+            android:background="@color/black" />
 
         <LinearLayout
             android:layout_width="match_parent"

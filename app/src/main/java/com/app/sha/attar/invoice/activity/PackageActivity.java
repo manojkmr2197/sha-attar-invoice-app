@@ -29,7 +29,7 @@ public class PackageActivity extends AppCompatActivity implements View.OnClickLi
     Context context;
     Activity activity;
 
-    TextInputEditText amount_et,perfume_10ml,perfume_30ml,perfume_50ml,perfume_100ml;
+    TextInputEditText amount_et,perfume_10ml,perfume_30ml,perfume_50ml,perfume_100ml,whatsapp_content;
 
     SharedPrefHelper helper;
 
@@ -59,6 +59,7 @@ public class PackageActivity extends AppCompatActivity implements View.OnClickLi
         perfume_30ml = (TextInputEditText) findViewById(R.id.packaging_perfume_30ml);
         perfume_50ml = (TextInputEditText) findViewById(R.id.packaging_perfume_50ml);
         perfume_100ml = (TextInputEditText) findViewById(R.id.packaging_perfume_100ml);
+        whatsapp_content = (TextInputEditText) findViewById(R.id.packaging_whatsappContent);
 
         amount_et.setText(String.valueOf(helper.getPackageCost()));
         ConfigModel configModel = helper.getPerfumeActualMix();
@@ -66,7 +67,7 @@ public class PackageActivity extends AppCompatActivity implements View.OnClickLi
         perfume_30ml.setText(String.valueOf(configModel.getPerfume30mlMixer()));
         perfume_50ml.setText(String.valueOf(configModel.getPerfume50mlMixer()));
         perfume_100ml.setText(String.valueOf(configModel.getPerfume100mlMixer()));
-
+        whatsapp_content.setText(helper.getWhatsappShareContent());
 
         Button submit = (Button) findViewById(R.id.packaging_save);
         submit.setOnClickListener(this);
@@ -82,6 +83,7 @@ public class PackageActivity extends AppCompatActivity implements View.OnClickLi
             if (checkInternet()) {
                 updateDatabase();
                 helper.setPackageCost(Integer.parseInt(amount_et.getText().toString()));
+                helper.setWhatsappShareContent(whatsapp_content.getText().toString());
                 Toast.makeText(this, "Updated..!", Toast.LENGTH_SHORT).show();
                 finish();
             }
@@ -101,6 +103,7 @@ public class PackageActivity extends AppCompatActivity implements View.OnClickLi
     private void updateDatabase() {
         ConfigModel configModel =new ConfigModel();
         configModel.setPackageCost(Integer.parseInt(amount_et.getText().toString()));
+        configModel.setWhatsappContent(whatsapp_content.getText().toString());
         configModel.setPerfume10mlMixer(Integer.parseInt(perfume_10ml.getText().toString()));
         configModel.setPerfume30mlMixer(Integer.parseInt(perfume_30ml.getText().toString()));
         configModel.setPerfume50mlMixer(Integer.parseInt(perfume_50ml.getText().toString()));

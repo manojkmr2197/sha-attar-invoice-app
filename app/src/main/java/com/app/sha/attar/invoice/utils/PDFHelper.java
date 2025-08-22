@@ -34,135 +34,7 @@ public class PDFHelper {
         this.context = context;
     }
 
-    public void createPdfAndShare1(BillingInvoiceModel billData) {
-        int pageWidth = 576; // 3 inch at 203 DPI ~ 72mm
-        int pageHeight = 1000; // dynamic, adjust based on content
-
-        PdfDocument pdfDocument = new PdfDocument();
-        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, 1).create();
-        PdfDocument.Page page = pdfDocument.startPage(pageInfo);
-        Canvas canvas = page.getCanvas();
-
-        Paint paint = new Paint();
-        paint.setColor(Color.BLACK);
-        paint.setTextSize(22f);
-        paint.setTypeface(Typeface.create(Typeface.MONOSPACE, Typeface.BOLD));
-
-        // Logo
-        Bitmap logo = BitmapFactory.decodeResource(context.getResources(), R.drawable.app_print_logo);
-        Bitmap scaledLogo = Bitmap.createScaledBitmap(logo, 150, 150, false);
-        canvas.drawBitmap(scaledLogo, (pageWidth - scaledLogo.getWidth()) / 2f, 20, paint);
-
-        int y = 200;
-        // Header
-        paint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText("SHA'S ATTAR & PERFUMES", pageWidth / 2f, y, paint);
-        y += 30;
-        paint.setTextSize(18f);
-        canvas.drawText("(Make your own Perfume)", pageWidth / 2f, y, paint);
-        y += 40;
-
-        // Date
-        paint.setTextSize(16f);
-        paint.setTextAlign(Paint.Align.RIGHT);
-        String dateStr = new SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.getDefault()).format(new Date());
-        canvas.drawText("Date: " + dateStr.toUpperCase(), 10, y, paint);
-        y += 40;
-
-        // Order details
-        paint.setTypeface(Typeface.create(Typeface.MONOSPACE, Typeface.BOLD));
-        canvas.drawText("ORDER No: " + billData.getBillingDate(), 10, y, paint);
-        y += 30;
-        canvas.drawText("Bill by: " + billData.getCustomerName().toUpperCase(), 10, y, paint);
-        y += 30;
-
-        int dashCount = pageWidth / (int) paint.measureText("-");
-        String dashLine = new String(new char[dashCount]).replace('\0', '-');
-        int starCount = pageWidth / (int) paint.measureText("*");
-        String starLine = new String(new char[starCount]).replace('\0', '*');
-
-        canvas.drawText(dashLine, 0, y, paint);
-        y += 20;
-
-        // Table header
-        paint.setTypeface(Typeface.MONOSPACE);
-        canvas.drawText("PRODUCT", 10, y, paint);
-        canvas.drawText("QTY", pageWidth / 2f - 20, y, paint);
-        canvas.drawText("PRICE", pageWidth - 100, y, paint);
-        y += 20;
-        canvas.drawText(dashLine, 0, y, paint);
-        y += 20;
-
-        // Products
-        for (BillingItemModel p : billData.getBillingItemModelList()) {
-            String name = (p.getName().length() > 20 ? p.getName().substring(0, 20) : p.getName());
-            String qty = p.getUnits() != null ? p.getUnits() + " ML" : "";
-            String price = "Rs." + String.format("%.2f", p.getSellingItemPrice());
-
-            canvas.drawText(name, 10, y, paint);
-            canvas.drawText(qty, pageWidth / 2f - 20, y, paint);
-            canvas.drawText(price, pageWidth - 100, y, paint);
-            y += 30;
-        }
-
-        // Separator
-        canvas.drawText(dashLine, 0, y, paint);
-        y += 30;
-        paint.setTextAlign(Paint.Align.CENTER);
-        // Discount and totals
-        if (billData.getDiscount() > 0) {
-            canvas.drawText("Bill Amount: Rs." + String.format("%.2f", billData.getTotalCost()), 10, y, paint);
-            y += 30;
-            canvas.drawText("Discount: " + String.format("%.1f", billData.getDiscount()) + "%", 10, y, paint);
-            y += 30;
-        }
-        paint.setTextSize(22f);
-        canvas.drawText("Total: Rs." + String.format("%.2f", billData.getSellingCost()), 10, y, paint);
-        y += 40;
-
-        // Footer
-        paint.setTextSize(16f);
-        canvas.drawText("Payment: " + billData.getPaymentMode(), 10, y, paint);
-        y += 30;
-
-        // Another star line if needed
-        canvas.drawText(starLine, pageWidth / 2f, y, paint);
-        y += 30;
-// Address - Left aligned
-        paint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText("A11, Gemini Parson Complex, Basement Floor,", 10, y, paint);
-        y += 25;
-        canvas.drawText("Kodambakkam High Road, Nungambakkam.", 10, y, paint);
-        y += 25;
-        canvas.drawText("Chennai-600006", 10, y, paint);
-        y += 25;
-
-// Phone - Center aligned
-        paint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText("Phone No : +91 978 977 5134", pageWidth / 2f, y, paint);
-        y += 30;
-
-// Separator with stars
-
-        canvas.drawText(starLine, pageWidth / 2f, y, paint);
-        y += 30;
-
-// Thank you message - Center aligned
-        canvas.drawText("Thank you for shopping with us!", pageWidth / 2f, y, paint);
-        y += 25;
-        canvas.drawText("**All sales are final**", pageWidth / 2f, y, paint);
-        y += 25;
-
-// Another star line if needed
-        canvas.drawText(starLine, pageWidth / 2f, y, paint);
-        y += 30;
-
-        pdfDocument.finishPage(page);
-
-        SavePDFFileAndShare(billData, pdfDocument);
-    }
-
-    public void createPdfAndShare(BillingInvoiceModel billData) {
+    public String createPdfAndShare(BillingInvoiceModel billData) {
         int pageWidth = 576; // For 3-inch printer @203 DPI
         int marginTop = 20;
         int y = marginTop;
@@ -325,11 +197,11 @@ public class PDFHelper {
 
         pdfDocument.finishPage(page);
 
-        SavePDFFileAndShare(billData, pdfDocument);
+        return SavePDFFileAndShare(billData, pdfDocument);
     }
 
 
-    private void SavePDFFileAndShare(BillingInvoiceModel billData, PdfDocument pdfDocument) {
+    private String SavePDFFileAndShare(BillingInvoiceModel billData, PdfDocument pdfDocument) {
         // Save PDF
         String fileName = "invoice-" + billData.getBillingDate() + "-" + OffsetDateTime.now().toEpochSecond() + ".pdf";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
@@ -339,14 +211,7 @@ public class PDFHelper {
             e.printStackTrace();
         }
         pdfDocument.close();
-
-        // Share PDF
-        Uri uri = FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", file);
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("application/pdf");
-        shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
-        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        context.startActivity(Intent.createChooser(shareIntent, "Share receipt"));
+        return fileName;
     }
 
 }
