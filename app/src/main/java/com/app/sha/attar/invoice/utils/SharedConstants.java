@@ -19,6 +19,8 @@ public class SharedConstants {
     public static String LOGIN_USER_NAME = "LOGIN_USER_NAME_GEN2";
     public static String LOGIN_USER_PHONE = "LOGIN_USER_PHONE_GEN2";
 
-    public static String WHATSAPP_ATTACH_CONTENT = "WHATSAPP_ATTACH_CONTENT_GEN2";
+    public static String PAYMENT_URI = "PAYMENT_URI";
+    public static String PAYMENT_PAYEE = "PAYMENT_PAYEE";
+
 
 }

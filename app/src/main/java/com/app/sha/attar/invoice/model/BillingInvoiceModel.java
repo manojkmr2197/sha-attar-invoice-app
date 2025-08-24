@@ -11,6 +11,7 @@ public class BillingInvoiceModel {
     String customerName;
     String customerPhone;
     String paymentMode;
+    String upiPaymentStatus;
     Boolean isPrint;
     Boolean isCourier;
     Double courierAmount;
@@ -122,5 +123,13 @@ public class BillingInvoiceModel {
 
     public void setCourierAmount(Double courierAmount) {
         this.courierAmount = courierAmount;
+    }
+
+    public String getUpiPaymentStatus() {
+        return upiPaymentStatus;
+    }
+
+    public void setUpiPaymentStatus(String upiPaymentStatus) {
+        this.upiPaymentStatus = upiPaymentStatus;
     }
 }

@@ -1,0 +1,63 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50sp"
+        android:background="@color/app_color"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="UPI Payment"
+            android:layout_marginStart="10sp"
+            android:textColor="@color/white"
+            android:textSize="15sp" />
+        <TextView
+            android:id="@+id/main_bill_qr_image_close"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/ic_baseline_close_24" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/main_bill_qr_image"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Scan UPI QR or use UPI App"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        android:id="@+id/main_bill_qr_payee_name"
+        android:layout_marginTop="10dp" />
+
+    <Button
+        android:id="@+id/btnPayWithUPI"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:text="Pay with UPI App"
+        android:layout_marginTop="10dp" />
+
+    <Button
+        android:id="@+id/main_bill_qr_image_submit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Payment Complete"
+        android:layout_margin="20dp" />
+
+
+</LinearLayout>

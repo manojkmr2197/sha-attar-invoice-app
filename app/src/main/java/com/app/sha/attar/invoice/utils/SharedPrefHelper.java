@@ -2,13 +2,15 @@ package com.app.sha.attar.invoice.utils;
 
 import static com.app.sha.attar.invoice.utils.SharedConstants.ACCESSORIES_KEY;
 import static com.app.sha.attar.invoice.utils.SharedConstants.PACKAGING_KEY;
+import static com.app.sha.attar.invoice.utils.SharedConstants.PAYMENT_PAYEE;
+import static com.app.sha.attar.invoice.utils.SharedConstants.PAYMENT_URI;
 import static com.app.sha.attar.invoice.utils.SharedConstants.PERFUME_100ML_MIXER;
 import static com.app.sha.attar.invoice.utils.SharedConstants.PERFUME_10ML_MIXER;
 import static com.app.sha.attar.invoice.utils.SharedConstants.PERFUME_30ML_MIXER;
 import static com.app.sha.attar.invoice.utils.SharedConstants.PERFUME_50ML_MIXER;
 import static com.app.sha.attar.invoice.utils.SharedConstants.PRODUCT_KEY;
 import static com.app.sha.attar.invoice.utils.SharedConstants.SHA_ATTAR;
-import static com.app.sha.attar.invoice.utils.SharedConstants.WHATSAPP_ATTACH_CONTENT;
+
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -160,15 +162,19 @@ public class SharedPrefHelper {
         editor.commit();
     }
 
-    public String getWhatsappShareContent(){
-        return sharedPreferences.getString(WHATSAPP_ATTACH_CONTENT, "Thank you.! Visit Again.!");
+    public String getUpiId() {
+        return sharedPreferences.getString(SharedConstants.PAYMENT_URI, null);
     }
 
-    public void setWhatsappShareContent(String content){
+    public String getPayeeName() {
+        return sharedPreferences.getString(SharedConstants.PAYMENT_PAYEE, null);
+    }
+
+    public void setPaymentURIAndName(String paymentUri, String payeeName) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(WHATSAPP_ATTACH_CONTENT, content);
+        editor.putString(PAYMENT_URI, paymentUri);
+        editor.putString(PAYMENT_PAYEE, payeeName);
         editor.apply();
         editor.commit();
     }
-
 }

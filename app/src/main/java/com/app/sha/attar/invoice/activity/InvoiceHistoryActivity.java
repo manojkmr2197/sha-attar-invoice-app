@@ -224,7 +224,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
 
     private void shareInvoiceDetailsToWhatsapp(int index) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter WhatsApp Number");
+        builder.setTitle("WhatsApp Number");
 
         final EditText input = new EditText(this);
         input.setHint("e.g. 9876543210");  // With country code
@@ -236,7 +236,6 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
             if (!input.getText().toString().trim().isEmpty()) {
                 String phoneNumber = "91"+input.getText().toString().trim();
                 // Example invoice text
-                String invoiceText = sharedPrefHelper.getWhatsappShareContent();
 
                 // Get PDF file (for demo: assuming it's in internal storage)
                 String fileName = pdfHelper.createPdfAndShare(contentList.get(index));
@@ -244,7 +243,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                 File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
 
                 if (file.exists()) {
-                    sendInvoiceToWhatsApp(phoneNumber, invoiceText, file);
+                    sendInvoiceToWhatsApp(phoneNumber, file);
                 } else {
                     Toast.makeText(this, "Invoice PDF not found", Toast.LENGTH_SHORT).show();
                 }
@@ -261,7 +260,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
     }
 
 
-    private void sendInvoiceToWhatsApp(String phoneNumber, String message, File pdfFile) {
+    private void sendInvoiceToWhatsApp(String phoneNumber, File pdfFile) {
         try {
 
             // ✅ Get URI for File using FileProvider
@@ -273,7 +272,6 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
             sendIntent.setType("application/pdf");
             sendIntent.setPackage("com.whatsapp");
             sendIntent.putExtra("jid", phoneNumber + "@s.whatsapp.net"); // For direct message
-            sendIntent.putExtra(Intent.EXTRA_TEXT, message);
             sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
             sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 

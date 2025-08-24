@@ -84,7 +84,7 @@ public class SplashActivity extends AppCompatActivity {
                 if (result != null) {
                     helper.setPackageCost(result.getPackageCost());
                     helper.setPerfumeActualMix(result);
-                    helper.setWhatsappShareContent(result.getWhatsappContent());
+                    helper.setPaymentURIAndName(result.getUpiId(),result.getPayeeName());
                 } else {
                     helper.setPackageCost(15);
                 }

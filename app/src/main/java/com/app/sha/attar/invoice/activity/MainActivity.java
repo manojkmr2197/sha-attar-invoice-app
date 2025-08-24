@@ -5,19 +5,25 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +37,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -43,6 +50,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -58,9 +66,11 @@ import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.model.TimeResponse;
+import com.app.sha.attar.invoice.utils.BluetoothPrinterHelper;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
+import com.app.sha.attar.invoice.utils.PDFHelper;
 import com.app.sha.attar.invoice.utils.RetrofitClient;
 import com.app.sha.attar.invoice.utils.SharedConstants;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
@@ -74,9 +84,14 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.common.BitMatrix;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -84,6 +99,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -131,8 +147,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     FirebaseFirestore db;
 
     private static final int REQUEST_WRITE_PERMISSION = 786;
+    private static final int REQUEST_ENABLE_BT = 10;
+    private static final int PERMISSION_BLUETOOTH = 1;
+    private static final int PERMISSION_BLUETOOTH_ADMIN = 2;
+    private static final int PERMISSION_BLUETOOTH_CONNECT = 3;
+    private static final int PERMISSION_BLUETOOTH_SCAN = 4;
 
     String paymentMode = "";
+
+    PDFHelper pdfHelper;
+
+    BluetoothAdapter bluetoothAdapter;
+    public BluetoothPrinterHelper bluetoothPrinterHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,7 +200,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
         dbObj = new DBUtil();
         db = DBUtil.getInstance();
+        pdfHelper = new PDFHelper(context);
         sharedPrefHelper = new SharedPrefHelper(context);
+        bluetoothPrinterHelper = new BluetoothPrinterHelper(context, activity);
         sharedPrefHelper.setTotalProductItem();
         sharedPrefHelper.setTotalAccessoriesItem();
         productModelList.addAll(sharedPrefHelper.getTotalProductList());
@@ -294,9 +322,50 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     REQUEST_WRITE_PERMISSION);
         }
+        enableBluetooth();
 
         manageBillingLayout();
 
+    }
+
+    private void enableBluetooth() {
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        if (bluetoothAdapter == null) {
+            Toast.makeText(this, "Bluetooth not supported on this device", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (bluetoothAdapter.isEnabled()) {
+            //Toast.makeText(this, "Bluetooth is already enabled", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH}, PERMISSION_BLUETOOTH);
+                return;
+            } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_ADMIN}, PERMISSION_BLUETOOTH_ADMIN);
+                return;
+            } else {
+                // Your Bluetooth logic here
+            }
+        } else {
+            // For Android 12 (S) and above
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, PERMISSION_BLUETOOTH_CONNECT);
+                return;
+            } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_SCAN}, PERMISSION_BLUETOOTH_SCAN);
+                return;
+            } else {
+                // Your Bluetooth logic here
+            }
+        }
+
+        // Permission granted, request to enable Bluetooth
+        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
     }
 
     private boolean checkInternet() {
@@ -307,6 +376,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return false;
         }
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                enableBluetooth(); // Retry enabling Bluetooth
+            } else {
+                Toast.makeText(this, "Bluetooth permission is required", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void manageBillingLayout() {
@@ -452,12 +534,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         billingInvoiceModel.setTotalCost(totalAmount);
         billingInvoiceModel.setIsPrint(false);
         billingInvoiceModel.setIsCourier(courier_checkBox.isChecked());
-        billingInvoiceModel.setCourierAmount(StringUtils.isNotBlank(courier_amount.getText().toString())?Double.parseDouble(courier_amount.getText().toString()):0.0);
+        billingInvoiceModel.setCourierAmount(StringUtils.isNotBlank(courier_amount.getText().toString()) ? Double.parseDouble(courier_amount.getText().toString()) : 0.0);
         billingInvoiceModel.setBillingItemModelList(billingItemModelList);
         billingItemModelList.stream().forEach(item -> {
             item.setInvoiceId(billingInvoiceModel.getBillingDate());
         });
         billingInvoiceModel.setBillingItemModelList(billingItemModelList);
+
+        if (paymentMode.equalsIgnoreCase("UPI")) {
+            generatePaymentQR(billingInvoiceModel);
+        } else {
+            registerDatabase(billingInvoiceModel);
+        }
+
+    }
+
+    private void registerDatabase(BillingInvoiceModel billingInvoiceModel) {
         Toast.makeText(MainActivity.this, "Loading..!", Toast.LENGTH_LONG).show();
         db.collection(DatabaseConstants.INVOICE_COLLECTION)
                 .document(String.valueOf(billingInvoiceModel.getBillingDate()))
@@ -466,8 +558,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onSuccess(Void unused) {
                         Toast.makeText(MainActivity.this, "Submitted Successfully..!", Toast.LENGTH_LONG).show();
-                        billingItemModelList.clear();
-                        manageBillingLayout();
+                        sharePrintWhatsappDialog(billingInvoiceModel);
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -475,6 +566,228 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         Toast.makeText(MainActivity.this, "Internal server error..!", Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    private void generatePaymentQR(BillingInvoiceModel billingInvoiceModel) {
+
+        String upiUri = "upi://pay?pa=" + sharedPrefHelper.getUpiId() +
+                "&pn=" + sharedPrefHelper.getPayeeName() +
+                "&am=" + String.format("%.2f", billingInvoiceModel.getSellingCost()) +
+                "&cu=INR" +
+                "&tn=" + "SHA'S ATTAR & PERFUMES";
+
+        Bitmap qrBitmap = generateQRCode(upiUri);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        View view = LayoutInflater.from(context).inflate(R.layout.dialog_qr_payment, null);
+
+        TextView close = view.findViewById(R.id.main_bill_qr_image_close);
+        TextView payeeName = view.findViewById(R.id.main_bill_qr_payee_name);
+        ImageView qrImage = view.findViewById(R.id.main_bill_qr_image);
+        Button btnPayWithUPI = view.findViewById(R.id.btnPayWithUPI);
+        Button btnManualSubmit = view.findViewById(R.id.main_bill_qr_image_submit);
+        payeeName.setText(sharedPrefHelper.getPayeeName()+"("+sharedPrefHelper.getUpiId()+")");
+        qrImage.setImageBitmap(qrBitmap);
+        builder.setView(view);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        btnPayWithUPI.setOnClickListener(v -> {
+            //startUPIIntent(upiUri);
+        });
+
+        btnManualSubmit.setOnClickListener(v -> {
+            Toast.makeText(context, "Payment Acknowledged", Toast.LENGTH_SHORT).show();
+            billingInvoiceModel.setUpiPaymentStatus("SUCCESS");
+            registerDatabase(billingInvoiceModel);
+            dialog.dismiss();
+        });
+
+        close.setOnClickListener(v -> {
+            Toast.makeText(MainActivity.this, "UPI Payment Still Pending.!", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+    }
+
+    private Bitmap generateQRCode(String upiUri) {
+        try {
+            BitMatrix bitMatrix = new MultiFormatWriter()
+                    .encode(upiUri, BarcodeFormat.QR_CODE, 500, 500);
+            return new BarcodeEncoder().createBitmap(bitMatrix);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private void sharePrintWhatsappDialog(BillingInvoiceModel billingInvoiceModel) {
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//        View view = getLayoutInflater().inflate(R.layout.dialog_main_bill_share, null);
+//        builder.setView(view);
+//
+//        AlertDialog dialog = builder.create();
+
+        Dialog dialog = new Dialog (context);
+        dialog.setContentView(R.layout.dialog_main_bill_share);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        RadioGroup radioGroup = dialog.findViewById(R.id.radioGroupOptions);
+        RadioButton radioPrinter = dialog.findViewById(R.id.radioPrinter);
+        RadioButton radioWhatsapp = dialog.findViewById(R.id.radioWhatsapp);
+        EditText editWhatsappNumber = dialog.findViewById(R.id.editWhatsappNumber);
+        Button btnSubmit = dialog.findViewById(R.id.btnSubmit);
+        radioWhatsapp.setChecked(true);
+        radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.radioWhatsapp) {
+                editWhatsappNumber.setVisibility(View.VISIBLE);
+                radioPrinter.setChecked(false);
+                radioWhatsapp.setChecked(true);
+            } else {
+                editWhatsappNumber.setVisibility(View.GONE);
+                radioPrinter.setChecked(true);
+                radioWhatsapp.setChecked(false);
+            }
+        });
+
+        btnSubmit.setOnClickListener(v -> {
+
+            if (radioPrinter.isChecked()) {
+                if (!bluetoothAdapter.isEnabled()) {
+                    Toast.makeText(context, "Please turn ON Bluetooth", Toast.LENGTH_SHORT).show();
+                    return;
+                } else {
+                    // Get Paired Devices
+                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                        // TODO: Consider calling
+                        //    ActivityCompat#requestPermissions
+                        // here to request the missing permissions, and then overriding
+                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                        //                                          int[] grantResults)
+                        // to handle the case where the user grants the permission. See the documentation
+                        // for ActivityCompat#requestPermissions for more details.
+                        return;
+                    }
+                    Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+
+                    if (!pairedDevices.isEmpty()) {
+                        boolean state = false;
+                        for (BluetoothDevice device : pairedDevices) {
+                            if (device.getName().contains("RP3230") && !state) {
+                                printConfirmationPopup(billingInvoiceModel, device.getName());
+                                state = true;
+                            }
+                        }
+                        if (!state) {
+                            Toast.makeText(context, "Printer not connected properly.!", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(context, "No paired devices found", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            } else if (radioWhatsapp.isChecked()) {
+                String number = editWhatsappNumber.getText().toString().trim();
+                if (number.length() != 10) {
+                    editWhatsappNumber.setError("Enter WhatsApp number");
+                    return;
+                }
+                String phoneNumber = "91" + editWhatsappNumber.getText().toString().trim();
+                // Example invoice text
+
+                // Get PDF file (for demo: assuming it's in internal storage)
+                String fileName = pdfHelper.createPdfAndShare(billingInvoiceModel);
+                // Share PDF
+                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+                if (file.exists()) {
+                    sendInvoiceToWhatsApp(phoneNumber, file);
+                } else {
+                    Toast.makeText(this, "Invoice PDF not found", Toast.LENGTH_SHORT).show();
+                }
+                Toast.makeText(this, "Bill Sent. WhatsApp number -> " + number, Toast.LENGTH_SHORT).show();
+            }
+            dialog.dismiss();
+            billingItemModelList.clear();
+            manageBillingLayout();
+        });
+
+        dialog.show();
+
+    }
+
+    private void printConfirmationPopup(BillingInvoiceModel billData, String printer) {
+        // Create and configure the AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Confirmation (" + printer + ")");
+        if (billData.getIsPrint() == null || !billData.getIsPrint()) {
+            builder.setMessage("Do you want to print the bill?");
+        } else {
+            builder.setMessage("Already Bill printed. Do you want to print it again?");
+        }
+        builder.setCancelable(true);
+
+        // Set positive button
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            dialog.dismiss();
+            try {
+                if (bluetoothPrinterHelper.printSmallFontReceipt(billData))
+                    updatePrintStatusToDatabase(billData);
+            } catch (Exception e) {
+                Toast.makeText(context, "Printer not available. Please restart the printer.!", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        // Set negative button
+        builder.setNegativeButton("No", (dialog, which) -> {
+            dialog.dismiss();
+        });
+
+        // Create and show the dialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+
+    }
+
+    private void updatePrintStatusToDatabase(BillingInvoiceModel billingInvoiceModel) {
+        billingInvoiceModel.setIsPrint(true);
+        db.collection(DatabaseConstants.INVOICE_COLLECTION)
+                .document(String.valueOf(billingInvoiceModel.getBillingDate()))
+                .set(billingInvoiceModel)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(context, "Internal server error..!", Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void sendInvoiceToWhatsApp(String phoneNumber, File pdfFile) {
+        try {
+
+            // ✅ Get URI for File using FileProvider
+            Uri fileUri = FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", pdfFile);
+
+            // ✅ Create Intent
+            Intent sendIntent = new Intent(Intent.ACTION_SEND);
+            //sendIntent.setType("*/*");  // For both text and file
+            sendIntent.setType("application/pdf");
+            sendIntent.setPackage("com.whatsapp");
+            sendIntent.putExtra("jid", phoneNumber + "@s.whatsapp.net"); // For direct message
+            sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+            sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            startActivity(sendIntent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "WhatsApp not installed or error occurred", Toast.LENGTH_SHORT).show();
+        }
     }
 
 
@@ -849,7 +1162,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedNonProduct[0].getName());
-                        billingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice()+ Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                        billingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
 
@@ -907,7 +1220,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                             newBillingItemModel.setType(type[0]);
                             newBillingItemModel.setName(selectedNonProduct[0].getName());
-                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice()+ Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                             newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         }
                         billingItemModelList.add(newBillingItemModel);
@@ -1006,5 +1319,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Toast.makeText(MainActivity.this, "Please check Mobile Date/Time", Toast.LENGTH_LONG).show();
         }
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (resultCode == RESULT_OK) {
+                // Bluetooth enabled successfully
+            } else {
+                // User denied to enable Bluetooth
+            }
+        }
     }
 }

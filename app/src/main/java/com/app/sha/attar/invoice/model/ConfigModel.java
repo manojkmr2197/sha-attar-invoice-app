@@ -7,7 +7,8 @@ public class ConfigModel {
     Integer perfume30mlMixer;
     Integer perfume50mlMixer;
     Integer perfume100mlMixer;
-    String whatsappContent;
+    String upiId;
+    String payeeName;
 
     public Integer getPackageCost() {
         return packageCost;
@@ -49,11 +50,19 @@ public class ConfigModel {
         this.perfume100mlMixer = perfume100mlMixer;
     }
 
-    public String getWhatsappContent() {
-        return whatsappContent;
+    public String getUpiId() {
+        return upiId;
     }
 
-    public void setWhatsappContent(String whatsappContent) {
-        this.whatsappContent = whatsappContent;
+    public void setUpiId(String upiId) {
+        this.upiId = upiId;
+    }
+
+    public String getPayeeName() {
+        return payeeName;
+    }
+
+    public void setPayeeName(String payeeName) {
+        this.payeeName = payeeName;
     }
 }
