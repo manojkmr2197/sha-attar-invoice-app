@@ -11,6 +11,7 @@ public class ReportModel {
     double actualPrice;
     double profit;
     String customerInfo;
+    String salesType;
 
     public long getInvoiceId() {
         return invoiceId;
@@ -82,5 +83,13 @@ public class ReportModel {
 
     public void setOwner(String owner) {
         this.owner = owner;
+    }
+
+    public String getSalesType() {
+        return salesType;
+    }
+
+    public void setSalesType(String salesType) {
+        this.salesType = salesType;
     }
 }

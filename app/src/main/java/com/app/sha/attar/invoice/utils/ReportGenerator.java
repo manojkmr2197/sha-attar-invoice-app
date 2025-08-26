@@ -191,6 +191,11 @@ public class ReportGenerator {
         } else if (item.getType().equals("NON_PRODUCT")) {
             report.setOwner(item.getAccessoriesModel().getOwner());
         }
+        if(invoice.getIsCourier() != null && invoice.getIsCourier()){
+            report.setSalesType("COURIER");
+        }else{
+            report.setSalesType("STORE_SALES");
+        }
 
         report.setName(item.getName());
         report.setActualPrice(actualPrice);
@@ -430,7 +435,7 @@ public class ReportGenerator {
         Row headerRow = sheet.createRow(0);
         int cellIndex = 0;
 
-        String[] headers = {"Date", "Accessory Name", "Owner", "Quantity", "Sold Price", "Actual Price", "Profit", "Sales Info"};
+        String[] headers = {"Date", "Accessory Name", "Owner", "Quantity", "Sold Price", "Actual Price", "Profit", "Sales Info","Sales Type"};
 
         for (String key : headers) {
             Cell cell = headerRow.createCell(cellIndex++);
@@ -465,6 +470,9 @@ public class ReportGenerator {
             Cell cell7 = row.createCell(7);
             cell7.setCellValue(entry.getCustomerInfo());
             cell7.setCellStyle(wrapStyle);
+            Cell cell8 = row.createCell(8);
+            cell8.setCellValue(entry.getSalesType());
+            cell8.setCellStyle(wrapStyle);
         }
 
 
@@ -479,7 +487,7 @@ public class ReportGenerator {
         Row headerRow = sheet.createRow(0);
         int cellIndex = 0;
 
-        String[] headers = {"Date", "Product Name", "Owner", "Quantity", "Sold Price", "Actual Price", "Profit", "Sales Info"};
+        String[] headers = {"Date", "Product Name", "Owner", "Quantity", "Sold Price", "Actual Price", "Profit", "Sales Info","Sales Type"};
 
         for (String key : headers) {
             Cell cell = headerRow.createCell(cellIndex++);
@@ -515,6 +523,9 @@ public class ReportGenerator {
             Cell cell7 = row.createCell(7);
             cell7.setCellValue(entry.getCustomerInfo());
             cell7.setCellStyle(wrapStyle);
+            Cell cell8 = row.createCell(8);
+            cell8.setCellValue(entry.getSalesType());
+            cell8.setCellStyle(wrapStyle);
 
         }
 
