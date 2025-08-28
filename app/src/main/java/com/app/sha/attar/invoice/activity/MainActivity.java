@@ -768,8 +768,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
     }
 
+    private boolean isAppInstalled(Context context, String packageName) {
+        PackageManager pm = context.getPackageManager();
+        try {
+            pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
+    }
+
+
     private void sendInvoiceToWhatsApp(String phoneNumber, File pdfFile) {
         try {
+            String packageName;
+            if (isAppInstalled(context, "com.whatsapp.w4b")) {
+                packageName = "com.whatsapp.w4b";  // WhatsApp Business
+            } else if (isAppInstalled(context, "com.whatsapp")) {
+                packageName = "com.whatsapp";      // Normal WhatsApp
+            } else {
+                Toast.makeText(context, "No WhatsApp installed", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             // ✅ Get URI for File using FileProvider
             Uri fileUri = FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", pdfFile);
@@ -778,7 +798,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Intent sendIntent = new Intent(Intent.ACTION_SEND);
             //sendIntent.setType("*/*");  // For both text and file
             sendIntent.setType("application/pdf");
-            sendIntent.setPackage("com.whatsapp");
+            sendIntent.setPackage(packageName);
             sendIntent.putExtra("jid", phoneNumber + "@s.whatsapp.net"); // For direct message
             sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
             sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
