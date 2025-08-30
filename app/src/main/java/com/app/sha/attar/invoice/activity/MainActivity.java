@@ -586,7 +586,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         ImageView qrImage = view.findViewById(R.id.main_bill_qr_image);
         Button btnPayWithUPI = view.findViewById(R.id.btnPayWithUPI);
         Button btnManualSubmit = view.findViewById(R.id.main_bill_qr_image_submit);
-        payeeName.setText(sharedPrefHelper.getPayeeName()+"("+sharedPrefHelper.getUpiId()+")");
+        payeeName.setText(sharedPrefHelper.getPayeeName() + "(" + sharedPrefHelper.getUpiId() + ")");
         qrImage.setImageBitmap(qrBitmap);
         builder.setView(view);
         AlertDialog dialog = builder.create();
@@ -627,7 +627,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //
 //        AlertDialog dialog = builder.create();
 
-        Dialog dialog = new Dialog (context);
+        Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_main_bill_share);
         dialog.setCanceledOnTouchOutside(false);
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -702,11 +702,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 // Share PDF
                 File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
                 if (file.exists()) {
-                    sendInvoiceToWhatsApp(phoneNumber, file);
+                    showWhatsappChoiceDialog(phoneNumber, file);
                 } else {
                     Toast.makeText(this, "Invoice PDF not found", Toast.LENGTH_SHORT).show();
                 }
-                Toast.makeText(this, "Bill Sent. WhatsApp number -> " + number, Toast.LENGTH_SHORT).show();
+
             }
             dialog.dismiss();
             billingItemModelList.clear();
@@ -768,28 +768,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
     }
 
-    private boolean isAppInstalled(Context context, String packageName) {
-        PackageManager pm = context.getPackageManager();
-        try {
-            pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
-            return true;
-        } catch (PackageManager.NameNotFoundException e) {
-            return false;
-        }
-    }
 
-
-    private void sendInvoiceToWhatsApp(String phoneNumber, File pdfFile) {
+    private void sendInvoiceToWhatsApp(String phoneNumber, File pdfFile, String packageName) {
         try {
-            String packageName;
-            if (isAppInstalled(context, "com.whatsapp.w4b")) {
-                packageName = "com.whatsapp.w4b";  // WhatsApp Business
-            } else if (isAppInstalled(context, "com.whatsapp")) {
-                packageName = "com.whatsapp";      // Normal WhatsApp
-            } else {
-                Toast.makeText(context, "No WhatsApp installed", Toast.LENGTH_SHORT).show();
-                return;
-            }
 
             // ✅ Get URI for File using FileProvider
             Uri fileUri = FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", pdfFile);
@@ -804,10 +785,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
             startActivity(sendIntent);
+
+
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "WhatsApp not installed or error occurred", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void showWhatsappChoiceDialog(String phoneNumber, File file) {
+        Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.dialog_whatsapp_choice);
+        dialog.setCancelable(true);
+
+        Button btnWhatsapp = dialog.findViewById(R.id.btnWhatsapp);
+        Button btnWhatsappBusiness = dialog.findViewById(R.id.btnWhatsappBusiness);
+
+        btnWhatsapp.setOnClickListener(v -> {
+            sendInvoiceToWhatsApp(phoneNumber, file, "com.whatsapp");
+            dialog.dismiss();
+        });
+
+        btnWhatsappBusiness.setOnClickListener(v -> {
+            sendInvoiceToWhatsApp(phoneNumber, file, "com.whatsapp.w4b");
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
 

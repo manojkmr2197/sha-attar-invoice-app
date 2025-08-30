@@ -4,13 +4,12 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -40,7 +39,6 @@ import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.InvoiceHistoryViewAdapter;
 import com.app.sha.attar.invoice.listener.BillingClickListener;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
-import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.utils.BluetoothPrinterHelper;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
@@ -48,10 +46,6 @@ import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.PDFHelper;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
-import com.dantsu.escposprinter.EscPosPrinter;
-import com.dantsu.escposprinter.connection.bluetooth.BluetoothConnection;
-import com.dantsu.escposprinter.connection.bluetooth.BluetoothPrintersConnections;
-import com.dantsu.escposprinter.textparser.PrinterTextParserImg;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -68,7 +62,6 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -234,7 +227,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         builder.setPositiveButton("Submit", (dialog, which) -> {
 
             if (!input.getText().toString().trim().isEmpty()) {
-                String phoneNumber = "91"+input.getText().toString().trim();
+                String phoneNumber = "91" + input.getText().toString().trim();
                 // Example invoice text
 
                 // Get PDF file (for demo: assuming it's in internal storage)
@@ -243,7 +236,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                 File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
 
                 if (file.exists()) {
-                    sendInvoiceToWhatsApp(phoneNumber, file);
+                    showWhatsappChoiceDialog(phoneNumber, file);
                 } else {
                     Toast.makeText(this, "Invoice PDF not found", Toast.LENGTH_SHORT).show();
                 }
@@ -259,31 +252,11 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
 
     }
 
-    private boolean isAppInstalled(Context context, String packageName) {
-        PackageManager pm = context.getPackageManager();
+    private void sendInvoiceToWhatsApp(String phoneNumber, File pdfFile, String packageName) {
         try {
-            pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
-            return true;
-        } catch (PackageManager.NameNotFoundException e) {
-            return false;
-        }
-    }
-
-    private void sendInvoiceToWhatsApp(String phoneNumber, File pdfFile) {
-        try {
-
-            String packageName;
-            if (isAppInstalled(context, "com.whatsapp.w4b")) {
-                packageName = "com.whatsapp.w4b";  // WhatsApp Business
-            } else if (isAppInstalled(context, "com.whatsapp")) {
-                packageName = "com.whatsapp";      // Normal WhatsApp
-            } else {
-                Toast.makeText(context, "No WhatsApp installed", Toast.LENGTH_SHORT).show();
-                return;
-            }
 
             // ✅ Get URI for File using FileProvider
-            Uri fileUri =FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", pdfFile);
+            Uri fileUri = FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", pdfFile);
 
             // ✅ Create Intent
             Intent sendIntent = new Intent(Intent.ACTION_SEND);
@@ -295,11 +268,35 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
             sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
             startActivity(sendIntent);
+
+
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "WhatsApp not installed or error occurred", Toast.LENGTH_SHORT).show();
         }
     }
+
+    private void showWhatsappChoiceDialog(String phoneNumber, File file) {
+        Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.dialog_whatsapp_choice);
+        dialog.setCancelable(true);
+
+        Button btnWhatsapp = dialog.findViewById(R.id.btnWhatsapp);
+        Button btnWhatsappBusiness = dialog.findViewById(R.id.btnWhatsappBusiness);
+
+        btnWhatsapp.setOnClickListener(v -> {
+            sendInvoiceToWhatsApp(phoneNumber, file, "com.whatsapp");
+            dialog.dismiss();
+        });
+
+        btnWhatsappBusiness.setOnClickListener(v -> {
+            sendInvoiceToWhatsApp(phoneNumber, file, "com.whatsapp.w4b");
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
 
     private void enableBluetooth() {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
