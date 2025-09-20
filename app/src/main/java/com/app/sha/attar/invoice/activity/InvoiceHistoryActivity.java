@@ -390,6 +390,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         builder.setPositiveButton("Yes", (dialog, which) -> {
             dialog.dismiss();
             try {
+                Toast.makeText(context, "Refreshing.!", Toast.LENGTH_LONG).show();
                 updatePrintStatusToDatabase(billData);
                 bluetoothPrinterHelper.printSmallFontReceipt(billData);
             } catch (Exception e) {

@@ -755,8 +755,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             dialog.dismiss();
             try {
                 updatePrintStatusToDatabase(billData);
-                bluetoothPrinterHelper.printSmallFontReceipt(billData);
                 Toast.makeText(context, "Refreshing.!", Toast.LENGTH_LONG).show();
+                bluetoothPrinterHelper.printSmallFontReceipt(billData);
                 billingItemModelList.clear();
                 manageBillingLayout();
             } catch (Exception e) {
