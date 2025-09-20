@@ -1234,7 +1234,6 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         billingInvoiceModel.setDiscount(discount);
         billingInvoiceModel.setSellingCost(sellingAmount);
         billingInvoiceModel.setTotalCost(totalAmount);
-        billingInvoiceModel.setBillingItemModelList(itemModelList);
         billingInvoiceModel.setIsPrint(false);
         billingInvoiceModel.setIsCourier(courier_checkBox.isChecked());
         billingInvoiceModel.setCourierAmount(StringUtils.isNotBlank(courier_amount.getText().toString())?Double.parseDouble(courier_amount.getText().toString()):0.0);

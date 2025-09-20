@@ -500,6 +500,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void submitInvoiceDetails() {
 
+        if (billingItemModelList ==null || billingItemModelList.isEmpty()) {
+            Toast.makeText(MainActivity.this, "Please Add products / Accessories..!", Toast.LENGTH_LONG).show();
+            return;
+        }
         if (StringUtils.isEmpty(customer_name.getText().toString())) {
             Toast.makeText(MainActivity.this, "Please Enter Customer Name..!", Toast.LENGTH_LONG).show();
             return;
@@ -535,7 +539,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         billingInvoiceModel.setIsPrint(false);
         billingInvoiceModel.setIsCourier(courier_checkBox.isChecked());
         billingInvoiceModel.setCourierAmount(StringUtils.isNotBlank(courier_amount.getText().toString()) ? Double.parseDouble(courier_amount.getText().toString()) : 0.0);
-        billingInvoiceModel.setBillingItemModelList(billingItemModelList);
         billingItemModelList.stream().forEach(item -> {
             item.setInvoiceId(billingInvoiceModel.getBillingDate());
         });
