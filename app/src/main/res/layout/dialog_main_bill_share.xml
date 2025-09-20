@@ -24,9 +24,28 @@
         android:id="@+id/radioGroupOptions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:gravity="center"
+        android:orientation="horizontal"
         android:padding="5dp">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="Printer"
+            android:src="@drawable/baseline_print_active24" />
+
+        <RadioButton
+            android:id="@+id/radioPrinter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="Printer" />
+
         <View
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -44,23 +63,6 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:text="WhatsApp" />
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:contentDescription="Printer"
-            android:src="@drawable/baseline_print_active24" />
-
-        <RadioButton
-            android:id="@+id/radioPrinter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:text="Printer" />
 
         <View
             android:layout_width="0dp"

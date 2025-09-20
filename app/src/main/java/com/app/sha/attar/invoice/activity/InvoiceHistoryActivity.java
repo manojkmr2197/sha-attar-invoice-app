@@ -390,8 +390,8 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         builder.setPositiveButton("Yes", (dialog, which) -> {
             dialog.dismiss();
             try {
-                if (bluetoothPrinterHelper.printSmallFontReceipt(billData))
-                    updatePrintStatusToDatabase(billData);
+                updatePrintStatusToDatabase(billData);
+                bluetoothPrinterHelper.printSmallFontReceipt(billData);
             } catch (Exception e) {
                 Toast.makeText(context, "Printer not available. Please restart the printer.!", Toast.LENGTH_LONG).show();
             }

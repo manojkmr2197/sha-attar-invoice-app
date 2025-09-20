@@ -3,7 +3,7 @@ package com.app.sha.attar.invoice.model;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-public class BillingInvoiceModel {
+public class BillingInvoiceModel implements Cloneable{
 
     Long billingDate;
     Double totalCost;
@@ -131,5 +131,14 @@ public class BillingInvoiceModel {
 
     public void setUpiPaymentStatus(String upiPaymentStatus) {
         this.upiPaymentStatus = upiPaymentStatus;
+    }
+
+    @Override
+    public BillingInvoiceModel clone() {
+        try {
+            return (BillingInvoiceModel) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

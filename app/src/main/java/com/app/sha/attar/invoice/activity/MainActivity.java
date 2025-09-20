@@ -323,7 +323,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     REQUEST_WRITE_PERMISSION);
         }
         enableBluetooth();
-
         manageBillingLayout();
 
     }
@@ -500,7 +499,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void submitInvoiceDetails() {
 
-        if (billingItemModelList ==null || billingItemModelList.isEmpty()) {
+        if (billingItemModelList == null || billingItemModelList.isEmpty()) {
             Toast.makeText(MainActivity.this, "Please Add products / Accessories..!", Toast.LENGTH_LONG).show();
             return;
         }
@@ -539,11 +538,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         billingInvoiceModel.setIsPrint(false);
         billingInvoiceModel.setIsCourier(courier_checkBox.isChecked());
         billingInvoiceModel.setCourierAmount(StringUtils.isNotBlank(courier_amount.getText().toString()) ? Double.parseDouble(courier_amount.getText().toString()) : 0.0);
-        billingItemModelList.stream().forEach(item -> {
+        for (BillingItemModel item : billingItemModelList) {
             item.setInvoiceId(billingInvoiceModel.getBillingDate());
-        });
+        }
         billingInvoiceModel.setBillingItemModelList(billingItemModelList);
-
+        if (billingInvoiceModel.getBillingItemModelList().isEmpty()) {
+            Toast.makeText(MainActivity.this, "Please Add products / Accessories..!", Toast.LENGTH_LONG).show();
+            return;
+        }
         if (paymentMode.equalsIgnoreCase("UPI")) {
             generatePaymentQR(billingInvoiceModel);
         } else {
@@ -630,6 +632,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //
 //        AlertDialog dialog = builder.create();
 
+
         Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_main_bill_share);
         dialog.setCanceledOnTouchOutside(false);
@@ -643,7 +646,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         RadioButton radioWhatsapp = dialog.findViewById(R.id.radioWhatsapp);
         EditText editWhatsappNumber = dialog.findViewById(R.id.editWhatsappNumber);
         Button btnSubmit = dialog.findViewById(R.id.btnSubmit);
-        radioWhatsapp.setChecked(true);
+        radioPrinter.setChecked(true);
+        editWhatsappNumber.setVisibility(View.GONE);
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.radioWhatsapp) {
                 editWhatsappNumber.setVisibility(View.VISIBLE);
@@ -659,20 +663,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         btnSubmit.setOnClickListener(v -> {
 
             if (radioPrinter.isChecked()) {
+                if (bluetoothAdapter == null) {
+                    Toast.makeText(this, "Bluetooth not supported on this device", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 if (!bluetoothAdapter.isEnabled()) {
                     Toast.makeText(context, "Please turn ON Bluetooth", Toast.LENGTH_SHORT).show();
                     return;
                 } else {
-                    // Get Paired Devices
-                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                        // TODO: Consider calling
-                        //    ActivityCompat#requestPermissions
-                        // here to request the missing permissions, and then overriding
-                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                        //                                          int[] grantResults)
-                        // to handle the case where the user grants the permission. See the documentation
-                        // for ActivityCompat#requestPermissions for more details.
-                        return;
+                    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) {
+                        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH}, PERMISSION_BLUETOOTH);
+                            return;
+                        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_ADMIN}, PERMISSION_BLUETOOTH_ADMIN);
+                            return;
+                        } else {
+                            // Your Bluetooth logic here
+                        }
+                    } else {
+                        // For Android 12 (S) and above
+                        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, PERMISSION_BLUETOOTH_CONNECT);
+                            return;
+                        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_SCAN}, PERMISSION_BLUETOOTH_SCAN);
+                            return;
+                        } else {
+                            // Your Bluetooth logic here
+                        }
                     }
                     Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
 
@@ -706,14 +725,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
                 if (file.exists()) {
                     showWhatsappChoiceDialog(phoneNumber, file);
+                    billingItemModelList.clear();
+                    manageBillingLayout();
                 } else {
                     Toast.makeText(this, "Invoice PDF not found", Toast.LENGTH_SHORT).show();
                 }
 
             }
             dialog.dismiss();
-            billingItemModelList.clear();
-            manageBillingLayout();
         });
 
         dialog.show();
@@ -735,8 +754,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         builder.setPositiveButton("Yes", (dialog, which) -> {
             dialog.dismiss();
             try {
-                if (bluetoothPrinterHelper.printSmallFontReceipt(billData))
-                    updatePrintStatusToDatabase(billData);
+                updatePrintStatusToDatabase(billData);
+                bluetoothPrinterHelper.printSmallFontReceipt(billData);
+                Toast.makeText(context, "Refreshing.!", Toast.LENGTH_LONG).show();
+                billingItemModelList.clear();
+                manageBillingLayout();
             } catch (Exception e) {
                 Toast.makeText(context, "Printer not available. Please restart the printer.!", Toast.LENGTH_LONG).show();
             }
@@ -761,7 +783,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void unused) {
-
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
