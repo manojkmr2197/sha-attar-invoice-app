@@ -412,7 +412,7 @@ public class ExpenseTrackerActivity extends AppCompatActivity implements View.On
             price.setText("" + expenseModel.getAmount());
 
             switch (expenseModel.getType()) {
-                case "COURIER":
+                case "WATER_CANE":
                     type.setSelection(0);
                     break;
                 case "TEA_FOOD_EXPENSE":

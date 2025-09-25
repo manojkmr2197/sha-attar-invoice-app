@@ -41,7 +41,7 @@
     <string-array name="spinner_expense_filter_type">
         <item>ALL</item>
         <item>STAFF_SALARY</item>
-        <item>COURIER</item>
+        <item>WATER_CANE</item>
         <item>TEA_FOOD_EXPENSE</item>
         <item>STATIONARY</item>
         <item>DONATION</item>
@@ -51,7 +51,7 @@
     </string-array>
 
     <string-array name="spinner_expense_type">
-        <item>COURIER</item>
+        <item>WATER_CANE</item>
         <item>TEA_FOOD_EXPENSE</item>
         <item>STATIONARY</item>
         <item>DONATION</item>

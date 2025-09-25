@@ -153,7 +153,7 @@ public class PDFHelper {
         }
 
         if (billData.getIsCourier() != null && billData.getIsCourier()) {
-            canvas.drawText("Courier Charge: " + String.format("%.1f", billData.getCourierAmount()) + "%", pageWidth / 2f, y, paint);
+            canvas.drawText("Courier Charge: Rs." + String.format("%.1f", billData.getCourierAmount()), pageWidth / 2f, y, paint);
             y += 30;
             double sellingWithCourier = billData.getSellingCost() + billData.getCourierAmount();
             paint.setTextSize(22f);

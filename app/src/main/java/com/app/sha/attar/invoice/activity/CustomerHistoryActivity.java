@@ -12,8 +12,10 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +32,7 @@ import com.app.sha.attar.invoice.listener.BillingClickListener;
 import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
+import com.app.sha.attar.invoice.model.SalesPersonModel;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
@@ -45,6 +48,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class CustomerHistoryActivity extends AppCompatActivity implements View.OnClickListener {
@@ -57,7 +61,7 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
     RecyclerView recyclerView;
     ClickListener listener;
 
-    TextInputEditText search_et;
+    Spinner salePersonSpinner;
     Button search;
     TextView back;
 
@@ -65,6 +69,9 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
     DBUtil dbObj;
 
     FirebaseFirestore db;
+    ArrayAdapter<String> salesAdapter;
+    List<SalesPersonModel> salesPersonModelList;
+    List<String> salesPersonSpinnerList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,7 +97,20 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
         back.setOnClickListener(this);
         search = (Button) findViewById(R.id.customer_history_search);
         search.setOnClickListener(this);
-        search_et = (TextInputEditText) findViewById(R.id.customer_history_search_et);
+        salePersonSpinner = (Spinner) findViewById(R.id.customer_history_sales_spinner);
+
+        salesPersonModelList = new ArrayList<>();
+        salesPersonSpinnerList = new ArrayList<>();
+        salesPersonSpinnerList.add("Select Person");
+        salesAdapter = new ArrayAdapter<>(
+                context,
+                android.R.layout.simple_spinner_item,
+                salesPersonSpinnerList
+        );
+
+        salesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        salePersonSpinner.setAdapter(salesAdapter);
 
         data_ll = (LinearLayout) findViewById(R.id.customer_history_data_ll);
         no_data_ll = (LinearLayout) findViewById(R.id.customer_history_no_data_ll);
@@ -109,13 +129,27 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
         customerHistoryAdapter = new CustomerHistoryAdapter(context, billingInvoiceModelList, listener);
         recyclerView.setAdapter(customerHistoryAdapter);
-
+        loadSalesPersonInformation();
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("phone_no")) {
             String phone_no = intent.getStringExtra("phone_no");
-            search_et.setText(phone_no);
             searchCustomerDetails(phone_no);
         }
+
+    }
+
+    private void loadSalesPersonInformation() {
+        salesPersonModelList.clear();
+        dbObj.getSalePersonDetails(new FirestoreCallback<List<SalesPersonModel>>() {
+            @Override
+            public void onCallback(List<SalesPersonModel> result) {
+                salesPersonModelList.addAll(result);
+                salesPersonSpinnerList.addAll(result.stream()
+                        .map(SalesPersonModel::getName)
+                        .collect(Collectors.toList()));
+            }
+        });
+        salesAdapter.notifyDataSetChanged();
     }
 
     private void searchCustomerDetails(String phoneNo) {
@@ -182,13 +216,19 @@ public class CustomerHistoryActivity extends AppCompatActivity implements View.O
     @Override
     public void onClick(View view) {
         if (R.id.customer_history_search == view.getId()) {
-            if (StringUtils.isEmpty(search_et.getText().toString())) {
-                Toast.makeText(CustomerHistoryActivity.this, "Please Enter Phone Number ..! ", Toast.LENGTH_LONG).show();
+            if("Select Person".equalsIgnoreCase(salePersonSpinner.getSelectedItem().toString())){
                 return;
             }
+
             InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-            searchCustomerDetails(search_et.getText().toString());
+
+            String selectedPhone = salesPersonModelList.stream()
+                    .filter(person -> person.getName().equals(salePersonSpinner.getSelectedItem().toString()))
+                    .map(SalesPersonModel::getPhoneNo)
+                    .findFirst()
+                    .orElse(null);
+            searchCustomerDetails(selectedPhone);
         } else if (R.id.customer_history_back == view.getId()) {
             finish();
         }

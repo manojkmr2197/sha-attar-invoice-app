@@ -12,7 +12,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -92,6 +94,7 @@ import com.journeyapps.barcodescanner.BarcodeEncoder;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -253,6 +256,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (isChecked) {
                 // Expand and show EditText
                 courier_amount.setVisibility(View.VISIBLE);
+                upiRadioBt.setChecked(true);
             } else {
                 // Hide EditText
                 courier_amount.setText("0.0");
@@ -546,9 +550,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Toast.makeText(MainActivity.this, "Please Add products / Accessories..!", Toast.LENGTH_LONG).show();
             return;
         }
-        if (paymentMode.equalsIgnoreCase("UPI")) {
+        if (!billingInvoiceModel.getIsCourier() && paymentMode.equalsIgnoreCase("UPI")) {
             generatePaymentQR(billingInvoiceModel);
         } else {
+            if (billingInvoiceModel.getIsCourier() && paymentMode.equalsIgnoreCase("UPI")) {
+                billingInvoiceModel.setUpiPaymentStatus("SUCCESS");
+            }
             registerDatabase(billingInvoiceModel);
         }
 
@@ -575,9 +582,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void generatePaymentQR(BillingInvoiceModel billingInvoiceModel) {
 
+        Double totalPay = (billingInvoiceModel.getIsCourier()) ? billingInvoiceModel.getSellingCost() + billingInvoiceModel.getCourierAmount() : billingInvoiceModel.getSellingCost();
+
         String upiUri = "upi://pay?pa=" + sharedPrefHelper.getUpiId() +
                 "&pn=" + sharedPrefHelper.getPayeeName() +
-                "&am=" + String.format("%.2f", billingInvoiceModel.getSellingCost()) +
+                "&am=" + String.format("%.2f", totalPay) +
                 "&cu=INR" +
                 "&tn=" + "SHA'S ATTAR & PERFUMES";
 
@@ -646,8 +655,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         RadioButton radioWhatsapp = dialog.findViewById(R.id.radioWhatsapp);
         EditText editWhatsappNumber = dialog.findViewById(R.id.editWhatsappNumber);
         Button btnSubmit = dialog.findViewById(R.id.btnSubmit);
-        radioPrinter.setChecked(true);
-        editWhatsappNumber.setVisibility(View.GONE);
+        if(billingInvoiceModel.getIsCourier()){
+            radioWhatsapp.setChecked(true);
+            editWhatsappNumber.setVisibility(View.VISIBLE);
+        }else {
+            radioPrinter.setChecked(true);
+            editWhatsappNumber.setVisibility(View.GONE);
+        }
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.radioWhatsapp) {
                 editWhatsappNumber.setVisibility(View.VISIBLE);
@@ -721,10 +735,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 // Get PDF file (for demo: assuming it's in internal storage)
                 String fileName = pdfHelper.createPdfAndShare(billingInvoiceModel);
+
+                String PaymentQRFileName = generateQRImage(billingInvoiceModel);
                 // Share PDF
                 File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+                File paymentQRfile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), PaymentQRFileName);
                 if (file.exists()) {
-                    showWhatsappChoiceDialog(phoneNumber, file);
+                    showWhatsappChoiceDialog(phoneNumber, file,paymentQRfile);
                     billingItemModelList.clear();
                     manageBillingLayout();
                 } else {
@@ -738,6 +755,65 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         dialog.show();
 
     }
+
+    private String generateQRImage(BillingInvoiceModel billingInvoiceModel) {
+        try {
+
+            Double totalPay = (billingInvoiceModel.getIsCourier()) ? billingInvoiceModel.getSellingCost() + billingInvoiceModel.getCourierAmount() : billingInvoiceModel.getSellingCost();
+
+            String upiUri = "upi://pay?pa=" + sharedPrefHelper.getUpiId() +
+                    "&pn=" + sharedPrefHelper.getPayeeName() +
+                    "&am=" + String.format("%.2f", totalPay) +
+                    "&cu=INR" +
+                    "&tn=" + "SHA'S ATTAR & PERFUMES";
+
+            Bitmap qrImage = generateQRWithShopName(upiUri,sharedPrefHelper.getPayeeName()+"("+sharedPrefHelper.getUpiId()+")");
+
+            // Save QR bitmap to cache
+            String fileName = "payment-qr-" + billingInvoiceModel.getBillingDate() + "-" + OffsetDateTime.now().toEpochSecond() + ".png";
+            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+            FileOutputStream stream = new FileOutputStream(file);
+            qrImage.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            stream.close();
+
+            return fileName;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private Bitmap generateQRWithShopName(String upiUri, String shopName) {
+        try {
+            // Generate QR code bitmap
+            BitMatrix bitMatrix = new MultiFormatWriter().encode(
+                    upiUri, BarcodeFormat.QR_CODE, 500, 500, null);
+
+            BarcodeEncoder encoder = new BarcodeEncoder();
+            Bitmap qrBitmap = encoder.createBitmap(bitMatrix);
+
+            // Add shop name below QR
+            Bitmap combinedBitmap = Bitmap.createBitmap(500, 600, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(combinedBitmap);
+
+            // Draw QR code
+            canvas.drawBitmap(qrBitmap, 0, 0, null);
+
+            // Draw Shop name text
+            Paint paint = new Paint();
+            paint.setColor(Color.WHITE);
+            paint.setTextAlign(Paint.Align.CENTER);
+            paint.setTextSize(14);
+            canvas.drawText(shopName, 250, 560, paint);
+
+            return combinedBitmap;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
     private void printConfirmationPopup(BillingInvoiceModel billData, String printer) {
         // Create and configure the AlertDialog
@@ -793,22 +869,41 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-    private void sendInvoiceToWhatsApp(String phoneNumber, File pdfFile, String packageName) {
+    private void sendInvoiceToWhatsApp(String phoneNumber, File pdfFile,File paymentQRfile, String packageName) {
         try {
 
-            // ✅ Get URI for File using FileProvider
-            Uri fileUri = FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", pdfFile);
+            // ✅ Get URIs for both files
+            ArrayList<Uri> uris = new ArrayList<>();
+            uris.add(FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", pdfFile));
+            uris.add(FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", paymentQRfile));
 
-            // ✅ Create Intent
-            Intent sendIntent = new Intent(Intent.ACTION_SEND);
-            //sendIntent.setType("*/*");  // For both text and file
-            sendIntent.setType("application/pdf");
+            // ✅ Create Intent for multiple files
+            Intent sendIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+            sendIntent.setType("*/*"); // allow any type
             sendIntent.setPackage(packageName);
-            sendIntent.putExtra("jid", phoneNumber + "@s.whatsapp.net"); // For direct message
-            sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+            sendIntent.putExtra("jid", phoneNumber + "@s.whatsapp.net"); // direct message
+
+            // ✅ Attach files
+            sendIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
             sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
             startActivity(sendIntent);
+
+
+
+//            // ✅ Get URI for File using FileProvider
+//            Uri fileUri = FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", pdfFile);
+//
+//            // ✅ Create Intent
+//            Intent sendIntent = new Intent(Intent.ACTION_SEND);
+//            //sendIntent.setType("*/*");  // For both text and file
+//            sendIntent.setType(contentType);
+//            sendIntent.setPackage(packageName);
+//            sendIntent.putExtra("jid", phoneNumber + "@s.whatsapp.net"); // For direct message
+//            sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+//            sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//
+//            startActivity(sendIntent);
 
 
         } catch (Exception e) {
@@ -817,7 +912,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    private void showWhatsappChoiceDialog(String phoneNumber, File file) {
+    private void showWhatsappChoiceDialog(String phoneNumber, File file,File paymentQRfile) {
         Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_whatsapp_choice);
         dialog.setCancelable(true);
@@ -826,12 +921,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Button btnWhatsappBusiness = dialog.findViewById(R.id.btnWhatsappBusiness);
 
         btnWhatsapp.setOnClickListener(v -> {
-            sendInvoiceToWhatsApp(phoneNumber, file, "com.whatsapp");
+            sendInvoiceToWhatsApp(phoneNumber, file,paymentQRfile, "com.whatsapp");
             dialog.dismiss();
         });
 
         btnWhatsappBusiness.setOnClickListener(v -> {
-            sendInvoiceToWhatsApp(phoneNumber, file, "com.whatsapp.w4b");
+            sendInvoiceToWhatsApp(phoneNumber, file,paymentQRfile, "com.whatsapp.w4b");
             dialog.dismiss();
         });
 
