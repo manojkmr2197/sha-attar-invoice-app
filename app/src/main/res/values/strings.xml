@@ -51,11 +51,11 @@
     </string-array>
 
     <string-array name="spinner_expense_type">
+        <item>STAFF_SALARY</item>
         <item>WATER_CANE</item>
         <item>TEA_FOOD_EXPENSE</item>
         <item>STATIONARY</item>
         <item>DONATION</item>
-        <item>STAFF_SALARY</item>
         <item>OTHER</item>
     </string-array>
 

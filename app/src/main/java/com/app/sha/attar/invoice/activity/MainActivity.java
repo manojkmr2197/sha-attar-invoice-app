@@ -41,6 +41,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -244,6 +245,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
+        TextView allClear = (TextView) findViewById(R.id.new_billing_all_clear);
         customer_name = (TextView) findViewById(R.id.billing_customer_name);
         customer_phone = (TextView) findViewById(R.id.billing_customer_phone);
         billing_discount_ll.setOnClickListener(this);
@@ -251,6 +253,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         courier_checkBox = findViewById(R.id.new_billing_is_courier_checkBox);
         courier_amount = findViewById(R.id.new_billing_courier_amount);
+
+        allClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                billingItemModelList.clear();
+                billingAdapter.notifyDataSetChanged();
+                manageBillingLayout();
+            }
+        });
 
         courier_checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
@@ -655,6 +666,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         RadioButton radioWhatsapp = dialog.findViewById(R.id.radioWhatsapp);
         EditText editWhatsappNumber = dialog.findViewById(R.id.editWhatsappNumber);
         Button btnSubmit = dialog.findViewById(R.id.btnSubmit);
+        TextView btnClose = dialog.findViewById(R.id.bill_share_close);
         if(billingInvoiceModel.getIsCourier()){
             radioWhatsapp.setChecked(true);
             editWhatsappNumber.setVisibility(View.VISIBLE);
@@ -662,6 +674,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             radioPrinter.setChecked(true);
             editWhatsappNumber.setVisibility(View.GONE);
         }
+
+        btnClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+                billingItemModelList.clear();
+                manageBillingLayout();
+            }
+        });
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.radioWhatsapp) {
                 editWhatsappNumber.setVisibility(View.VISIBLE);
@@ -829,14 +850,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Set positive button
         builder.setPositiveButton("Yes", (dialog, which) -> {
             dialog.dismiss();
+
+            Toast.makeText(context, "Printing.!", Toast.LENGTH_LONG).show();
             try {
                 updatePrintStatusToDatabase(billData);
-                Toast.makeText(context, "Refreshing.!", Toast.LENGTH_LONG).show();
                 bluetoothPrinterHelper.printSmallFontReceipt(billData);
+                Toast.makeText(context, "Refreshing.!", Toast.LENGTH_LONG).show();
                 billingItemModelList.clear();
                 manageBillingLayout();
+
             } catch (Exception e) {
                 Toast.makeText(context, "Printer not available. Please restart the printer.!", Toast.LENGTH_LONG).show();
+
             }
         });
 
@@ -866,6 +891,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         Toast.makeText(context, "Internal server error..!", Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    public AlertDialog showPrintingDialog(Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setCancelable(false); // prevent closing manually
+
+        // Inflate custom layout (optional)
+        LinearLayout layout = new LinearLayout(context);
+        layout.setOrientation(LinearLayout.HORIZONTAL);
+        layout.setPadding(50, 50, 50, 50);
+        layout.setGravity(Gravity.CENTER_VERTICAL);
+
+        ProgressBar progressBar = new ProgressBar(context);
+        progressBar.setIndeterminate(true);
+        layout.addView(progressBar);
+
+        TextView message = new TextView(context);
+        message.setText("Printing in-progress...\nPlease wait");
+        message.setTextSize(16);
+        message.setPadding(30, 0, 0, 0);
+        layout.addView(message);
+
+        builder.setView(layout);
+
+        return builder.create();
+
     }
 
 
@@ -1186,6 +1237,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     product_name.setText(selectProductModel.getName());
                     new_bill_owner.setText(selectProductModel.getOwner());
                     selectedProduct[0] = selectProductModel;
+                    if (productCategoryType[0].equalsIgnoreCase("ATTAR")) {
+                        product_selling_cost.setText("" + selectedProduct[0].getAttarSellingPriceMap().get(productQtyValue[0]));
+                    }else{
+                        product_selling_cost.setText("" + selectedProduct[0].getPerfumeSellingPriceMap().get(productQtyValue[0]));
+                    }
                     product_detail_ll.setVisibility(View.VISIBLE);
 
                 }

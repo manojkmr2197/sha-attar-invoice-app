@@ -36,7 +36,7 @@ public class BluetoothPrinterHelper {
     }
 
     public boolean printSmallFontReceipt1(BillingInvoiceModel billData) {
-        AlertDialog printingDialog = showPrintingDialog(context);
+        //AlertDialog printingDialog = showPrintingDialog(context);
         try {
 
             BluetoothConnection printerConnection = BluetoothPrintersConnections.selectFirstPaired();
@@ -45,7 +45,7 @@ public class BluetoothPrinterHelper {
                 Toast.makeText(context, "No Bluetooth printer found", Toast.LENGTH_SHORT).show();
                 return false;
             }
-            printingDialog.show();
+            //printingDialog.show();
             // 80mm paper → 72mm printable width → very small font by using 72 chars per line
             EscPosPrinter printer = new EscPosPrinter(printerConnection, 203, 72f, 48);
 
@@ -141,7 +141,7 @@ public class BluetoothPrinterHelper {
             new Thread(() -> {
                 try {
                     printer.printFormattedTextAndCut(receipt.toString());
-                    printingDialog.dismiss();
+                    //printingDialog.dismiss();
                     Toast.makeText(context, "Printing Success .!", Toast.LENGTH_SHORT).show();
 
                 } catch (Exception e) {
@@ -153,15 +153,15 @@ public class BluetoothPrinterHelper {
             return true;
         } catch (Exception e) {
             Toast.makeText(context, "Printing Failed .!", Toast.LENGTH_SHORT).show();
-            printingDialog.dismiss();
+            //printingDialog.dismiss();
             return false;
         }
     }
 
 
     public boolean printSmallFontReceiptBkp(BillingInvoiceModel billData) {
-        AlertDialog printingDialog = showPrintingDialog(context);
-        printingDialog.show();
+//        AlertDialog printingDialog = showPrintingDialog(context);
+//        printingDialog.show();
 
 // Run everything in background
         new Thread(() -> {
@@ -171,7 +171,7 @@ public class BluetoothPrinterHelper {
                 if (printerConnection == null) {
                     activity.runOnUiThread(() -> {
                         Toast.makeText(context, "Printer not available. Please restart the printer.!", Toast.LENGTH_SHORT).show();
-                        printingDialog.dismiss();
+                        //printingDialog.dismiss();
                     });
                     return;
                 }
@@ -227,13 +227,13 @@ public class BluetoothPrinterHelper {
                 printer.printFormattedTextAndCut(receipt.toString());
 
                 activity.runOnUiThread(() -> {
-                    printingDialog.dismiss();
+                    //printingDialog.dismiss();
                     Toast.makeText(context, "Printing Success!", Toast.LENGTH_SHORT).show();
                 });
 
             } catch (Exception e) {
                 activity.runOnUiThread(() -> {
-                    printingDialog.dismiss();
+                    //printingDialog.dismiss();
                     Toast.makeText(context, "Printing Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
             }
@@ -242,8 +242,8 @@ public class BluetoothPrinterHelper {
     }
 
     public void printSmallFontReceipt(BillingInvoiceModel billData) {
-        AlertDialog printingDialog = showPrintingDialog(context);
-        printingDialog.show();
+        //AlertDialog printingDialog = showPrintingDialog(context);
+        //printingDialog.show();
 
 
         try {
@@ -251,7 +251,7 @@ public class BluetoothPrinterHelper {
 
             if (printerConnection == null) {
                 Toast.makeText(context, "Printer not available. Please restart the printer.!", Toast.LENGTH_SHORT).show();
-                printingDialog.dismiss();
+                //printingDialog.dismiss();
                 return;
             }
 
@@ -305,42 +305,18 @@ public class BluetoothPrinterHelper {
 
             printer.printFormattedTextAndCut(receipt.toString());
 
-            printingDialog.dismiss();
+            //printingDialog.dismiss();
             Toast.makeText(context, "Printing Success!", Toast.LENGTH_SHORT).show();
 
         } catch (Exception e) {
 
-            printingDialog.dismiss();
+            //printingDialog.dismiss();
             Toast.makeText(context, "Printing Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
 
     }
 
     // Create a method to show the printing progress dialog
-    private AlertDialog showPrintingDialog(Context context) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setCancelable(false); // prevent closing manually
 
-        // Inflate custom layout (optional)
-        LinearLayout layout = new LinearLayout(context);
-        layout.setOrientation(LinearLayout.HORIZONTAL);
-        layout.setPadding(50, 50, 50, 50);
-        layout.setGravity(Gravity.CENTER_VERTICAL);
-
-        ProgressBar progressBar = new ProgressBar(context);
-        progressBar.setIndeterminate(true);
-        layout.addView(progressBar);
-
-        TextView message = new TextView(context);
-        message.setText("Printing in-progress...\nPlease wait");
-        message.setTextSize(16);
-        message.setPadding(30, 0, 0, 0);
-        layout.addView(message);
-
-        builder.setView(layout);
-
-        return builder.create();
-
-    }
 
 }

@@ -63,6 +63,7 @@ public class InvoiceHistoryViewAdapter extends RecyclerView.Adapter<InvoiceHisto
 
         holder.name.setText(contentList.get(index).getCustomerName().trim());
         holder.phone.setText(contentList.get(index).getCustomerPhone().trim());
+        holder.paymentMode.setText(contentList.get(index).getPaymentMode());
         holder.discount.setText(contentList.get(index).getDiscount() + " %");
         holder.sellingPrice.setText("Rs. " + df.format(contentList.get(index).getSellingCost()));
 

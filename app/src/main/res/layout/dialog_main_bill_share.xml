@@ -18,6 +18,13 @@
             android:text="Invoice Copy (share)"
             android:textSize="15sp" />
 
+        <TextView
+            android:id="@+id/bill_share_close"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:backgroundTint="@color/black"
+            android:background="@drawable/ic_baseline_close_24" />
+
     </LinearLayout>
 
     <RadioGroup

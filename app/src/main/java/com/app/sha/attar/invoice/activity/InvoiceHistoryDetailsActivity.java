@@ -638,6 +638,11 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                     product_name.setText(selectProductModel.getName());
                     new_bill_owner.setText(selectProductModel.getOwner());
                     selectedProduct[0] = selectProductModel;
+                    if (productCategoryType[0].equalsIgnoreCase("ATTAR")) {
+                        product_selling_cost.setText("" + selectedProduct[0].getAttarSellingPriceMap().get(productQtyValue[0]));
+                    }else{
+                        product_selling_cost.setText("" + selectedProduct[0].getPerfumeSellingPriceMap().get(productQtyValue[0]));
+                    }
                     product_detail_ll.setVisibility(View.VISIBLE);
                 }
 
