@@ -413,6 +413,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             discount = 0.0;
             customer_name.setText(sharedPrefHelper.getLoginUserName());
             customer_phone.setText(sharedPrefHelper.getLoginUserPhone());
+            courier_checkBox.setChecked(false);
+            courier_amount.setText("");
+            cashRadioBt.setChecked(true);
             return;
         } else {
             content_ll.setVisibility(View.VISIBLE);
