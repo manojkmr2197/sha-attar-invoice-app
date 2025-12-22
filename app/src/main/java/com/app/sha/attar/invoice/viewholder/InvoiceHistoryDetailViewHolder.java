@@ -3,6 +3,7 @@ package com.app.sha.attar.invoice.viewholder;
 
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -17,13 +18,13 @@ public class InvoiceHistoryDetailViewHolder  extends RecyclerView.ViewHolder {
 
     public InvoiceHistoryDetailViewHolder(@NonNull View itemView) {
         super(itemView);
-        edit =(Button) itemView.findViewById(R.id.invoice_history_detail_item_edit);
-        delete =(Button) itemView.findViewById(R.id.invoice_history_detail_item_delete);
+        edit = itemView.findViewById(R.id.invoice_history_detail_item_edit);
+        delete = itemView.findViewById(R.id.invoice_history_detail_item_delete);
 
-        itemType = (TextView) itemView.findViewById(R.id.invoice_history_detail_item_type);
-        itemName = (TextView) itemView.findViewById(R.id.invoice_history_detail_item_name);
-        itemCode = (TextView) itemView.findViewById(R.id.invoice_history_detail_item_code);
-        itemQuantity = (TextView) itemView.findViewById(R.id.invoice_history_detail_item_quantity);
-        itemSellingPrice = (TextView) itemView.findViewById(R.id.invoice_history_detail_item_selling_price);
+        itemType = itemView.findViewById(R.id.invoice_history_detail_item_type);
+        itemName = itemView.findViewById(R.id.invoice_history_detail_item_name);
+        itemCode = itemView.findViewById(R.id.invoice_history_detail_item_code);
+        itemQuantity = itemView.findViewById(R.id.invoice_history_detail_item_quantity);
+        itemSellingPrice = itemView.findViewById(R.id.invoice_history_detail_item_selling_price);
     }
 }

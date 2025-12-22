@@ -273,14 +273,6 @@
 
                                             </androidx.cardview.widget.CardView>
 
-                                            <TextView
-                                                android:layout_width="match_parent"
-                                                android:layout_height="30sp"
-                                                android:gravity="center"
-                                                android:text="Biller Information"
-                                                android:textSize="18sp"
-                                                android:textStyle="bold" />
-
                                             <androidx.cardview.widget.CardView
                                                 android:layout_width="match_parent"
                                                 android:layout_height="wrap_content"
@@ -293,64 +285,7 @@
                                                     android:orientation="vertical"
                                                     android:padding="5sp">
 
-                                                    <!--customer Phone-->
-                                                    <LinearLayout
-                                                        android:layout_width="match_parent"
-                                                        android:layout_height="wrap_content"
-                                                        android:gravity="center">
 
-                                                        <TextView
-                                                            android:layout_width="0dp"
-                                                            android:layout_height="wrap_content"
-                                                            android:layout_marginEnd="10sp"
-                                                            android:layout_weight="0.3"
-                                                            android:gravity="end"
-                                                            android:text="Phone No *"
-                                                            android:textAllCaps="true"
-                                                            android:textColor="@color/app_color"
-                                                            android:textSize="13sp" />
-
-                                                        <TextView
-                                                            android:id="@+id/billing_customer_phone"
-                                                            android:layout_width="0dp"
-                                                            android:layout_height="wrap_content"
-                                                            android:layout_marginStart="5dp"
-                                                            android:layout_weight="0.7"
-                                                            android:text="9876543210"
-                                                            android:textColor="@color/black"
-                                                            android:textSize="13sp" />
-
-                                                    </LinearLayout>
-
-                                                    <!--customer Name-->
-                                                    <LinearLayout
-                                                        android:layout_width="match_parent"
-                                                        android:layout_height="wrap_content"
-                                                        android:layout_marginTop="3sp"
-                                                        android:gravity="center">
-
-                                                        <TextView
-                                                            android:layout_width="0dp"
-                                                            android:layout_height="wrap_content"
-                                                            android:layout_marginEnd="10sp"
-                                                            android:layout_weight="0.3"
-                                                            android:gravity="end"
-                                                            android:text="Name *"
-                                                            android:textAllCaps="true"
-                                                            android:textColor="@color/app_color"
-                                                            android:textSize="13sp" />
-
-                                                        <TextView
-                                                            android:id="@+id/billing_customer_name"
-                                                            android:layout_width="0dp"
-                                                            android:layout_height="wrap_content"
-                                                            android:layout_marginStart="5dp"
-                                                            android:layout_weight="0.7"
-                                                            android:text="Mano"
-                                                            android:textColor="@color/black"
-                                                            android:textSize="13sp" />
-
-                                                    </LinearLayout>
 
                                                     <TextView
                                                         android:layout_width="match_parent"

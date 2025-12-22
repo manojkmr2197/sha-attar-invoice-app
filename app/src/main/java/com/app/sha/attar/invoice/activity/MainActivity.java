@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     LinearLayout billing_discount_ll;
 
-    TextView customer_name, customer_phone, finalBillingAmountTv ;
+    TextView finalBillingAmountTv ;
 
     CheckBox courier_checkBox;
     EditText courier_amount;
@@ -234,8 +234,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
         TextView allClear = (TextView) findViewById(R.id.new_billing_all_clear);
-        customer_name = (TextView) findViewById(R.id.billing_customer_name);
-        customer_phone = (TextView) findViewById(R.id.billing_customer_phone);
         billing_discount_ll.setOnClickListener(this);
         billing_button.setOnClickListener(this);
 
@@ -439,8 +437,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             empty_ll.setVisibility(View.VISIBLE);
             totalAmount = 0.0;
             discount = 0.0;
-            customer_name.setText(sharedPrefHelper.getLoginUserName());
-            customer_phone.setText(sharedPrefHelper.getLoginUserPhone());
             courier_checkBox.setChecked(false);
             courier_amount.setText("");
             cashRadioBt.setChecked(true);
@@ -555,14 +551,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Toast.makeText(MainActivity.this, "Please Add products / Accessories..!", Toast.LENGTH_LONG).show();
             return;
         }
-        if (StringUtils.isEmpty(customer_name.getText().toString())) {
-            Toast.makeText(MainActivity.this, "Please Enter Customer Name..!", Toast.LENGTH_LONG).show();
-            return;
-        }
-        if (StringUtils.isEmpty(customer_phone.getText().toString())) {
-            Toast.makeText(MainActivity.this, "Please Enter Customer Phone no..!", Toast.LENGTH_LONG).show();
-            return;
-        }
 
         if (StringUtils.isEmpty(paymentMode)) {
             Toast.makeText(MainActivity.this, "Please Choose Payment mode..!", Toast.LENGTH_LONG).show();
@@ -581,8 +569,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             billingInvoiceModel.setBillingDate(OffsetDateTime.now().toEpochSecond());
         }
 
-        billingInvoiceModel.setCustomerName(customer_name.getText().toString());
-        billingInvoiceModel.setCustomerPhone(customer_phone.getText().toString());
+        billingInvoiceModel.setCustomerName(sharedPrefHelper.getLoginUserName());
+        billingInvoiceModel.setCustomerPhone(sharedPrefHelper.getLoginUserPhone());
         billingInvoiceModel.setPaymentMode(paymentMode);
         billingInvoiceModel.setDiscount(discount);
         billingInvoiceModel.setSellingCost(sellingAmount);

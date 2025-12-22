@@ -28,6 +28,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -103,7 +104,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
     FirebaseFirestore db;
     BillingInvoiceModel billingInvoiceModel;
 
-    TextView back, invoiceIdTv, invoiceDtTv;
+    TextView back;
+    TextView backIcon;
+    TextView invoiceIdTv, invoiceDtTv;
     TextView customerName, customerPhone;
 
     RadioGroup paymentGroup;
@@ -162,19 +165,19 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         productModelList.addAll(sharedPrefHelper.getTotalProductList());
         accessoriesModelList.addAll(sharedPrefHelper.getTotalAccessoriesList());
 
-        back = (TextView) findViewById(R.id.invoice_history_detail_back);
-        back.setOnClickListener(this);
+        backIcon = findViewById(R.id.invoice_history_detail_back);
+        backIcon.setOnClickListener(this);
 
-        invoiceIdTv = (TextView) findViewById(R.id.invoice_history_detail_id);
-        invoiceDtTv = (TextView) findViewById(R.id.invoice_history_detail_date_tv);
+        invoiceIdTv = findViewById(R.id.invoice_history_detail_id);
+        invoiceDtTv = findViewById(R.id.invoice_history_detail_date_tv);
         invoiceDtTv.setOnClickListener(this);
-        customerName = (TextView) findViewById(R.id.invoice_history_detail_customer_name);
-        customerPhone = (TextView) findViewById(R.id.invoice_history_detail_customer_phone);
+        customerName = findViewById(R.id.invoice_history_detail_customer_name);
+        customerPhone = findViewById(R.id.invoice_history_detail_customer_phone);
 
-        paymentGroup = (RadioGroup) findViewById(R.id.invoice_history_detail_payment_radio_group);
-        cashRadioBt = (RadioButton) findViewById(R.id.invoice_history_detail_payment_cash);
-        upiRadioBt = (RadioButton) findViewById(R.id.invoice_history_detail_payment_upi);
-        cardRadioBt = (RadioButton) findViewById(R.id.invoice_history_detail_payment_card);
+        paymentGroup = findViewById(R.id.invoice_history_detail_payment_radio_group);
+        cashRadioBt = findViewById(R.id.invoice_history_detail_payment_cash);
+        upiRadioBt = findViewById(R.id.invoice_history_detail_payment_upi);
+        cardRadioBt = findViewById(R.id.invoice_history_detail_payment_card);
 
         cashRadioBt.setChecked(true);
         paymentMode = "CASH";
@@ -212,7 +215,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         });
 
 
-        itemRecyclerview = (RecyclerView) findViewById(R.id.invoice_history_detail_recycler_view);
+        itemRecyclerview = findViewById(R.id.invoice_history_detail_recycler_view);
         clickListener =new BillingClickListener() {
             @Override
             public void click(int index, String type) {
@@ -238,14 +241,14 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         });
 
         finalBillingAmountTv = findViewById(R.id.tvFinalPayableAmount);
-        totalAmountTv = (TextView) findViewById(R.id.invoice_history_detail_total_amount_price);
-        sellingAmountTv = (TextView) findViewById(R.id.invoice_history_detail_total_selling_price);
-        discountTv = (TextView) findViewById(R.id.invoice_history_detail_discount);
+        totalAmountTv = findViewById(R.id.invoice_history_detail_total_amount_price);
+        sellingAmountTv = findViewById(R.id.invoice_history_detail_total_selling_price);
+        discountTv = findViewById(R.id.invoice_history_detail_discount);
         discountTv.setOnClickListener(this);
 
-        addItemBt = (Button) findViewById(R.id.invoice_history_detail_add_item_bt);
+        addItemBt = findViewById(R.id.invoice_history_detail_add_item_bt);
         addItemBt.setOnClickListener(this);
-        addInvoiceBt = (Button) findViewById(R.id.invoice_history_detail_submit);
+        addInvoiceBt = findViewById(R.id.invoice_history_detail_submit);
         addInvoiceBt.setOnClickListener(this);
 
         Intent intent = getIntent();
@@ -510,8 +513,8 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         LinearLayout non_product_ll = dialog.findViewById(R.id.new_bill_non_product_ll);
         LinearLayout product_detail_ll = dialog.findViewById(R.id.new_bill_detail_ll);
 
-        TextView new_bill_owner = (TextView) dialog.findViewById(R.id.new_bill_item_owner);
-        TextView product_selling_cost = (TextView) dialog.findViewById(R.id.new_bill_item_selling_price);
+        TextView new_bill_owner = dialog.findViewById(R.id.new_bill_item_owner);
+        TextView product_selling_cost = dialog.findViewById(R.id.new_bill_item_selling_price);
 
 
         RadioGroup typeRadioGroup = (RadioGroup) dialog.findViewById(R.id.new_bill_radio_group);
