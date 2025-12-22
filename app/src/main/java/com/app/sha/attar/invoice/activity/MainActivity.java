@@ -20,11 +20,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.text.Editable;
 import android.text.InputType;
-import android.text.TextWatcher;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -51,6 +48,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
@@ -62,31 +60,22 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.BillingViewAdapter;
 import com.app.sha.attar.invoice.listener.BillingClickListener;
-import com.app.sha.attar.invoice.listener.TimeApi;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.ProductModel;
-import com.app.sha.attar.invoice.model.TimeResponse;
 import com.app.sha.attar.invoice.utils.BluetoothPrinterHelper;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
-import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.PDFHelper;
-import com.app.sha.attar.invoice.utils.RetrofitClient;
-import com.app.sha.attar.invoice.utils.SharedConstants;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.WriteBatch;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
@@ -96,7 +85,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -105,11 +93,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
@@ -136,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     LinearLayout billing_discount_ll;
 
-    TextView customer_name, customer_phone;
+    TextView customer_name, customer_phone, finalBillingAmountTv ;
 
     CheckBox courier_checkBox;
     EditText courier_amount;
@@ -144,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     RadioGroup paymentGroup;
     RadioButton cashRadioBt, upiRadioBt;
 
-    Double totalAmount = 0.0, sellingAmount = 0.0, discount = 0.0;
+    Double totalAmount = 0.0, sellingAmount = 0.0, discount = 0.0,cardChargeAmount=0.0;
 
     SharedPrefHelper sharedPrefHelper;
     DBUtil dbObj;
@@ -239,8 +222,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 // Find which radio button is selected
                 if (R.id.new_billing_payment_cash == checkedId) {
                     paymentMode = "CASH";
+                    onCardChargeClicked(sellingAmount,false);
                 } else if (R.id.new_billing_payment_upi == checkedId) {
                     paymentMode = "UPI";
+                    onCardChargeClicked(sellingAmount,false);
+                } else if (R.id.new_billing_payment_card == checkedId) {
+                    paymentMode = "CARD";
+                    onCardChargeClicked(sellingAmount,true);
                 }
             }
         });
@@ -253,6 +241,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         courier_checkBox = findViewById(R.id.new_billing_is_courier_checkBox);
         courier_amount = findViewById(R.id.new_billing_courier_amount);
+        finalBillingAmountTv = findViewById(R.id.tvFinalPayableAmount);
 
         allClear.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -268,6 +257,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 // Expand and show EditText
                 courier_amount.setVisibility(View.VISIBLE);
                 upiRadioBt.setChecked(true);
+                onCardChargeClicked(sellingAmount,false);
             } else {
                 // Hide EditText
                 courier_amount.setText("0.0");
@@ -341,6 +331,44 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         manageBillingLayout();
 
     }
+
+
+    private void onCardChargeClicked(double billAmount,boolean isCardChargeVisible) {
+
+        CardView cardView = findViewById(R.id.cardChargeCard);
+
+        if (isCardChargeVisible) {
+            TextView tvCardCharge = findViewById(R.id.tvCardCharge);
+            TextView tvGST = findViewById(R.id.tvGST);
+            TextView tvTotalExtra = findViewById(R.id.tvTotalExtra);
+
+            double cardCharge = billAmount * 0.03;
+            double gst = cardCharge * 0.18;
+            double totalExtra = cardCharge + gst;
+
+            cardCharge = round(cardCharge);
+            gst = round(gst);
+            totalExtra = round(totalExtra);
+            cardChargeAmount = totalExtra;
+            tvCardCharge.setText("Card Charges (3%): ₹" + cardCharge);
+            tvGST.setText("GST (18%): ₹" + gst);
+            tvTotalExtra.setText("Total Extra: ₹" + totalExtra);
+            cardView.setVisibility(View.VISIBLE);
+            cardView.setAlpha(0f);
+            cardView.animate().alpha(1f).setDuration(200).start();
+        } else {
+            cardChargeAmount = 0.0;
+            cardView.animate().alpha(0f).setDuration(150)
+                    .withEndAction(() -> cardView.setVisibility(View.GONE))
+                    .start();
+        }
+        finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount));
+    }
+
+    private double round(double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
+
 
     private void enableBluetooth() {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -416,6 +444,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             courier_checkBox.setChecked(false);
             courier_amount.setText("");
             cashRadioBt.setChecked(true);
+            cardChargeAmount = 0.0;
+            onCardChargeClicked(0.0,false);
             return;
         } else {
             content_ll.setVisibility(View.VISIBLE);
@@ -430,6 +460,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         billing_total_amount.setText("Rs. " + totalAmount);
         billing_discount.setText("%  " + discount);
         billing_selling_amount.setText("Rs. " + sellingAmount);
+        if(paymentMode.equalsIgnoreCase("CARD")){
+            onCardChargeClicked(sellingAmount,true);
+        }
+        finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount));
         billingAdapter.notifyDataSetChanged();
         if (billingAdapter.getItemCount() > 0)
             bill_recycler.post(() -> bill_recycler.scrollToPosition(billingAdapter.getItemCount() - 1));
@@ -555,6 +589,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         billingInvoiceModel.setTotalCost(totalAmount);
         billingInvoiceModel.setIsPrint(false);
         billingInvoiceModel.setIsCourier(courier_checkBox.isChecked());
+        billingInvoiceModel.setCardCharges(cardChargeAmount);
         billingInvoiceModel.setCourierAmount(StringUtils.isNotBlank(courier_amount.getText().toString()) ? Double.parseDouble(courier_amount.getText().toString()) : 0.0);
         for (BillingItemModel item : billingItemModelList) {
             item.setInvoiceId(billingInvoiceModel.getBillingDate());

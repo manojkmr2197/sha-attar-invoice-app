@@ -39,6 +39,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.cardview.widget.CardView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -106,7 +107,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
     TextView customerName, customerPhone;
 
     RadioGroup paymentGroup;
-    RadioButton cashRadioBt,upiRadioBt;
+    RadioButton cashRadioBt,upiRadioBt,cardRadioBt;
     String paymentMode="";
 
     RecyclerView itemRecyclerview;
@@ -115,7 +116,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
     BillingClickListener clickListener;
 
 
-    TextView totalAmountTv, discountTv, sellingAmountTv;
+    TextView totalAmountTv, discountTv, sellingAmountTv,finalBillingAmountTv;
     Button addItemBt, addInvoiceBt;
 
     CheckBox courier_checkBox;
@@ -130,7 +131,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
 
     OffsetDateTime offsetDateTime;
 
-    Double totalAmount =  0.0, sellingAmount = 0.0, discount = 0.0;
+    Double totalAmount =  0.0, sellingAmount = 0.0, discount = 0.0,cardChargeAmount=0.0;
 
 
     List<ProductModel> productModelList = new ArrayList<>();
@@ -173,6 +174,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         paymentGroup = (RadioGroup) findViewById(R.id.invoice_history_detail_payment_radio_group);
         cashRadioBt = (RadioButton) findViewById(R.id.invoice_history_detail_payment_cash);
         upiRadioBt = (RadioButton) findViewById(R.id.invoice_history_detail_payment_upi);
+        cardRadioBt = (RadioButton) findViewById(R.id.invoice_history_detail_payment_card);
 
         cashRadioBt.setChecked(true);
         paymentMode = "CASH";
@@ -182,8 +184,13 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 // Find which radio button is selected
                 if (R.id.invoice_history_detail_payment_cash == checkedId) {
                     paymentMode = "CASH";
+                    onCardChargeClicked(sellingAmount,false);
                 } else if (R.id.invoice_history_detail_payment_upi == checkedId) {
                     paymentMode = "UPI";
+                    onCardChargeClicked(sellingAmount,false);
+                } else if (R.id.invoice_history_detail_payment_card == checkedId) {
+                    paymentMode = "CARD";
+                    onCardChargeClicked(sellingAmount,true);
                 }
             }
         });
@@ -195,6 +202,8 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             if (isChecked) {
                 // Expand and show EditText
                 courier_amount.setVisibility(View.VISIBLE);
+                upiRadioBt.setChecked(true);
+                onCardChargeClicked(sellingAmount,false);
             } else {
                 // Hide EditText
                 courier_amount.setText("0.0");
@@ -228,6 +237,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             }
         });
 
+        finalBillingAmountTv = findViewById(R.id.tvFinalPayableAmount);
         totalAmountTv = (TextView) findViewById(R.id.invoice_history_detail_total_amount_price);
         sellingAmountTv = (TextView) findViewById(R.id.invoice_history_detail_total_selling_price);
         discountTv = (TextView) findViewById(R.id.invoice_history_detail_discount);
@@ -253,6 +263,41 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             getServerDate();
         }
 
+    }
+
+    private void onCardChargeClicked(double billAmount,boolean isCardChargeVisible) {
+
+        CardView cardView = findViewById(R.id.cardChargeCard);
+
+        if (isCardChargeVisible) {
+            TextView tvCardCharge = findViewById(R.id.tvCardCharge);
+            TextView tvGST = findViewById(R.id.tvGST);
+            TextView tvTotalExtra = findViewById(R.id.tvTotalExtra);
+
+            double cardCharge = billAmount * 0.03;
+            double gst = cardCharge * 0.18;
+            double totalExtra = cardCharge + gst;
+
+            cardCharge = round(cardCharge);
+            gst = round(gst);
+            totalExtra = round(totalExtra);
+            cardChargeAmount = totalExtra;
+            tvCardCharge.setText("Card Charges (3%): ₹" + cardCharge);
+            tvGST.setText("GST (18%): ₹" + gst);
+            tvTotalExtra.setText("Total Extra: ₹" + totalExtra);
+            cardView.setVisibility(View.VISIBLE);
+            cardView.setAlpha(0f);
+            cardView.animate().alpha(1f).setDuration(200).start();
+        } else {
+            cardChargeAmount = 0.0;
+            cardView.animate().alpha(0f).setDuration(150)
+                    .withEndAction(() -> cardView.setVisibility(View.GONE))
+                    .start();
+        }
+        finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount));
+    }
+    private double round(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 
     private void getServerDate() {
@@ -304,9 +349,18 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 if("CASH".equalsIgnoreCase(paymentMode)){
                     cashRadioBt.setChecked(true);
                     upiRadioBt.setChecked(false);
-                }else{
+                    cardRadioBt.setChecked(false);
+                    onCardChargeClicked(billingInvoiceModel.getSellingCost(),false);
+                }else if("UPI".equalsIgnoreCase(paymentMode)){
                     cashRadioBt.setChecked(false);
                     upiRadioBt.setChecked(true);
+                    cardRadioBt.setChecked(false);
+                    onCardChargeClicked(billingInvoiceModel.getSellingCost(),false);
+                } else if("CARD".equalsIgnoreCase(paymentMode)){
+                    cardRadioBt.setChecked(true);
+                    cashRadioBt.setChecked(false);
+                    upiRadioBt.setChecked(false);
+                    onCardChargeClicked(billingInvoiceModel.getSellingCost(),true);
                 }
 
                 if(billingInvoiceModel.getIsCourier()!=null && billingInvoiceModel.getCourierAmount() != null){
@@ -331,6 +385,8 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 totalAmount =billingInvoiceModel.getTotalCost();
                 discount =billingInvoiceModel.getDiscount();
                 sellingAmount = billingInvoiceModel.getSellingCost();
+
+                finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount));
 
                 itemModelList.clear();
                 itemModelList.addAll(result.getBillingItemModelList());
@@ -420,12 +476,20 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             totalAmount += billingItemModel.getSellingItemPrice();
         }
         sellingAmount = totalAmount - ((totalAmount * discount) / 100);
-        totalAmountTv.setText("Rs. " + totalAmount);
+        totalAmountTv.setText("Rs. " + round(totalAmount));
         discountTv.setText(discount+" %");
-        sellingAmountTv.setText("Rs. " + sellingAmount);
+        sellingAmountTv.setText("Rs. " + round(sellingAmount));
+        if(paymentMode.equalsIgnoreCase("CARD")){
+            onCardChargeClicked(sellingAmount,true);
+        }
+        finalBillingAmountTv.setText("Rs. " + round(sellingAmount + cardChargeAmount));
+
         invoiceAdapter.notifyDataSetChanged();
-        if (invoiceAdapter.getItemCount() > 0)
+
+        if (invoiceAdapter.getItemCount() > 0) {
             itemRecyclerview.post(() -> itemRecyclerview.scrollToPosition(invoiceAdapter.getItemCount() - 1));
+            itemRecyclerview.getLayoutManager().scrollToPosition(invoiceAdapter.getItemCount() - 1);
+        }
     }
 
     private void createNewBillDialog(Context context, BillingItemModel billingItemModel) {
@@ -1238,6 +1302,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         billingInvoiceModel.setPaymentMode(paymentMode);
         billingInvoiceModel.setDiscount(discount);
         billingInvoiceModel.setSellingCost(sellingAmount);
+        billingInvoiceModel.setCardCharges(cardChargeAmount);
         billingInvoiceModel.setTotalCost(totalAmount);
         billingInvoiceModel.setIsPrint(false);
         billingInvoiceModel.setIsCourier(courier_checkBox.isChecked());

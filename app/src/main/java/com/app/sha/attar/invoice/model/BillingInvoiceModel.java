@@ -15,6 +15,7 @@ public class BillingInvoiceModel implements Cloneable{
     Boolean isPrint;
     Boolean isCourier;
     Double courierAmount;
+    Double cardCharges;
     String remarks;
     Double sellingCost;
     List<BillingItemModel> billingItemModelList;
@@ -131,6 +132,14 @@ public class BillingInvoiceModel implements Cloneable{
 
     public void setUpiPaymentStatus(String upiPaymentStatus) {
         this.upiPaymentStatus = upiPaymentStatus;
+    }
+
+    public Double getCardCharges() {
+        return cardCharges;
+    }
+
+    public void setCardCharges(Double cardCharges) {
+        this.cardCharges = cardCharges;
     }
 
     @Override

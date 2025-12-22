@@ -17,14 +17,19 @@ import androidx.core.content.FileProvider;
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
+import com.app.sha.attar.invoice.model.GroupedItem;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class PDFHelper {
 
@@ -122,48 +127,146 @@ public class PDFHelper {
         canvas.drawText(dashLine, 0, y, paint);
         y += 20;
 
-        // Products
-        paint.setTextAlign(Paint.Align.LEFT);
-        for (BillingItemModel p : billData.getBillingItemModelList()) {
-            String name = (p.getName().length() > 20 ? p.getName().substring(0, 20) : p.getName());
-            String qty = p.getUnits() != null ? p.getUnits() + " ML" : "";
-            String price = "Rs." + String.format("%.2f", p.getSellingItemPrice());
+        float productX = 10;
+        float qtyX = pageWidth / 2f;
+        float priceX = pageWidth - 20;
+        float productMaxWidth = pageWidth * 0.55f;
+        int prdlineHeight = 28;
 
-            canvas.drawText(name, 10, y, paint);
+        paint.setTextAlign(Paint.Align.LEFT);
+
+        List<GroupedItem> groupedItems =
+                groupBillingItems(billData.getBillingItemModelList());
+
+        for (GroupedItem item : groupedItems) {
+
+            String displayName = item.name;
+
+            if (item.count > 1) {
+                displayName += " [" + item.count +
+                        " x Rs." + String.format("%.2f", item.unitPrice) + "]";
+            }
+
+            String qty = item.units != null ? item.units + " ML" : "";
+            String price = "Rs." + String.format("%.2f", item.totalSellingPrice);
+
+            // Draw multiline product name
+            int linesUsed = drawMultilineText(
+                    canvas,
+                    paint,
+                    displayName,
+                    productX,
+                    y,
+                    productMaxWidth,
+                    prdlineHeight
+            );
+
+            // QTY & PRICE only on first line
             paint.setTextAlign(Paint.Align.CENTER);
-            canvas.drawText(qty, pageWidth / 2f, y, paint);
+            canvas.drawText(qty, qtyX, y, paint);
+
             paint.setTextAlign(Paint.Align.RIGHT);
-            canvas.drawText(price, pageWidth - 20, y, paint);
-            y += 30;
+            canvas.drawText(price, priceX, y, paint);
+
+            y += (linesUsed * prdlineHeight);
+
             paint.setTextAlign(Paint.Align.LEFT);
         }
+
+        y += 10;
 
         // Separator
         paint.setTextAlign(Paint.Align.LEFT);
         canvas.drawText(dashLine, 0, y, paint);
         y += 30;
 
-        // Totals
-        paint.setTextAlign(Paint.Align.CENTER);
+        // =====================
+// PROFESSIONAL TOTALS
+// =====================
+        paint.setTextSize(18f);
+        paint.setTypeface(Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL));
+
+        double sellingCost = billData.getSellingCost();
+
+// Subtotal
+        drawRow(canvas, paint, "Subtotal",
+                "Rs." + String.format("%.2f", billData.getTotalCost()),
+                y, pageWidth);
+        y += 25;
+
+// Discount
         if (billData.getDiscount() > 0) {
-            canvas.drawText("Bill Amount: Rs." + String.format("%.2f", billData.getTotalCost()), pageWidth / 2f, y, paint);
-            y += 30;
-            canvas.drawText("Discount: " + String.format("%.1f", billData.getDiscount()) + "%", pageWidth / 2f, y, paint);
-            y += 30;
+            drawRow(canvas, paint,
+                    "Discount (" + billData.getDiscount() + "%)",
+                    "-Rs." + String.format("%.2f",
+                            billData.getTotalCost() - sellingCost),
+                    y, pageWidth);
+            y += 25;
         }
 
+// Courier
         if (billData.getIsCourier() != null && billData.getIsCourier()) {
-            canvas.drawText("Courier Charge: Rs." + String.format("%.1f", billData.getCourierAmount()), pageWidth / 2f, y, paint);
+            drawRow(canvas, paint,
+                    "Courier Charges",
+                    "Rs." + String.format("%.2f", billData.getCourierAmount()),
+                    y, pageWidth);
+            y += 25;
+
+            sellingCost += billData.getCourierAmount();
+        }
+
+// Separator
+        paint.setTextAlign(Paint.Align.LEFT);
+        canvas.drawText(dashLine, 0, y, paint);
+        y += 25;
+
+// -----------------
+// CARD CHARGES
+// -----------------
+        if ("CARD".equalsIgnoreCase(billData.getPaymentMode())) {
+
+            double cardCharge = round(sellingCost * 0.03);
+            double gst = round(cardCharge * 0.18);
+            double finalPayable = round(sellingCost + cardCharge + gst);
+
+            drawRow(canvas, paint,
+                    "Card Charges (3%)",
+                    "Rs." + String.format("%.2f", cardCharge),
+                    y, pageWidth);
+            y += 25;
+
+            drawRow(canvas, paint,
+                    "GST on Card Charges (18%)",
+                    "Rs." + String.format("%.2f", gst),
+                    y, pageWidth);
+            y += 25;
+
+            // Separator
+            canvas.drawText(dashLine, 0, y, paint);
             y += 30;
-            double sellingWithCourier = billData.getSellingCost() + billData.getCourierAmount();
+
+            // FINAL PAYABLE (HIGHLIGHT)
+            paint.setTypeface(Typeface.create(Typeface.MONOSPACE, Typeface.BOLD));
             paint.setTextSize(22f);
-            canvas.drawText("Total: Rs." + String.format("%.2f", sellingWithCourier), pageWidth / 2f, y, paint);
+
+            drawRow(canvas, paint,
+                    "FINAL PAYABLE",
+                    "Rs." + String.format("%.2f", finalPayable),
+                    y, pageWidth);
             y += 40;
+
         } else {
+            // CASH / UPI
+            paint.setTypeface(Typeface.create(Typeface.MONOSPACE, Typeface.BOLD));
             paint.setTextSize(22f);
-            canvas.drawText("Total: Rs." + String.format("%.2f", billData.getSellingCost()), pageWidth / 2f, y, paint);
+
+            drawRow(canvas, paint,
+                    "TOTAL",
+                    "Rs." + String.format("%.2f", sellingCost),
+                    y, pageWidth);
             y += 40;
         }
+
 
         // Footer
         paint.setTextAlign(Paint.Align.LEFT);
@@ -214,4 +317,71 @@ public class PDFHelper {
         return fileName;
     }
 
+    private double round(double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
+
+    private void drawRow(Canvas canvas, Paint paint,
+                         String label, String value,
+                         int y, int pageWidth) {
+
+        paint.setTextAlign(Paint.Align.LEFT);
+        canvas.drawText(label, 10, y, paint);
+
+        paint.setTextAlign(Paint.Align.RIGHT);
+        canvas.drawText(value, pageWidth - 10, y, paint);
+    }
+
+
+    private int drawMultilineText(Canvas canvas, Paint paint,
+                                  String text, float x, int y,
+                                  float maxWidth, int lineHeight) {
+
+        List<String> lines = new ArrayList<>();
+        String[] words = text.split(" ");
+        StringBuilder line = new StringBuilder();
+
+        for (String word : words) {
+            String testLine = line + word + " ";
+            if (paint.measureText(testLine) <= maxWidth) {
+                line.append(word).append(" ");
+            } else {
+                lines.add(line.toString());
+                line = new StringBuilder(word + " ");
+            }
+        }
+        lines.add(line.toString());
+
+        for (String l : lines) {
+            canvas.drawText(l.trim(), x, y, paint);
+            y += lineHeight;
+        }
+
+        return lines.size(); // number of lines drawn
+    }
+
+    private List<GroupedItem> groupBillingItems(List<BillingItemModel> items) {
+
+        Map<String, GroupedItem> map = new LinkedHashMap<>();
+
+        for (BillingItemModel item : items) {
+
+            String key = item.getName() + "_" + item.getUnits();
+
+            if (!map.containsKey(key)) {
+                map.put(key, new GroupedItem(item.getName(), item.getUnits(),item.getSellingItemPrice()));
+            }
+
+            GroupedItem grouped = map.get(key);
+            grouped.count++;
+            grouped.totalSellingPrice += item.getSellingItemPrice();
+        }
+
+        return new ArrayList<>(map.values());
+    }
+
+
+
 }
+
+

@@ -10,6 +10,10 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -50,10 +54,15 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.common.BitMatrix;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -163,6 +172,8 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
                     shareInvoiceDetails(index);
                 } else if (checkInternet() && type.equalsIgnoreCase("WHATSAPP")) {
                     shareInvoiceDetailsToWhatsapp(index);
+                } else if (checkInternet() && type.equalsIgnoreCase("QR_SHARE")) {
+                    shareInvoiceDetailsAndQrShareToWhatsapp(index);
                 } else if (checkInternet() && type.equalsIgnoreCase("PRINT")) {
                     if (!bluetoothAdapter.isEnabled()) {
                         Toast.makeText(context, "Please turn ON Bluetooth", Toast.LENGTH_SHORT).show();
@@ -225,6 +236,117 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         }
         enableBluetooth();
 
+    }
+
+    private void shareInvoiceDetailsAndQrShareToWhatsapp(int index) {
+
+        try {
+            // 1️⃣ Generate files
+            String qrFileName = generateQRImage(contentList.get(index));
+            String pdfFileName = pdfHelper.createPdfAndShare(contentList.get(index));
+
+            // 2️⃣ Create File objects
+            File qrFile = new File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    qrFileName
+            );
+
+            File pdfFile = new File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    pdfFileName
+            );
+
+            // 3️⃣ Convert to URIs using FileProvider
+            Uri qrUri = FileProvider.getUriForFile(
+                    context,
+                    context.getPackageName() + ".fileprovider",
+                    qrFile
+            );
+
+            Uri pdfUri = FileProvider.getUriForFile(
+                    context,
+                    context.getPackageName() + ".fileprovider",
+                    pdfFile
+            );
+
+            // 4️⃣ Add both URIs to list
+            ArrayList<Uri> uriList = new ArrayList<>();
+            uriList.add(pdfUri);
+            uriList.add(qrUri);
+
+            // 5️⃣ Share intent
+            Intent shareIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+            shareIntent.setType("*/*"); // supports mixed file types
+            shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uriList);
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            context.startActivity(
+                    Intent.createChooser(shareIntent, "Share receipt")
+            );
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(context, "Unable to share files", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    private String generateQRImage(BillingInvoiceModel billingInvoiceModel) {
+        try {
+
+            Double totalPay = (billingInvoiceModel.getIsCourier()) ? billingInvoiceModel.getSellingCost() + billingInvoiceModel.getCourierAmount() : billingInvoiceModel.getSellingCost();
+
+            String upiUri = "upi://pay?pa=" + sharedPrefHelper.getUpiId() +
+                    "&pn=" + sharedPrefHelper.getPayeeName() +
+                    "&am=" + String.format("%.2f", totalPay) +
+                    "&cu=INR" +
+                    "&tn=" + "SHA'S ATTAR & PERFUMES";
+
+            Bitmap qrImage = generateQRWithShopName(upiUri, sharedPrefHelper.getPayeeName() + "(" + sharedPrefHelper.getUpiId() + ")");
+
+            // Save QR bitmap to cache
+            String fileName = "payment-qr-" + billingInvoiceModel.getBillingDate() + "-" + OffsetDateTime.now().toEpochSecond() + ".png";
+            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+            FileOutputStream stream = new FileOutputStream(file);
+            qrImage.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            stream.close();
+
+            return fileName;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private Bitmap generateQRWithShopName(String upiUri, String shopName) {
+        try {
+            // Generate QR code bitmap
+            BitMatrix bitMatrix = new MultiFormatWriter().encode(
+                    upiUri, BarcodeFormat.QR_CODE, 500, 500, null);
+
+            BarcodeEncoder encoder = new BarcodeEncoder();
+            Bitmap qrBitmap = encoder.createBitmap(bitMatrix);
+
+            // Add shop name below QR
+            Bitmap combinedBitmap = Bitmap.createBitmap(500, 600, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(combinedBitmap);
+
+            // Draw QR code
+            canvas.drawBitmap(qrBitmap, 0, 0, null);
+
+            // Draw Shop name text
+            Paint paint = new Paint();
+            paint.setColor(Color.WHITE);
+            paint.setTextAlign(Paint.Align.CENTER);
+            paint.setTextSize(14);
+            canvas.drawText(shopName, 250, 560, paint);
+
+            return combinedBitmap;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private void shareInvoiceDetailsToWhatsapp(int index) {

@@ -393,12 +393,108 @@
                                                             android:layout_height="match_parent"
                                                             android:layout_weight="1" />
 
+                                                        <RadioButton
+                                                            android:id="@+id/new_billing_payment_card"
+                                                            android:layout_width="wrap_content"
+                                                            android:layout_height="wrap_content"
+                                                            android:text="CARD" />
+
+                                                        <View
+                                                            android:layout_width="0dp"
+                                                            android:layout_height="match_parent"
+                                                            android:layout_weight="1" />
                                                     </RadioGroup>
 
                                                 </LinearLayout>
 
 
                                             </androidx.cardview.widget.CardView>
+
+                                            <androidx.cardview.widget.CardView
+                                                android:id="@+id/cardChargeCard"
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:layout_margin="12dp"
+                                                android:visibility="gone"
+                                                app:cardCornerRadius="12dp"
+                                                app:cardElevation="4dp">
+
+                                                <LinearLayout
+                                                    android:layout_width="match_parent"
+                                                    android:layout_height="wrap_content"
+                                                    android:orientation="vertical"
+                                                    android:padding="16dp">
+
+                                                    <TextView
+                                                        android:id="@+id/tvCardCharge"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="wrap_content"
+                                                        android:text="Card Charges: ₹0.00"
+                                                        android:textSize="14sp"/>
+
+                                                    <TextView
+                                                        android:id="@+id/tvGST"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="wrap_content"
+                                                        android:text="GST (18%): ₹0.00"
+                                                        android:textSize="14sp"/>
+
+                                                    <TextView
+                                                        android:id="@+id/tvTotalExtra"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="wrap_content"
+                                                        android:text="Total Extra: ₹0.00"
+                                                        android:textStyle="bold"
+                                                        android:textSize="15sp"/>
+
+                                                </LinearLayout>
+                                            </androidx.cardview.widget.CardView>
+
+                                            <androidx.cardview.widget.CardView
+                                                android:id="@+id/cvFinalPayable"
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:layout_margin="12dp"
+                                                app:cardCornerRadius="14dp"
+                                                app:cardElevation="6dp"
+                                                app:cardBackgroundColor="@color/app_gray">
+
+                                                <LinearLayout
+                                                    android:layout_width="match_parent"
+                                                    android:layout_height="wrap_content"
+                                                    android:padding="18dp"
+                                                    android:orientation="vertical">
+
+                                                    <TextView
+                                                        android:text="Final Payable Amount"
+                                                        android:textSize="14sp"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="wrap_content"
+                                                        android:textColor="@color/black"/>
+
+                                                    <TextView
+                                                        android:id="@+id/tvFinalPayableAmount"
+                                                        android:text="₹0.00"
+                                                        android:textSize="22sp"
+                                                        android:textStyle="bold"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="wrap_content"
+                                                        android:textColor="@color/black"
+                                                        android:layout_marginTop="6dp"/>
+
+                                                    <TextView
+                                                        android:id="@+id/tvChargeInfo"
+                                                        android:text="Includes all charges and taxes"
+                                                        android:textSize="12sp"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="wrap_content"
+                                                        android:textColor="@color/black"
+                                                        android:layout_marginTop="4dp"/>
+
+                                                </LinearLayout>
+                                            </androidx.cardview.widget.CardView>
+
+
 
                                             <Button
                                                 android:id="@+id/billing_submit_invoice"

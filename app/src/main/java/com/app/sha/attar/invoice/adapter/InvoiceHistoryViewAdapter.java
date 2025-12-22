@@ -63,9 +63,16 @@ public class InvoiceHistoryViewAdapter extends RecyclerView.Adapter<InvoiceHisto
 
         holder.name.setText(contentList.get(index).getCustomerName().trim());
         holder.phone.setText(contentList.get(index).getCustomerPhone().trim());
-        holder.paymentMode.setText(contentList.get(index).getPaymentMode());
+
+        if(contentList.get(index).getPaymentMode().equalsIgnoreCase("CARD")){
+            holder.paymentMode.setText(contentList.get(index).getPaymentMode()+ "[Charge Inc. ₹"+df.format(contentList.get(index).getCardCharges())+"]");
+            holder.sellingPrice.setText("Rs. " + df.format(contentList.get(index).getSellingCost()+contentList.get(index).getCardCharges()));
+        }else{
+            holder.paymentMode.setText(contentList.get(index).getPaymentMode());
+            holder.sellingPrice.setText("Rs. " + df.format(contentList.get(index).getSellingCost()));
+        }
         holder.discount.setText(contentList.get(index).getDiscount() + " %");
-        holder.sellingPrice.setText("Rs. " + df.format(contentList.get(index).getSellingCost()));
+
 
         if (contentList.get(index).getIsPrint() != null && Boolean.TRUE.equals(contentList.get(index).getIsPrint())) {
             holder.printBt.setImageDrawable(context.getDrawable(R.drawable.baseline_print_inactive24));
@@ -118,10 +125,10 @@ public class InvoiceHistoryViewAdapter extends RecyclerView.Adapter<InvoiceHisto
                 clickListener.click(index, "SHARE");
             }
         });
-        holder.whatsappBt.setOnClickListener(new View.OnClickListener() {
+        holder.qrShareBt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                clickListener.click(index, "WHATSAPP");
+                clickListener.click(index, "QR_SHARE");
             }
         });
 
