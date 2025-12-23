@@ -60,7 +60,13 @@ public class InvoiceHistoryDetailViewAdapter extends RecyclerView.Adapter<Invoic
         }else{
             holder.itemCode.setVisibility(View.GONE);
         }
-        holder.itemSellingPrice.setText(df.format(contentList.get(index).getSellingItemPrice()));
+        holder.itemSellingPrice.setText("₹ "+df.format(contentList.get(index).getPieces() * contentList.get(index).getSellingItemPrice()));
+
+        if(contentList.get(0).getPieces()>0) {
+            holder.pieces.setText( "["+contentList.get(index).getPieces()+" x ₹"+df.format(contentList.get(index).getSellingItemPrice())+"]");
+        }else{
+            holder.pieces.setVisibility(View.GONE);
+        }
 
         holder.edit.setOnClickListener(new View.OnClickListener() {
             @Override

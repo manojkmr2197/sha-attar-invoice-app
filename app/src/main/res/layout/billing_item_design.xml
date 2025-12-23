@@ -92,6 +92,16 @@
                         android:layout_weight="1" />
 
                     <TextView
+                        android:id="@+id/billing_product_item_pieces"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2 * Rs.100"
+                        android:textColor="#666666"
+                        android:layout_marginEnd="5dp"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <TextView
                         android:id="@+id/billing_product_total_price"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -175,6 +185,16 @@
                         android:layout_width="0dp"
                         android:layout_height="1dp"
                         android:layout_weight="1" />
+
+                    <TextView
+                        android:id="@+id/billing_accessories_item_pieces"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2 * Rs.100"
+                        android:textColor="#666666"
+                        android:layout_marginEnd="5dp"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/billing_accessories_price"

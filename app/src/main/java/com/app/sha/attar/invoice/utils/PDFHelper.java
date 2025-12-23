@@ -135,20 +135,17 @@ public class PDFHelper {
 
         paint.setTextAlign(Paint.Align.LEFT);
 
-        List<GroupedItem> groupedItems =
-                groupBillingItems(billData.getBillingItemModelList());
+        for (BillingItemModel item : billData.getBillingItemModelList()) {
 
-        for (GroupedItem item : groupedItems) {
+            String displayName = item.getName();
 
-            String displayName = item.name;
-
-            if (item.count > 1) {
-                displayName += " [" + item.count +
-                        " x Rs." + String.format("%.2f", item.unitPrice) + "]";
+            if (item.getPieces() > 1) {
+                displayName += " [" + item.getPieces() +
+                        " x Rs." + String.format("%.2f", item.getSellingItemPrice()) + "]";
             }
 
-            String qty = item.units != null ? item.units + " ML" : "";
-            String price = "Rs." + String.format("%.2f", item.totalSellingPrice);
+            String qty = item.getUnits() != null ? item.getUnits() + " ML" : "";
+            String price = "Rs." + String.format("%.2f", item.getPieces() * item.getSellingItemPrice());
 
             // Draw multiline product name
             int linesUsed = drawMultilineText(
@@ -358,26 +355,6 @@ public class PDFHelper {
         }
 
         return lines.size(); // number of lines drawn
-    }
-
-    private List<GroupedItem> groupBillingItems(List<BillingItemModel> items) {
-
-        Map<String, GroupedItem> map = new LinkedHashMap<>();
-
-        for (BillingItemModel item : items) {
-
-            String key = item.getName() + "_" + item.getUnits();
-
-            if (!map.containsKey(key)) {
-                map.put(key, new GroupedItem(item.getName(), item.getUnits(),item.getSellingItemPrice()));
-            }
-
-            GroupedItem grouped = map.get(key);
-            grouped.count++;
-            grouped.totalSellingPrice += item.getSellingItemPrice();
-        }
-
-        return new ArrayList<>(map.values());
     }
 
 

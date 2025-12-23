@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     List<ProductModel> productModelList = new ArrayList<>();
     List<AccessoriesModel> accessoriesModelList = new ArrayList<>();
 
-    LinearLayout content_ll,empty_ll;
+    LinearLayout content_ll, empty_ll;
 
     RecyclerView bill_recycler;
     BillingViewAdapter billingAdapter;
@@ -383,7 +383,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         LinearLayoutManager cartLayoutManager = new LinearLayoutManager(context);
         cartItemsRecycler.setLayoutManager(cartLayoutManager);
         cartItemsRecycler.setAdapter(cartAdapter);
-        
+
         // Set up payment options
         cashRadioBt.setChecked(true);
         paymentMode = "CASH";
@@ -418,13 +418,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Set up click listeners
         billing_discount_ll.setOnClickListener(this);
         billing_button.setOnClickListener(this);
-        
+
         ImageView closeButton = cartDialog.findViewById(R.id.cart_close_button);
         closeButton.setOnClickListener(v -> cartDialog.dismiss());
 
         // Update cart dialog with current data
         updateCartDialog();
-        
+
         cartDialog.show();
     }
 
@@ -442,7 +442,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void onCardChargeClicked(double billAmount, boolean isCardChargeVisible) {
         if (cartDialog == null) return;
-        
+
         CardView cardView = cartDialog.findViewById(R.id.cardChargeCard);
         if (cardView == null) return;
 
@@ -459,7 +459,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             gst = round(gst);
             totalExtra = round(totalExtra);
             cardChargeAmount = totalExtra;
-            
+
             tvCardCharge.setText("Card Charges (3%): ₹" + cardCharge);
             tvGST.setText("GST (18%): ₹" + gst);
             tvTotalExtra.setText("Total Extra: ₹" + totalExtra);
@@ -468,7 +468,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             cardChargeAmount = 0.0;
             cardView.setVisibility(View.GONE);
         }
-        
+
         if (finalBillingAmountTv != null) {
             finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount));
         }
@@ -557,7 +557,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             content_ll.setVisibility(View.VISIBLE);
             totalAmount = 0.0;
             for (BillingItemModel billingItemModel : billingItemModelList) {
-                totalAmount += billingItemModel.getSellingItemPrice();
+                totalAmount += (billingItemModel.getPieces() * billingItemModel.getSellingItemPrice());
             }
         }
         sellingAmount = totalAmount - ((totalAmount * discount) / 100);
@@ -789,10 +789,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         EditText editWhatsappNumber = dialog.findViewById(R.id.editWhatsappNumber);
         Button btnSubmit = dialog.findViewById(R.id.btnSubmit);
         ImageView btnClose = dialog.findViewById(R.id.bill_share_close);
-        if(billingInvoiceModel.getIsCourier()){
+        if (billingInvoiceModel.getIsCourier()) {
             radioWhatsapp.setChecked(true);
             editWhatsappNumber.setVisibility(View.VISIBLE);
-        }else {
+        } else {
             radioPrinter.setChecked(true);
             editWhatsappNumber.setVisibility(View.GONE);
         }
@@ -880,7 +880,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
                 File paymentQRfile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), PaymentQRFileName);
                 if (file.exists()) {
-                    showWhatsappChoiceDialog(phoneNumber, file,paymentQRfile);
+                    showWhatsappChoiceDialog(phoneNumber, file, paymentQRfile);
                     billingItemModelList.clear();
                     manageBillingLayout();
                 } else {
@@ -906,7 +906,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     "&cu=INR" +
                     "&tn=" + "SHA'S ATTAR & PERFUMES";
 
-            Bitmap qrImage = generateQRWithShopName(upiUri,sharedPrefHelper.getPayeeName()+"("+sharedPrefHelper.getUpiId()+")");
+            Bitmap qrImage = generateQRWithShopName(upiUri, sharedPrefHelper.getPayeeName() + "(" + sharedPrefHelper.getUpiId() + ")");
 
             // Save QR bitmap to cache
             String fileName = "payment-qr-" + billingInvoiceModel.getBillingDate() + "-" + OffsetDateTime.now().toEpochSecond() + ".png";
@@ -1038,7 +1038,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-    private void sendInvoiceToWhatsApp(String phoneNumber, File pdfFile,File paymentQRfile, String packageName) {
+    private void sendInvoiceToWhatsApp(String phoneNumber, File pdfFile, File paymentQRfile, String packageName) {
         try {
 
             // ✅ Get URIs for both files
@@ -1057,7 +1057,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
             startActivity(sendIntent);
-
 
 
 //            // ✅ Get URI for File using FileProvider
@@ -1081,7 +1080,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    private void showWhatsappChoiceDialog(String phoneNumber, File file,File paymentQRfile) {
+    private void showWhatsappChoiceDialog(String phoneNumber, File file, File paymentQRfile) {
         Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_whatsapp_choice);
         dialog.setCancelable(true);
@@ -1090,12 +1089,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Button btnWhatsappBusiness = dialog.findViewById(R.id.btnWhatsappBusiness);
 
         btnWhatsapp.setOnClickListener(v -> {
-            sendInvoiceToWhatsApp(phoneNumber, file,paymentQRfile, "com.whatsapp");
+            sendInvoiceToWhatsApp(phoneNumber, file, paymentQRfile, "com.whatsapp");
             dialog.dismiss();
         });
 
         btnWhatsappBusiness.setOnClickListener(v -> {
-            sendInvoiceToWhatsApp(phoneNumber, file,paymentQRfile, "com.whatsapp.w4b");
+            sendInvoiceToWhatsApp(phoneNumber, file, paymentQRfile, "com.whatsapp.w4b");
             dialog.dismiss();
         });
 
@@ -1357,7 +1356,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     selectedProduct[0] = selectProductModel;
                     if (productCategoryType[0].equalsIgnoreCase("ATTAR")) {
                         product_selling_cost.setText("" + selectedProduct[0].getAttarSellingPriceMap().get(productQtyValue[0]));
-                    }else{
+                    } else {
                         product_selling_cost.setText("" + selectedProduct[0].getPerfumeSellingPriceMap().get(productQtyValue[0]));
                     }
                     product_detail_ll.setVisibility(View.VISIBLE);
@@ -1372,7 +1371,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         TextView submit = (TextView) dialog.findViewById(R.id.new_bill_add_submit);
         TextView close = (TextView) dialog.findViewById(R.id.new_bill_close);
         if (billingItemModel != null) {
-            occurance.setVisibility(View.GONE);
+            occurance.setText(String.valueOf(billingItemModel.getPieces()));
             if ("PRODUCT".equalsIgnoreCase(billingItemModel.getType())) {
                 productRadioButton.setChecked(true);
                 nonProductRadioButton.setChecked(false);
@@ -1484,64 +1483,67 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
 
                     }
+                    if (StringUtils.isBlank(occurance.getText().toString())) {
+                        occurance.setText("1");
+                    }
+                    billingItemModel.setPieces(Integer.valueOf(occurance.getText().toString()));
                     billingItemModelList.add(billingItemModel);
                     billingAdapter.notifyDataSetChanged();
                     if (billingAdapter.getItemCount() > 0)
                         bill_recycler.post(() -> bill_recycler.scrollToPosition(billingAdapter.getItemCount() - 1));
                     manageBillingLayout();
                 } else {
-                    int iterCount = 0;
                     if (StringUtils.isBlank(occurance.getText().toString())) {
                         occurance.setText("1");
                     }
-                    iterCount = Integer.valueOf(occurance.getText().toString());
-                    for (int i = 0; i < iterCount; i++) {
-                        BillingItemModel newBillingItemModel = new BillingItemModel();
 
-                        if ("PRODUCT".equalsIgnoreCase(type[0])) {
-                            if (selectedProduct[0] == null) {
-                                Toast.makeText(MainActivity.this, "Please Choose the Product Name..!", Toast.LENGTH_LONG).show();
-                                return;
-                            }
-                            if (StringUtils.isEmpty(productQtyValue[0])) {
-                                Toast.makeText(MainActivity.this, "Please fill the Quantity..!", Toast.LENGTH_LONG).show();
-                                return;
-                            }
-                            newBillingItemModel.setProductModel(selectedProduct[0]);
-                            newBillingItemModel.setType(type[0]);
-                            newBillingItemModel.setProductCategory(productCategoryType[0]);
-                            newBillingItemModel.setName(selectedProduct[0].getName());
-                            newBillingItemModel.setCode(selectedProduct[0].getCode());
-                            Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
-                            newBillingItemModel.setUnitPrice(fullPrice / 1000);
-                            if ("ATTAR".equalsIgnoreCase(newBillingItemModel.getProductCategory())) {
-                                newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")));
-                                newBillingItemModel.setTotalPrice((Double.parseDouble(productQtySpinner.getSelectedItem().toString().replace("ML", "")) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
-                                newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
-                            } else {
-                                newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")));
-                                newBillingItemModel.setTotalPrice(getPerfumeActualPrice(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")), fullPrice / 1000) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
-                                newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
-                            }
+                    BillingItemModel newBillingItemModel = new BillingItemModel();
 
-                        } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
-
-                            if (selectedNonProduct[0] == null) {
-                                Toast.makeText(MainActivity.this, "Please Choose the Accessories Name..!", Toast.LENGTH_LONG).show();
-                                return;
-                            }
-                            if (StringUtils.isEmpty(non_product_price.getText().toString())) {
-                                Toast.makeText(MainActivity.this, "Please fill the Price..!", Toast.LENGTH_LONG).show();
-                                return;
-                            }
-                            newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
-                            newBillingItemModel.setType(type[0]);
-                            newBillingItemModel.setName(selectedNonProduct[0].getName());
-                            newBillingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
-                            newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
+                    if ("PRODUCT".equalsIgnoreCase(type[0])) {
+                        if (selectedProduct[0] == null) {
+                            Toast.makeText(MainActivity.this, "Please Choose the Product Name..!", Toast.LENGTH_LONG).show();
+                            return;
                         }
-                        billingItemModelList.add(newBillingItemModel);
+                        if (StringUtils.isEmpty(productQtyValue[0])) {
+                            Toast.makeText(MainActivity.this, "Please fill the Quantity..!", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        newBillingItemModel.setProductModel(selectedProduct[0]);
+                        newBillingItemModel.setType(type[0]);
+                        newBillingItemModel.setProductCategory(productCategoryType[0]);
+                        newBillingItemModel.setName(selectedProduct[0].getName());
+                        newBillingItemModel.setCode(selectedProduct[0].getCode());
+                        Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
+                        newBillingItemModel.setUnitPrice(fullPrice / 1000);
+                        if ("ATTAR".equalsIgnoreCase(newBillingItemModel.getProductCategory())) {
+                            newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")));
+                            newBillingItemModel.setTotalPrice((Double.parseDouble(productQtySpinner.getSelectedItem().toString().replace("ML", "")) * (fullPrice / 1000)) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
+                        } else {
+                            newBillingItemModel.setUnits(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")));
+                            newBillingItemModel.setTotalPrice(getPerfumeActualPrice(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")), fullPrice / 1000) + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                            newBillingItemModel.setSellingItemPrice(Double.valueOf(product_selling_cost.getText().toString()));
+                        }
+
+                    } else if ("NON_PRODUCT".equalsIgnoreCase(type[0])) {
+
+                        if (selectedNonProduct[0] == null) {
+                            Toast.makeText(MainActivity.this, "Please Choose the Accessories Name..!", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        if (StringUtils.isEmpty(non_product_price.getText().toString())) {
+                            Toast.makeText(MainActivity.this, "Please fill the Price..!", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
+                        newBillingItemModel.setType(type[0]);
+                        newBillingItemModel.setName(selectedNonProduct[0].getName());
+                        newBillingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
+                        newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                     }
+                    newBillingItemModel.setPieces(Integer.valueOf(occurance.getText().toString()));
+                    billingItemModelList.add(newBillingItemModel);
+
                     billingAdapter.notifyDataSetChanged();
                     if (billingAdapter.getItemCount() > 0)
                         bill_recycler.post(() -> bill_recycler.scrollToPosition(billingAdapter.getItemCount() - 1));

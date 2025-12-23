@@ -16,6 +16,7 @@ import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.viewholder.BillingViewHolder;
 import com.app.sha.attar.invoice.viewholder.ProductViewHolder;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +26,8 @@ public class BillingViewAdapter extends RecyclerView.Adapter<BillingViewHolder> 
     Context context;
     List<BillingItemModel> contentList = new ArrayList<>();
     BillingClickListener clickListener;
+
+    DecimalFormat df = new DecimalFormat("#.00");
 
     public BillingViewAdapter(Context context, List<BillingItemModel> contentList, BillingClickListener clickListener) {
         this.context = context;
@@ -48,13 +51,24 @@ public class BillingViewAdapter extends RecyclerView.Adapter<BillingViewHolder> 
             holder.product_name.setText(contentList.get(index).getName()+"-"+contentList.get(index).getProductCategory().substring(0,1));
             holder.product_code.setText(contentList.get(index).getCode());
             holder.product_units.setText(contentList.get(index).getUnits()+" ML");
-            holder.product_total_price.setText("Rs. "+contentList.get(index).getSellingItemPrice());
+            holder.product_total_price.setText("₹ "+df.format(contentList.get(index).getPieces() * contentList.get(index).getSellingItemPrice()));
 
+            if(contentList.get(0).getPieces()>0) {
+                holder.product_pieces.setText( "["+contentList.get(index).getPieces()+" x ₹"+df.format(contentList.get(index).getSellingItemPrice())+"]");
+            }else{
+                holder.product_pieces.setVisibility(View.GONE);
+            }
         }else if("NON_PRODUCT".equalsIgnoreCase(contentList.get(index).getType())){
             holder.product_ll.setVisibility(View.GONE);
             holder.accessories_ll.setVisibility(View.VISIBLE);
             holder.accessories_name.setText(contentList.get(index).getName());
-            holder.accessories_price.setText("Rs. "+contentList.get(index).getSellingItemPrice());
+            holder.accessories_price.setText("₹ "+df.format(contentList.get(index).getPieces() * contentList.get(index).getSellingItemPrice()));
+
+            if(contentList.get(0).getPieces()>0) {
+                holder.accessories_pieces.setText( "["+contentList.get(index).getPieces()+" x ₹"+df.format(contentList.get(index).getSellingItemPrice())+"]");
+            }else{
+                holder.accessories_pieces.setVisibility(View.GONE);
+            }
         }
 
         holder.product_close.setOnClickListener(new View.OnClickListener() {

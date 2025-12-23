@@ -137,40 +137,21 @@ public class BluetoothPrinterHelper {
             String starSeparator = new String(new char[lineWidth]).replace('\0', '*');
 
             // =================================================
-            // GROUP ITEMS (name + units)
-            // =================================================
-            Map<String, GroupedItem> groupedMap = new LinkedHashMap<>();
-
-            for (BillingItemModel item : billData.getBillingItemModelList()) {
-
-                String key = item.getName() + "_" + item.getUnits();
-
-                if (!groupedMap.containsKey(key)) {
-                    groupedMap.put(key,
-                            new GroupedItem(item.getName(), item.getUnits(),item.getSellingItemPrice()));
-                }
-
-                GroupedItem g = groupedMap.get(key);
-                g.count++;
-                g.totalSellingPrice += item.getSellingItemPrice();
-            }
-
-            // =================================================
             // BUILD PRODUCT LINES (MULTILINE SAFE)
             // =================================================
             StringBuilder productLines = new StringBuilder();
 
-            for (GroupedItem g : groupedMap.values()) {
+            for (BillingItemModel item : billData.getBillingItemModelList()) {
 
-                String displayName = g.name;
+                String displayName = item.getName();
 
-                if (g.count > 1) {
-                    displayName += " [" + g.count +
-                            " x Rs." + String.format("%.2f", g.unitPrice) + "]";
+                if (item.getPieces() > 1) {
+                    displayName += " [" + item.getPieces() +
+                            " x Rs." + String.format("%.2f", item.getSellingItemPrice()) + "]";
                 }
 
-                String qty = g.units != null ? g.units + " ML" : "";
-                String price = "Rs." + String.format("%.2f", g.totalSellingPrice);
+                String qty = item.getUnits() != null ? item.getUnits() + " ML" : "";
+                String price = "Rs." + String.format("%.2f", item.getPieces() * item.getSellingItemPrice());
 
                 // Split product name into 24-char safe chunks
                 List<String> nameLines = splitFixedWidth(displayName, 24);

@@ -13,6 +13,7 @@ public class BillingItemModel {
     AccessoriesModel accessoriesModel;
     Long invoiceId;
     String productCategory;
+    Integer pieces;
 
     public BillingItemModel() {
     }
@@ -112,5 +113,13 @@ public class BillingItemModel {
 
     public void setSellingItemPrice(Double sellingItemPrice) {
         this.sellingItemPrice = sellingItemPrice;
+    }
+
+    public Integer getPieces() {
+        return pieces;
+    }
+
+    public void setPieces(Integer pieces) {
+        this.pieces = pieces;
     }
 }

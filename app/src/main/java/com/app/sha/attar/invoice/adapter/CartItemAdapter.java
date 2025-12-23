@@ -12,12 +12,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.model.BillingItemModel;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 public class CartItemAdapter extends RecyclerView.Adapter<CartItemAdapter.CartViewHolder> {
 
     private Context context;
     private List<BillingItemModel> cartItems;
+    DecimalFormat df = new DecimalFormat("#.00");
+
 
     public CartItemAdapter(Context context, List<BillingItemModel> cartItems) {
         this.context = context;
@@ -34,16 +37,16 @@ public class CartItemAdapter extends RecyclerView.Adapter<CartItemAdapter.CartVi
     @Override
     public void onBindViewHolder(@NonNull CartViewHolder holder, int position) {
         BillingItemModel item = cartItems.get(position);
-        
+
         holder.itemName.setText(item.getName());
-        holder.itemPrice.setText("₹" + item.getSellingItemPrice());
-        
+        holder.itemPrice.setText("₹" + df.format(item.getPieces() * item.getSellingItemPrice()));
+
         if ("PRODUCT".equals(item.getType())) {
-            holder.itemQuantity.setText("Qty: " + item.getUnits() + "ML");
-            holder.itemType.setText(item.getProductCategory().substring(0,1).toUpperCase());
+            holder.itemQuantity.setText("[" + item.getPieces() + " x ₹" + df.format(item.getSellingItemPrice()) + "]");
+            holder.itemType.setText(item.getProductCategory().substring(0, 1).toUpperCase() + "-" + item.getUnits() + "ML");
             holder.itemType.setVisibility(View.VISIBLE);
         } else {
-            holder.itemQuantity.setText("Qty: 1");
+            holder.itemQuantity.setText("[" + item.getPieces() + " x ₹" + df.format(item.getSellingItemPrice()) + "]");
             holder.itemType.setVisibility(View.GONE);
         }
     }
