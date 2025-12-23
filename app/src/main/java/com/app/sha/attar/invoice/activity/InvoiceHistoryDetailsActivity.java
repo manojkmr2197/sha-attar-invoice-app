@@ -285,9 +285,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             gst = round(gst);
             totalExtra = round(totalExtra);
             cardChargeAmount = totalExtra;
-            tvCardCharge.setText("Card Charges (3%): ₹" + cardCharge);
-            tvGST.setText("GST (18%): ₹" + gst);
-            tvTotalExtra.setText("Total Extra: ₹" + totalExtra);
+            tvCardCharge.setText("₹" + cardCharge);
+            tvGST.setText("₹" + gst);
+            tvTotalExtra.setText("₹" + totalExtra);
             cardView.setVisibility(View.VISIBLE);
             cardView.setAlpha(0f);
             cardView.animate().alpha(1f).setDuration(200).start();

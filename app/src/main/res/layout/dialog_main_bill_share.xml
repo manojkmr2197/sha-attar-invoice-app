@@ -1,105 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
-    android:orientation="vertical">
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp"
+    app:cardBackgroundColor="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50sp"
-        android:gravity="center">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:padding="5dp"
-            android:text="Invoice Copy (share)"
-            android:textSize="15sp" />
-
-        <TextView
-            android:id="@+id/bill_share_close"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:backgroundTint="@color/black"
-            android:background="@drawable/ic_baseline_close_24" />
-
-    </LinearLayout>
-
-    <RadioGroup
-        android:id="@+id/radioGroupOptions"
-        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="5dp">
+        android:orientation="vertical">
 
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="@drawable/header_gradient_background"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:contentDescription="Printer"
-            android:src="@drawable/baseline_print_active24" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Share Invoice"
+                android:textColor="@color/app_color"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
-        <RadioButton
-            android:id="@+id/radioPrinter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:text="Printer" />
+            <ImageView
+                android:id="@+id/bill_share_close"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_baseline_close_24"
+                app:tint="@color/app_color"
+                android:background="@drawable/close_button_background"
+                android:padding="6dp" />
 
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
+        </LinearLayout>
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:contentDescription="WhatsApp"
-            android:src="@drawable/whatsapp_logo" />
-
-        <RadioButton
-            android:id="@+id/radioWhatsapp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:text="WhatsApp" />
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-    </RadioGroup>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/filledTextField1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="35dp"
-        android:layout_marginRight="35dp"
-        android:hint="Enter WhatsApp Number">
-
-        <!--this is the actual edit text which takes the input-->
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editWhatsappNumber"
+        <!-- Content -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="phone"
-            android:singleLine="true" />
+            android:orientation="vertical"
+            android:padding="20dp">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <!-- Share Options -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Choose sharing method"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginBottom="16dp" />
 
-    <Button
-        android:id="@+id/btnSubmit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Submit" />
+            <RadioGroup
+                android:id="@+id/radioGroupOptions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-</LinearLayout>
+                <RadioButton
+                    android:id="@+id/radioPrinter"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Print Invoice"
+                    android:textSize="14sp"
+                    android:textColor="@color/black"
+                    android:background="@drawable/radio_option_background"
+                    android:padding="16dp"
+                    android:drawableStart="@drawable/baseline_print_active24"
+                    android:drawablePadding="12dp" />
+
+                <RadioButton
+                    android:id="@+id/radioWhatsapp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Share via WhatsApp"
+                    android:textSize="14sp"
+                    android:textColor="@color/black"
+                    android:background="@drawable/radio_option_background"
+                    android:padding="16dp" />
+
+            </RadioGroup>
+
+            <!-- WhatsApp Number Input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/filledTextField1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Enter WhatsApp Number"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxStrokeWidth="2dp"
+                app:hintTextColor="@color/app_color">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editWhatsappNumber"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="phone"
+                    android:singleLine="true"
+                    android:textSize="14sp" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Submit Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSubmit"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="20dp"
+                android:text="Share Invoice"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/app_color"
+                app:cornerRadius="24dp"
+                app:icon="@drawable/baseline_share_24"
+                app:iconGravity="textStart" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

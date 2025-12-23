@@ -603,7 +603,7 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/final_amount_gradient_background"
+                        android:background="@color/app_gray"
                         android:orientation="vertical"
                         android:padding="3dp">
 

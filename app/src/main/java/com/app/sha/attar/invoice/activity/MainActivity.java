@@ -59,6 +59,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.sha.attar.invoice.R;
 import com.app.sha.attar.invoice.adapter.BillingViewAdapter;
+import com.app.sha.attar.invoice.adapter.CartItemAdapter;
 import com.app.sha.attar.invoice.listener.BillingClickListener;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
@@ -73,6 +74,7 @@ import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -104,8 +106,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     List<ProductModel> productModelList = new ArrayList<>();
     List<AccessoriesModel> accessoriesModelList = new ArrayList<>();
 
-    FrameLayout empty_ll;
-    LinearLayout content_ll;
+    LinearLayout content_ll,empty_ll;
 
     RecyclerView bill_recycler;
     BillingViewAdapter billingAdapter;
@@ -114,12 +115,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     Context context;
     Activity activity;
 
-    Button billing_add, billing_button;
+    Button billing_add, billing_button, complete_order_button;
     TextView billing_total_amount, billing_selling_amount, billing_discount;
 
     LinearLayout billing_discount_ll;
 
-    TextView finalBillingAmountTv ;
+    TextView finalBillingAmountTv;
 
     CheckBox courier_checkBox;
     EditText courier_amount;
@@ -127,7 +128,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     RadioGroup paymentGroup;
     RadioButton cashRadioBt, upiRadioBt;
 
-    Double totalAmount = 0.0, sellingAmount = 0.0, discount = 0.0,cardChargeAmount=0.0;
+    Double totalAmount = 0.0, sellingAmount = 0.0, discount = 0.0, cardChargeAmount = 0.0;
+
+    // Cart dialog components
+    Dialog cartDialog;
 
     SharedPrefHelper sharedPrefHelper;
     DBUtil dbObj;
@@ -169,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.home_drawer_layout);
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-        TextView textView = (TextView) findViewById(R.id.home_nav_text_view);
+        ImageView textView = (ImageView) findViewById(R.id.home_nav_text_view);
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -199,47 +203,67 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
 
         content_ll = (LinearLayout) findViewById(R.id.home_content_ll);
-        empty_ll = (FrameLayout) findViewById(R.id.home_empty_ll);
+        empty_ll = (LinearLayout) findViewById(R.id.home_empty_ll);
 
         billing_add = (Button) findViewById(R.id.home_bill_add_bt);
         billing_add.setOnClickListener(this);
 
-        billing_total_amount = (TextView) findViewById(R.id.billing_total_amount_price);
-        billing_selling_amount = (TextView) findViewById(R.id.billing_total_selling_price);
-        billing_discount = (TextView) findViewById(R.id.billing_discount);
-        billing_discount_ll = (LinearLayout) findViewById(R.id.billing_discount_ll);
-        billing_button = (Button) findViewById(R.id.billing_submit_invoice);
+        complete_order_button = (Button) findViewById(R.id.complete_order_button);
+        complete_order_button.setOnClickListener(this);
 
-        paymentGroup = (RadioGroup) findViewById(R.id.new_bill_payment_radio_group);
-        cashRadioBt = (RadioButton) findViewById(R.id.new_billing_payment_cash);
-        upiRadioBt = (RadioButton) findViewById(R.id.new_billing_payment_upi);
+//        billing_total_amount = (TextView) findViewById(R.id.billing_total_amount_price);
+//        billing_selling_amount = (TextView) findViewById(R.id.billing_total_selling_price);
+//        billing_discount = (TextView) findViewById(R.id.billing_discount);
+//        billing_discount_ll = (LinearLayout) findViewById(R.id.billing_discount_ll);
+//        billing_button = (Button) findViewById(R.id.billing_submit_invoice);
+//
+//        paymentGroup = (RadioGroup) findViewById(R.id.new_bill_payment_radio_group);
+//        cashRadioBt = (RadioButton) findViewById(R.id.new_billing_payment_cash);
+//        upiRadioBt = (RadioButton) findViewById(R.id.new_billing_payment_upi);
+//
+//        courier_checkBox = findViewById(R.id.new_billing_is_courier_checkBox);
+//        courier_amount = findViewById(R.id.new_billing_courier_amount);
+//        finalBillingAmountTv = findViewById(R.id.tvFinalPayableAmount);
 
-        cashRadioBt.setChecked(true);
-        paymentMode = "CASH";
-        paymentGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                // Find which radio button is selected
-                if (R.id.new_billing_payment_cash == checkedId) {
-                    paymentMode = "CASH";
-                    onCardChargeClicked(sellingAmount,false);
-                } else if (R.id.new_billing_payment_upi == checkedId) {
-                    paymentMode = "UPI";
-                    onCardChargeClicked(sellingAmount,false);
-                } else if (R.id.new_billing_payment_card == checkedId) {
-                    paymentMode = "CARD";
-                    onCardChargeClicked(sellingAmount,true);
-                }
-            }
-        });
+        // Initialize cart dialog components as null (will be set when dialog opens)
+//        billing_total_amount = null;
+//        billing_selling_amount = null;
+//        billing_discount = null;
+//        billing_discount_ll = null;
+//        billing_button = null;
+//        paymentGroup = null;
+//        cashRadioBt = null;
+//        upiRadioBt = null;
+//        courier_checkBox = null;
+//        courier_amount = null;
+//        finalBillingAmountTv = null;
+//
+//        cashRadioBt.setChecked(true);
+//        paymentMode = "CASH";
+//        paymentGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(RadioGroup group, int checkedId) {
+//                // Find which radio button is selected
+//                if (R.id.new_billing_payment_cash == checkedId) {
+//                    paymentMode = "CASH";
+//                    onCardChargeClicked(sellingAmount, false);
+//                } else if (R.id.new_billing_payment_upi == checkedId) {
+//                    paymentMode = "UPI";
+//                    onCardChargeClicked(sellingAmount, false);
+//                } else if (R.id.new_billing_payment_card == checkedId) {
+//                    paymentMode = "CARD";
+//                    onCardChargeClicked(sellingAmount, true);
+//                }
+//            }
+//        });
 
-        TextView allClear = (TextView) findViewById(R.id.new_billing_all_clear);
-        billing_discount_ll.setOnClickListener(this);
-        billing_button.setOnClickListener(this);
+        FloatingActionButton allClear = (FloatingActionButton) findViewById(R.id.new_billing_all_clear);
+//        billing_discount_ll.setOnClickListener(this);
+//        billing_button.setOnClickListener(this);
 
-        courier_checkBox = findViewById(R.id.new_billing_is_courier_checkBox);
-        courier_amount = findViewById(R.id.new_billing_courier_amount);
-        finalBillingAmountTv = findViewById(R.id.tvFinalPayableAmount);
+//        courier_checkBox = findViewById(R.id.new_billing_is_courier_checkBox);
+//        courier_amount = findViewById(R.id.new_billing_courier_amount);
+//        finalBillingAmountTv = findViewById(R.id.tvFinalPayableAmount);
 
         allClear.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -250,22 +274,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
-        courier_checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                // Expand and show EditText
-                courier_amount.setVisibility(View.VISIBLE);
-                upiRadioBt.setChecked(true);
-                onCardChargeClicked(sellingAmount,false);
-            } else {
-                // Hide EditText
-                courier_amount.setText("0.0");
-                courier_amount.setVisibility(View.GONE);
-            }
-        });
+//        courier_checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+//            if (isChecked) {
+//                // Expand and show EditText
+//                courier_amount.setVisibility(View.VISIBLE);
+//                upiRadioBt.setChecked(true);
+//                onCardChargeClicked(sellingAmount,false);
+//            } else {
+//                // Hide EditText
+//                courier_amount.setText("0.0");
+//                courier_amount.setVisibility(View.GONE);
+//            }
+//        });
 
         bill_recycler = (RecyclerView) findViewById(R.id.home_recyclerView);
 
-        TextView home_invoice_tv = (TextView) findViewById(R.id.home_invoice_history);
+        ImageView home_invoice_tv = (ImageView) findViewById(R.id.home_invoice_history);
 
         home_invoice_tv.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -331,14 +355,101 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-    private void onCardChargeClicked(double billAmount,boolean isCardChargeVisible) {
+    private void showCartDialog() {
+        cartDialog = new Dialog(context);
+        cartDialog.setContentView(R.layout.dialog_cart_summary);
+        cartDialog.setCanceledOnTouchOutside(false);
+        cartDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        cartDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        cartDialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        cartDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
-        CardView cardView = findViewById(R.id.cardChargeCard);
+        // Initialize cart dialog components
+        billing_total_amount = cartDialog.findViewById(R.id.billing_total_amount_price);
+        billing_selling_amount = cartDialog.findViewById(R.id.billing_total_selling_price);
+        billing_discount = cartDialog.findViewById(R.id.billing_discount);
+        billing_discount_ll = cartDialog.findViewById(R.id.billing_discount_ll);
+        billing_button = cartDialog.findViewById(R.id.billing_submit_invoice);
+        paymentGroup = cartDialog.findViewById(R.id.new_bill_payment_radio_group);
+        cashRadioBt = cartDialog.findViewById(R.id.new_billing_payment_cash);
+        upiRadioBt = cartDialog.findViewById(R.id.new_billing_payment_upi);
+        courier_checkBox = cartDialog.findViewById(R.id.new_billing_is_courier_checkBox);
+        courier_amount = cartDialog.findViewById(R.id.new_billing_courier_amount);
+        finalBillingAmountTv = cartDialog.findViewById(R.id.tvFinalPayableAmount);
+
+        // Set up cart items recycler
+        RecyclerView cartItemsRecycler = cartDialog.findViewById(R.id.cart_items_recycler);
+        CartItemAdapter cartAdapter = new CartItemAdapter(context, billingItemModelList);
+        LinearLayoutManager cartLayoutManager = new LinearLayoutManager(context);
+        cartItemsRecycler.setLayoutManager(cartLayoutManager);
+        cartItemsRecycler.setAdapter(cartAdapter);
+        
+        // Set up payment options
+        cashRadioBt.setChecked(true);
+        paymentMode = "CASH";
+        paymentGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if (R.id.new_billing_payment_cash == checkedId) {
+                    paymentMode = "CASH";
+                    onCardChargeClicked(sellingAmount, false);
+                } else if (R.id.new_billing_payment_upi == checkedId) {
+                    paymentMode = "UPI";
+                    onCardChargeClicked(sellingAmount, false);
+                } else if (R.id.new_billing_payment_card == checkedId) {
+                    paymentMode = "CARD";
+                    onCardChargeClicked(sellingAmount, true);
+                }
+            }
+        });
+
+        // Set up courier checkbox
+        courier_checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                courier_amount.setVisibility(View.VISIBLE);
+                upiRadioBt.setChecked(true);
+                onCardChargeClicked(sellingAmount, false);
+            } else {
+                courier_amount.setText("0.0");
+                courier_amount.setVisibility(View.GONE);
+            }
+        });
+
+        // Set up click listeners
+        billing_discount_ll.setOnClickListener(this);
+        billing_button.setOnClickListener(this);
+        
+        ImageView closeButton = cartDialog.findViewById(R.id.cart_close_button);
+        closeButton.setOnClickListener(v -> cartDialog.dismiss());
+
+        // Update cart dialog with current data
+        updateCartDialog();
+        
+        cartDialog.show();
+    }
+
+    private void updateCartDialog() {
+        if (billing_total_amount != null) {
+            billing_total_amount.setText("Rs. " + totalAmount);
+            billing_discount.setText(discount + "%");
+            billing_selling_amount.setText("Rs. " + sellingAmount);
+            if (paymentMode.equalsIgnoreCase("CARD")) {
+                onCardChargeClicked(sellingAmount, true);
+            }
+            finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount));
+        }
+    }
+
+    private void onCardChargeClicked(double billAmount, boolean isCardChargeVisible) {
+        if (cartDialog == null) return;
+        
+        CardView cardView = cartDialog.findViewById(R.id.cardChargeCard);
+        if (cardView == null) return;
 
         if (isCardChargeVisible) {
-            TextView tvCardCharge = findViewById(R.id.tvCardCharge);
-            TextView tvGST = findViewById(R.id.tvGST);
-            TextView tvTotalExtra = findViewById(R.id.tvTotalExtra);
+            TextView tvCardCharge = cartDialog.findViewById(R.id.tvCardCharge);
+            TextView tvGST = cartDialog.findViewById(R.id.tvGST);
+            TextView tvTotalExtra = cartDialog.findViewById(R.id.tvTotalExtra);
 
             double cardCharge = billAmount * 0.03;
             double gst = cardCharge * 0.18;
@@ -348,19 +459,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             gst = round(gst);
             totalExtra = round(totalExtra);
             cardChargeAmount = totalExtra;
+            
             tvCardCharge.setText("Card Charges (3%): ₹" + cardCharge);
             tvGST.setText("GST (18%): ₹" + gst);
             tvTotalExtra.setText("Total Extra: ₹" + totalExtra);
             cardView.setVisibility(View.VISIBLE);
-            cardView.setAlpha(0f);
-            cardView.animate().alpha(1f).setDuration(200).start();
         } else {
             cardChargeAmount = 0.0;
-            cardView.animate().alpha(0f).setDuration(150)
-                    .withEndAction(() -> cardView.setVisibility(View.GONE))
-                    .start();
+            cardView.setVisibility(View.GONE);
         }
-        finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount));
+        
+        if (finalBillingAmountTv != null) {
+            finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount));
+        }
     }
 
     private double round(double value) {
@@ -433,33 +544,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void manageBillingLayout() {
         if (billingItemModelList.isEmpty()) {
-            content_ll.setVisibility(View.GONE);
+            complete_order_button.setVisibility(View.GONE);
             empty_ll.setVisibility(View.VISIBLE);
+            content_ll.setVisibility(View.GONE);
             totalAmount = 0.0;
             discount = 0.0;
-            courier_checkBox.setChecked(false);
-            courier_amount.setText("");
-            cashRadioBt.setChecked(true);
             cardChargeAmount = 0.0;
-            onCardChargeClicked(0.0,false);
             return;
         } else {
-            content_ll.setVisibility(View.VISIBLE);
+            complete_order_button.setVisibility(View.VISIBLE);
             empty_ll.setVisibility(View.GONE);
+            content_ll.setVisibility(View.VISIBLE);
             totalAmount = 0.0;
             for (BillingItemModel billingItemModel : billingItemModelList) {
                 totalAmount += billingItemModel.getSellingItemPrice();
             }
         }
         sellingAmount = totalAmount - ((totalAmount * discount) / 100);
-
-        billing_total_amount.setText("Rs. " + totalAmount);
-        billing_discount.setText("%  " + discount);
-        billing_selling_amount.setText("Rs. " + sellingAmount);
-        if(paymentMode.equalsIgnoreCase("CARD")){
-            onCardChargeClicked(sellingAmount,true);
-        }
-        finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount));
         billingAdapter.notifyDataSetChanged();
         if (billingAdapter.getItemCount() > 0)
             bill_recycler.post(() -> bill_recycler.scrollToPosition(billingAdapter.getItemCount() - 1));
@@ -533,6 +634,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (R.id.home_bill_add_bt == view.getId()) {
             if (checkInternet())
                 createNewBillDialog(context, null);
+        } else if (R.id.complete_order_button == view.getId()) {
+            showCartDialog();
         } else if (R.id.billing_discount_ll == view.getId()) {
             createDiscountDialog();
         } else if (R.id.billing_submit_invoice == view.getId()) {
@@ -541,7 +644,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (checkInternet())
                 submitInvoiceDetails();
         }
-
     }
 
 
@@ -587,6 +689,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Toast.makeText(MainActivity.this, "Please Add products / Accessories..!", Toast.LENGTH_LONG).show();
             return;
         }
+        cartDialog.dismiss();
         if (!billingInvoiceModel.getIsCourier() && paymentMode.equalsIgnoreCase("UPI")) {
             generatePaymentQR(billingInvoiceModel);
         } else {
@@ -632,7 +735,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         View view = LayoutInflater.from(context).inflate(R.layout.dialog_qr_payment, null);
 
-        TextView close = view.findViewById(R.id.main_bill_qr_image_close);
+        ImageView close = view.findViewById(R.id.main_bill_qr_image_close);
         TextView payeeName = view.findViewById(R.id.main_bill_qr_payee_name);
         ImageView qrImage = view.findViewById(R.id.main_bill_qr_image);
         Button btnPayWithUPI = view.findViewById(R.id.btnPayWithUPI);
@@ -672,13 +775,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void sharePrintWhatsappDialog(BillingInvoiceModel billingInvoiceModel) {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        View view = getLayoutInflater().inflate(R.layout.dialog_main_bill_share, null);
-//        builder.setView(view);
-//
-//        AlertDialog dialog = builder.create();
-
-
         Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_main_bill_share);
         dialog.setCanceledOnTouchOutside(false);
@@ -692,7 +788,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         RadioButton radioWhatsapp = dialog.findViewById(R.id.radioWhatsapp);
         EditText editWhatsappNumber = dialog.findViewById(R.id.editWhatsappNumber);
         Button btnSubmit = dialog.findViewById(R.id.btnSubmit);
-        TextView btnClose = dialog.findViewById(R.id.bill_share_close);
+        ImageView btnClose = dialog.findViewById(R.id.bill_share_close);
         if(billingInvoiceModel.getIsCourier()){
             radioWhatsapp.setChecked(true);
             editWhatsappNumber.setVisibility(View.VISIBLE);
@@ -712,12 +808,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.radioWhatsapp) {
                 editWhatsappNumber.setVisibility(View.VISIBLE);
-                radioPrinter.setChecked(false);
-                radioWhatsapp.setChecked(true);
-            } else {
+            } else if (checkedId == R.id.radioPrinter) {
                 editWhatsappNumber.setVisibility(View.GONE);
-                radioPrinter.setChecked(true);
-                radioWhatsapp.setChecked(false);
             }
         });
 
