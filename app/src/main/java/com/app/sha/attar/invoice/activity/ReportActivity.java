@@ -198,8 +198,12 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private ReportModel getReportModel(BillingItemModel item, BillingInvoiceModel invoice) {
-        double soldPrice = item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount() / 100));
-        double actualPrice = item.getTotalPrice();
+        if(item.getPieces() ==null || item.getPieces()<=0){
+            item.setPieces(1);
+        }
+
+        double soldPrice = (item.getSellingItemPrice()*item.getPieces()) - ((item.getSellingItemPrice()*item.getPieces()) * (invoice.getDiscount() / 100));
+        double actualPrice = (item.getTotalPrice()*item.getPieces());
         double profit = soldPrice - actualPrice;
         ReportModel report = new ReportModel();
 
@@ -212,9 +216,9 @@ public class ReportActivity extends AppCompatActivity implements View.OnClickLis
         report.setInvoiceId(invoice.getBillingDate());
         report.setName(item.getName());
         report.setActualPrice(actualPrice);
-        report.setQuantity((item.getUnits() != null) ? item.getUnits() : 1);
+        report.setQuantity((item.getUnits() != null) ? item.getUnits()*item.getPieces() : 1*item.getPieces());
         report.setProfit(profit);
-        report.setSoldPrice(item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount() / 100)));
+        report.setSoldPrice(soldPrice);
         return report;
     }
 

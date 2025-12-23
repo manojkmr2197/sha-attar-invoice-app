@@ -66,10 +66,10 @@ public class InvoiceHistoryViewAdapter extends RecyclerView.Adapter<InvoiceHisto
 
         if(contentList.get(index).getPaymentMode().equalsIgnoreCase("CARD")){
             holder.paymentMode.setText(contentList.get(index).getPaymentMode()+ "[Charge Inc. ₹"+df.format(contentList.get(index).getCardCharges())+"]");
-            holder.sellingPrice.setText("Rs. " + df.format(contentList.get(index).getSellingCost()+contentList.get(index).getCardCharges()));
+            holder.sellingPrice.setText("₹ " + df.format(contentList.get(index).getSellingCost()+contentList.get(index).getCardCharges()));
         }else{
             holder.paymentMode.setText(contentList.get(index).getPaymentMode());
-            holder.sellingPrice.setText("Rs. " + df.format(contentList.get(index).getSellingCost()));
+            holder.sellingPrice.setText("₹ " + df.format(contentList.get(index).getSellingCost()));
         }
         holder.discount.setText(contentList.get(index).getDiscount() + " %");
 

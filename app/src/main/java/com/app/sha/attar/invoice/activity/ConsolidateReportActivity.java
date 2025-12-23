@@ -68,9 +68,9 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
     List<BillingInvoiceModel> billingInvoiceModelList = new ArrayList<>();
 
     LinearLayout totalExpenseLL, netProfitLL;
-    TextView productAttarActual, productSprayActual, accessoriesActual, productAttarSold, productSpraySold, accessoriesSold, productAttarProfit, productSprayProfit, accessoriesProfit, totalActual, totalSold, totalProfit, totalExpense, netProfit, totalPay, payCash, payUpi, courierCount, courierAmount;
+    TextView productAttarActual, productSprayActual, accessoriesActual, productAttarSold, productSpraySold, accessoriesSold, productAttarProfit, productSprayProfit, accessoriesProfit, totalActual, totalSold, totalProfit, totalExpense, netProfit, totalPay, payCash, payUpi,payCard, courierCount, courierAmount;
 
-    double productAttarActualValue, productSprayActualValue, accessoriesActualValue, productAttarSoldValue, productSpraySoldValue, accessoriesSoldValue, productAttarProfitValue, productSprayProfitValue, accessoriesProfitValue, totalActualValue, totalSoldValue, totalProfitValue, totalExpenseValue, totalPaymentValue, totalCash, totalUpi, courierAmountValue;
+    double productAttarActualValue, productSprayActualValue, accessoriesActualValue, productAttarSoldValue, productSpraySoldValue, accessoriesSoldValue, productAttarProfitValue, productSprayProfitValue, accessoriesProfitValue, totalActualValue, totalSoldValue, totalProfitValue, totalExpenseValue, totalPaymentValue, totalCash, totalUpi,totalCard, courierAmountValue;
     int courierCountValue;
     NumberFormat numberFormat = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
 
@@ -156,6 +156,7 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
         totalPay = (TextView) findViewById(R.id.consolidate_payment_total);
         payCash = (TextView) findViewById(R.id.consolidate_payment_cash);
         payUpi = (TextView) findViewById(R.id.consolidate_payment_upi);
+        payCard = (TextView) findViewById(R.id.consolidate_payment_card);
         courierCount = (TextView) findViewById(R.id.consolidate_courier_count);
         courierAmount = (TextView) findViewById(R.id.consolidate_courier_amount);
 
@@ -316,6 +317,9 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
             if ("UPI".equalsIgnoreCase(data.getPaymentMode())) {
                 totalUpi = totalUpi + data.getSellingCost();
             }
+            if ("CARD".equalsIgnoreCase(data.getPaymentMode())) {
+                totalCard = totalCard + data.getSellingCost();
+            }
             if (data.getIsCourier() != null && data.getIsCourier()) {
                 courierCountValue = courierCountValue + 1;
                 courierAmountValue = courierAmountValue + data.getCourierAmount();
@@ -343,7 +347,8 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
 
         payCash.setText(numberFormat.format(totalCash).replace("\u00A0", ""));
         payUpi.setText(numberFormat.format(totalUpi).replace("\u00A0", ""));
-        totalPaymentValue = totalCash + totalUpi;
+        payCard.setText(numberFormat.format(totalCard).replace("\u00A0", ""));
+        totalPaymentValue = totalCash + totalUpi + totalCard;
         totalPay.setText(numberFormat.format(totalPaymentValue).replace("\u00A0", ""));
 
         courierCount.setText(String.valueOf(courierCountValue));

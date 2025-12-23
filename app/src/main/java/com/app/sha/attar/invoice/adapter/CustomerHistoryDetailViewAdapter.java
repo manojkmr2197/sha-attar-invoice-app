@@ -13,6 +13,7 @@ import com.app.sha.attar.invoice.listener.BillingClickListener;
 import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.viewholder.CustomerHistoryDetailViewHolder;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class CustomerHistoryDetailViewAdapter extends RecyclerView.Adapter<Custo
     Context context;
     List<BillingItemModel> contentList = new ArrayList<>();
     BillingClickListener clickListener;
+    DecimalFormat df = new DecimalFormat("#.00");
 
     public CustomerHistoryDetailViewAdapter(Context context, List<BillingItemModel> contentList, BillingClickListener clickListener) {
         this.context = context;
@@ -43,14 +45,14 @@ public class CustomerHistoryDetailViewAdapter extends RecyclerView.Adapter<Custo
             holder.accessories_ll.setVisibility(View.GONE);
             holder.product_name.setText(contentList.get(index).getName());
             holder.product_code.setText(contentList.get(index).getCode());
-            holder.product_units.setText(contentList.get(index).getUnits()+" ML");
-            holder.product_total_price.setText("Rs. "+contentList.get(index).getSellingItemPrice());
+            holder.product_units.setText(contentList.get(index).getUnits()+" ML x "+contentList.get(index).getPieces());
+            holder.product_total_price.setText("₹ "+df.format(contentList.get(index).getPieces() * contentList.get(index).getSellingItemPrice()));
 
         }else if("NON_PRODUCT".equalsIgnoreCase(contentList.get(index).getType())){
             holder.product_ll.setVisibility(View.GONE);
             holder.accessories_ll.setVisibility(View.VISIBLE);
-            holder.accessories_name.setText(contentList.get(index).getName());
-            holder.accessories_price.setText("Rs. "+contentList.get(index).getSellingItemPrice());
+            holder.accessories_name.setText(contentList.get(index).getName()+" X "+contentList.get(index).getPieces());
+            holder.accessories_price.setText("₹ "+df.format(contentList.get(index).getPieces() * contentList.get(index).getSellingItemPrice()));
         }
     }
 

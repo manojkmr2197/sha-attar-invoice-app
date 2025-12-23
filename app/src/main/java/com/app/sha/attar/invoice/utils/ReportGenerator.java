@@ -42,8 +42,6 @@ import java.util.Map;
 public class ReportGenerator {
 
 
-
-
     public static class AggregatedData {
         public int quantity;
         public double soldPrice;
@@ -92,11 +90,15 @@ public class ReportGenerator {
                 if (!item.getProductCategory().equals("ATTAR")) {
                     continue;
                 }
+
+                if(item.getPieces() ==null || item.getPieces()<=0){
+                    item.setPieces(1);
+                }
                 String productName = item.getName();
-                int quantity = item.getUnits();
-                double soldPrice = item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount() / 100));
+                int quantity = item.getUnits() * item.getPieces();
+                double soldPrice = (item.getSellingItemPrice() * item.getPieces()) - ((item.getSellingItemPrice() * item.getPieces()) * (invoice.getDiscount() / 100));
                 //double actualPrice = item.getUnitPrice() * quantity;
-                double actualPrice = item.getTotalPrice();
+                double actualPrice = (item.getTotalPrice() * item.getPieces());
                 double profit = soldPrice - actualPrice;
                 aggregationMap.putIfAbsent(productName, new AggregatedData(0, 0, 0, 0, ""));
                 AggregatedData aggregatedData = aggregationMap.get(productName);
@@ -125,11 +127,15 @@ public class ReportGenerator {
                 if (!item.getProductCategory().equals("SPRAY")) {
                     continue;
                 }
+
+                if(item.getPieces() ==null || item.getPieces()<=0){
+                    item.setPieces(1);
+                }
                 String productName = item.getName();
-                int quantity = item.getUnits();
-                double soldPrice = item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount() / 100));
+                int quantity = item.getUnits() * item.getPieces();
+                double soldPrice = (item.getSellingItemPrice() * item.getPieces()) - ((item.getSellingItemPrice() * item.getPieces()) * (invoice.getDiscount() / 100));
                 //double actualPrice = item.getUnitPrice() * quantity;
-                double actualPrice = item.getTotalPrice();
+                double actualPrice = item.getTotalPrice() * item.getPieces();
                 double profit = soldPrice - actualPrice;
                 aggregationMap.putIfAbsent(productName, new AggregatedData(0, 0, 0, 0, ""));
                 AggregatedData aggregatedData = aggregationMap.get(productName);
@@ -156,13 +162,17 @@ public class ReportGenerator {
                     continue;
                 }
 
+                if(item.getPieces() ==null || item.getPieces()<=0){
+                    item.setPieces(1);
+                }
+
                 String productName = item.getName();
-                double soldPrice = item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount() / 100));
-                double actualPrice = item.getTotalPrice();
+                double soldPrice = (item.getSellingItemPrice()* item.getPieces()) - ((item.getSellingItemPrice()* item.getPieces()) * (invoice.getDiscount() / 100));
+                double actualPrice = item.getTotalPrice()* item.getPieces();
                 double profit = soldPrice - actualPrice;
                 aggregationMap.putIfAbsent(productName, new AccessoryAggregatedData(0, 0, 0, 0, ""));
                 AccessoryAggregatedData aggregatedData = aggregationMap.get(productName);
-                aggregatedData.quantity += 1;
+                aggregatedData.quantity += 1* item.getPieces();
                 aggregatedData.soldPrice += soldPrice;
                 aggregatedData.actualPrice += actualPrice;
                 aggregatedData.profit += profit;
@@ -175,8 +185,11 @@ public class ReportGenerator {
 
 
     private ReportModel getReportModel(BillingItemModel item, BillingInvoiceModel invoice) {
-        double soldPrice = item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount() / 100));
-        double actualPrice = item.getTotalPrice();
+        if(item.getPieces() ==null || item.getPieces()<=0){
+            item.setPieces(1);
+        }
+        double soldPrice = (item.getSellingItemPrice()* item.getPieces()) - ((item.getSellingItemPrice()* item.getPieces()) * (invoice.getDiscount() / 100));
+        double actualPrice = item.getTotalPrice()* item.getPieces();
         double profit = soldPrice - actualPrice;
         ReportModel report = new ReportModel();
 
@@ -191,17 +204,17 @@ public class ReportGenerator {
         } else if (item.getType().equals("NON_PRODUCT")) {
             report.setOwner(item.getAccessoriesModel().getOwner());
         }
-        if(invoice.getIsCourier() != null && invoice.getIsCourier()){
+        if (invoice.getIsCourier() != null && invoice.getIsCourier()) {
             report.setSalesType("COURIER");
-        }else{
+        } else {
             report.setSalesType("STORE_SALES");
         }
 
         report.setName(item.getName());
         report.setActualPrice(actualPrice);
-        report.setQuantity((item.getUnits() != null) ? item.getUnits() : 1);
+        report.setQuantity((item.getUnits() != null) ? item.getUnits()* item.getPieces() : 1* item.getPieces());
         report.setProfit(profit);
-        report.setSoldPrice(item.getSellingItemPrice() - (item.getSellingItemPrice() * (invoice.getDiscount() / 100)));
+        report.setSoldPrice(soldPrice);
         if (!StringUtils.isBlank(invoice.getCustomerName()))
             report.setCustomerInfo(invoice.getCustomerName() + "(" + invoice.getCustomerPhone() + ")");
         return report;
@@ -358,18 +371,18 @@ public class ReportGenerator {
     private void prepareConsolidatedSaleReport(Workbook workbook, List<BillingInvoiceModel> invoices, OffsetDateTime startOfDay, OffsetDateTime endOfDay) {
         Map<String, AggregatedData> salesAttarData = getAggregatedAttarSalesReportData(invoices);
 
-        prepareProductReport(workbook, startOfDay, endOfDay, salesAttarData,"Attar");
+        prepareProductReport(workbook, startOfDay, endOfDay, salesAttarData, "Attar");
 
         Map<String, AggregatedData> salesData = getAggregatedSpraySalesReportData(invoices);
 
-        prepareProductReport(workbook, startOfDay, endOfDay, salesData,"Spray");
+        prepareProductReport(workbook, startOfDay, endOfDay, salesData, "Spray");
     }
 
-    private void prepareProductReport(Workbook workbook, OffsetDateTime startOfDay, OffsetDateTime endOfDay, Map<String, AggregatedData> salesData,String type) {
+    private void prepareProductReport(Workbook workbook, OffsetDateTime startOfDay, OffsetDateTime endOfDay, Map<String, AggregatedData> salesData, String type) {
         CellStyle wrapStyle = workbook.createCellStyle();
         wrapStyle.setWrapText(true);
 
-        Sheet sheet = workbook.createSheet("Consolidated "+type+" Report");
+        Sheet sheet = workbook.createSheet("Consolidated " + type + " Report");
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -435,7 +448,7 @@ public class ReportGenerator {
         Row headerRow = sheet.createRow(0);
         int cellIndex = 0;
 
-        String[] headers = {"Date", "Accessory Name", "Owner", "Quantity", "Sold Price", "Actual Price", "Profit", "Sales Info","Sales Type"};
+        String[] headers = {"Date", "Accessory Name", "Owner", "Quantity", "Sold Price", "Actual Price", "Profit", "Sales Info", "Sales Type"};
 
         for (String key : headers) {
             Cell cell = headerRow.createCell(cellIndex++);
@@ -487,7 +500,7 @@ public class ReportGenerator {
         Row headerRow = sheet.createRow(0);
         int cellIndex = 0;
 
-        String[] headers = {"Date", "Product Name", "Owner", "Quantity", "Sold Price", "Actual Price", "Profit", "Sales Info","Sales Type"};
+        String[] headers = {"Date", "Product Name", "Owner", "Quantity", "Sold Price", "Actual Price", "Profit", "Sales Info", "Sales Type"};
 
         for (String key : headers) {
             Cell cell = headerRow.createCell(cellIndex++);
@@ -625,7 +638,7 @@ public class ReportGenerator {
         Row headerRow = sheet.createRow(0);
         int cellIndex = 0;
 
-        String[] headers = {"Name", "Selling Price", "Owner", "Dealer"," Actual Price",};
+        String[] headers = {"Name", "Selling Price", "Owner", "Dealer", " Actual Price",};
 
         for (String key : headers) {
             Cell cell = headerRow.createCell(cellIndex++);
@@ -690,11 +703,11 @@ public class ReportGenerator {
                 ProductModel productModel = new ProductModel();
                 productModel.setName(formatter.formatCellValue(nameCell));
                 productModel.setDealer(formatter.formatCellValue(dealerCell));
-                productModel.setPrice(formatter.formatCellValue(priceCell).replace("Rs.","").trim());
+                productModel.setPrice(formatter.formatCellValue(priceCell).replace("Rs.", "").trim());
                 productModel.setOwner(formatter.formatCellValue(ownerCell));
-                productModel.setStatus("Available".equalsIgnoreCase(formatter.formatCellValue(statusCell))?"Y":"N");
+                productModel.setStatus("Available".equalsIgnoreCase(formatter.formatCellValue(statusCell)) ? "Y" : "N");
 
-                double attar1ml = Double.parseDouble(formatter.formatCellValue(attar6mlCell).replace("Rs.","").trim())/6;
+                double attar1ml = Double.parseDouble(formatter.formatCellValue(attar6mlCell).replace("Rs.", "").trim()) / 6;
                 productModel.setAttarSellingPriceMap(new HashMap<>());
                 productModel.getAttarSellingPriceMap().put(AppConstants.ML_3, attar1ml * 3);
                 productModel.getAttarSellingPriceMap().put(AppConstants.ML_6, attar1ml * 6);
@@ -702,10 +715,10 @@ public class ReportGenerator {
                 productModel.getAttarSellingPriceMap().put(AppConstants.ML_24, attar1ml * 24);
 
                 productModel.setPerfumeSellingPriceMap(new HashMap<>());
-                productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_10, Double.parseDouble(formatter.formatCellValue(perfume10mlCell).replace("Rs.","").trim()));
-                productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_30, Double.parseDouble(formatter.formatCellValue(perfume30mlCell).replace("Rs.","").trim()));
-                productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_50, Double.parseDouble(formatter.formatCellValue(perfume50mlCell).replace("Rs.","").trim()));
-                productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_100, Double.parseDouble(formatter.formatCellValue(perfume100mlCell).replace("Rs.","").trim()));
+                productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_10, Double.parseDouble(formatter.formatCellValue(perfume10mlCell).replace("Rs.", "").trim()));
+                productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_30, Double.parseDouble(formatter.formatCellValue(perfume30mlCell).replace("Rs.", "").trim()));
+                productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_50, Double.parseDouble(formatter.formatCellValue(perfume50mlCell).replace("Rs.", "").trim()));
+                productModel.getPerfumeSellingPriceMap().put(AppConstants.ML_100, Double.parseDouble(formatter.formatCellValue(perfume100mlCell).replace("Rs.", "").trim()));
 
                 productModel.setDocumentId(SingleTon.generateProductDocument());
 
@@ -769,7 +782,7 @@ public class ReportGenerator {
             cell2.setCellValue(entry.getTitle());
             cell2.setCellStyle(wrapStyle);
             Cell cell3 = row.createCell(3);
-            cell3.setCellValue("Rs. " +String.format("%.1f", entry.getAmount()));
+            cell3.setCellValue("Rs. " + String.format("%.1f", entry.getAmount()));
             cell3.setCellStyle(wrapStyle);
         }
 
