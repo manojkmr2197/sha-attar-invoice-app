@@ -73,10 +73,8 @@
                     android:text="Print Invoice"
                     android:textSize="14sp"
                     android:textColor="@color/black"
-                    android:background="@drawable/radio_option_background"
-                    android:padding="16dp"
-                    android:drawableStart="@drawable/baseline_print_active24"
-                    android:drawablePadding="12dp" />
+                    android:background="@color/app_gray"
+                    android:padding="16dp" />
 
                 <RadioButton
                     android:id="@+id/radioWhatsapp"
@@ -85,7 +83,7 @@
                     android:text="Share via WhatsApp"
                     android:textSize="14sp"
                     android:textColor="@color/black"
-                    android:background="@drawable/radio_option_background"
+                    android:background="@color/app_gray"
                     android:padding="16dp" />
 
             </RadioGroup>

@@ -21,6 +21,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -562,6 +563,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         sellingAmount = totalAmount - ((totalAmount * discount) / 100);
         billingAdapter.notifyDataSetChanged();
+        updateCartDialog();
         if (billingAdapter.getItemCount() > 0)
             bill_recycler.post(() -> bill_recycler.scrollToPosition(billingAdapter.getItemCount() - 1));
     }
@@ -880,7 +882,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
                 File paymentQRfile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), PaymentQRFileName);
                 if (file.exists()) {
-                    showWhatsappChoiceDialog(phoneNumber, file, paymentQRfile);
+                    showWhatsappChoiceDialog(phoneNumber, file, (billingInvoiceModel.getPaymentMode().equals("UPI"))?paymentQRfile:null);
                     billingItemModelList.clear();
                     manageBillingLayout();
                 } else {
@@ -1044,7 +1046,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // ✅ Get URIs for both files
             ArrayList<Uri> uris = new ArrayList<>();
             uris.add(FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", pdfFile));
-            uris.add(FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", paymentQRfile));
+
+            if(paymentQRfile!=null)
+                uris.add(FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", paymentQRfile));
 
             // ✅ Create Intent for multiple files
             Intent sendIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
@@ -1103,45 +1107,55 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
     private void createDiscountDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter Discount %");
 
-        // Set up the input
-        final EditText input = new EditText(this);
-        input.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT));
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_discount);
+        dialog.setCancelable(true);
 
-        // Specify the type of input expected
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);
-        builder.setView(input);
-        input.setText(String.valueOf(discount));
+        EditText etDiscount = dialog.findViewById(R.id.etDiscount);
+        Button btnApply = dialog.findViewById(R.id.btnApply);
+        TextView tvCancel = dialog.findViewById(R.id.tvCancel);
 
-        // Set up the buttons
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String inputText = input.getText().toString();
-                if (StringUtils.isEmpty(inputText)) {
-                    dialog.cancel();
-                    return;
-                }
-                discount = Double.parseDouble(inputText);
-                billing_discount.setText(inputText);
-                manageBillingLayout();
-                dialog.cancel();
+        etDiscount.setText(String.valueOf(Math.round(discount)));
+        etDiscount.setSelection(etDiscount.getText().length());
 
+        btnApply.setOnClickListener(v -> {
+
+            String input = etDiscount.getText().toString().trim();
+
+            if (TextUtils.isEmpty(input)) {
+                etDiscount.setError("Enter discount");
+                return;
             }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
+
+            double enteredDiscount = Double.parseDouble(input);
+
+            if (enteredDiscount > 100) {
+                etDiscount.setError("Max 100%");
+                return;
             }
+
+            discount = enteredDiscount;
+            billing_discount.setText(discount + "%");
+            manageBillingLayout();
+
+            dialog.dismiss();
         });
 
-        builder.show();
+        tvCancel.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+
+        // Full width dialog
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
     }
+
 
     private void createNewBillDialog(Context context, BillingItemModel billingItemModel) {
 
@@ -1508,6 +1522,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             Toast.makeText(MainActivity.this, "Please fill the Quantity..!", Toast.LENGTH_LONG).show();
                             return;
                         }
+
+                        for(BillingItemModel existingListItem : billingItemModelList){
+                            if(existingListItem.getName().equalsIgnoreCase(selectedProduct[0].getName())
+                                    && existingListItem.getUnits().equals(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")))
+                                    && "PRODUCT".equalsIgnoreCase(existingListItem.getType())
+                            ){
+                                Toast.makeText(MainActivity.this, "Item already added in the bill..!", Toast.LENGTH_SHORT).show();
+                                existingListItem.setPieces(existingListItem.getPieces() + Integer.valueOf(occurance.getText().toString()));
+                                billingAdapter.notifyDataSetChanged();
+                                manageBillingLayout();
+                                dialog.dismiss();
+                                return;
+
+                            }
+                        }
                         newBillingItemModel.setProductModel(selectedProduct[0]);
                         newBillingItemModel.setType(type[0]);
                         newBillingItemModel.setProductCategory(productCategoryType[0]);
@@ -1534,6 +1563,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         if (StringUtils.isEmpty(non_product_price.getText().toString())) {
                             Toast.makeText(MainActivity.this, "Please fill the Price..!", Toast.LENGTH_LONG).show();
                             return;
+                        }
+                        for(BillingItemModel existingListItem : billingItemModelList){
+                            if(existingListItem.getName().equalsIgnoreCase(selectedNonProduct[0].getName())
+                                    && "NON_PRODUCT".equalsIgnoreCase(existingListItem.getType())
+                            ){
+                                Toast.makeText(MainActivity.this, "Item already added in the bill..!", Toast.LENGTH_SHORT).show();
+                                existingListItem.setPieces(existingListItem.getPieces() + Integer.valueOf(occurance.getText().toString()));
+                                billingAdapter.notifyDataSetChanged();
+                                manageBillingLayout();
+                                dialog.dismiss();
+                                return;
+
+                            }
+
                         }
                         newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                         newBillingItemModel.setType(type[0]);

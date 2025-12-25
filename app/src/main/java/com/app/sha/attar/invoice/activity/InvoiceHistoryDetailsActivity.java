@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
@@ -382,7 +383,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 }
 
                 totalAmountTv.setText("Rs. " + df.format(billingInvoiceModel.getTotalCost()));
-                discountTv.setText(billingInvoiceModel.getDiscount() + "%");
+                discountTv.setText(String.valueOf(Math.round(billingInvoiceModel.getDiscount())) + "%");
                 sellingAmountTv.setText("Rs. " + df.format(billingInvoiceModel.getSellingCost()));
 
                 totalAmount = billingInvoiceModel.getTotalCost();
@@ -435,43 +436,53 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
     }
 
     private void createDiscountDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter Discount %");
 
-        // Set up the input
-        final EditText input = new EditText(this);
-        input.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT));
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_discount);
+        dialog.setCancelable(true);
 
-        // Specify the type of input expected
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);
-        builder.setView(input);
-        input.setText(String.valueOf(discount));
+        EditText etDiscount = dialog.findViewById(R.id.etDiscount);
+        Button btnApply = dialog.findViewById(R.id.btnApply);
+        TextView tvCancel = dialog.findViewById(R.id.tvCancel);
 
-        // Set up the buttons
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String inputText = input.getText().toString();
-                if (StringUtils.isEmpty(inputText)) {
-                    dialog.cancel();
-                    return;
-                }
-                discount = Double.parseDouble(inputText);
-                manageBillingLayout();
-                dialog.cancel();
+        etDiscount.setText(String.valueOf(Math.round(discount)));
+        etDiscount.setSelection(etDiscount.getText().length());
 
+        btnApply.setOnClickListener(v -> {
+
+            String input = etDiscount.getText().toString().trim();
+
+            if (TextUtils.isEmpty(input)) {
+                etDiscount.setError("Enter discount");
+                return;
             }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
+
+            double enteredDiscount = Double.parseDouble(input);
+
+            if (enteredDiscount > 100) {
+                etDiscount.setError("Max 100%");
+                return;
             }
+
+            discount = enteredDiscount;
+            discountTv.setText(String.valueOf(Math.round(discount)) + "%");
+            manageBillingLayout();
+
+            dialog.dismiss();
         });
 
-        builder.show();
+        tvCancel.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+
+        // Full width dialog
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
     }
 
     private void manageBillingLayout() {
@@ -481,13 +492,12 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         }
         sellingAmount = totalAmount - ((totalAmount * discount) / 100);
         totalAmountTv.setText("Rs. " + round(totalAmount));
-        discountTv.setText(discount + " %");
+        discountTv.setText(String.valueOf(Math.round(discount)) + " %");
         sellingAmountTv.setText("Rs. " + round(sellingAmount));
         if (paymentMode.equalsIgnoreCase("CARD")) {
             onCardChargeClicked(sellingAmount, true);
         }
         finalBillingAmountTv.setText("Rs. " + round(sellingAmount + cardChargeAmount));
-
         invoiceAdapter.notifyDataSetChanged();
 
         if (invoiceAdapter.getItemCount() > 0) {
@@ -857,6 +867,20 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                             Toast.makeText(InvoiceHistoryDetailsActivity.this, "Please fill the Quantity..!", Toast.LENGTH_LONG).show();
                             return;
                         }
+                        for(BillingItemModel existingListItem : itemModelList){
+                            if(existingListItem.getName().equalsIgnoreCase(selectedProduct[0].getName())
+                                    && existingListItem.getUnits().equals(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")))
+                                    && "PRODUCT".equalsIgnoreCase(existingListItem.getType())
+                            ){
+                                Toast.makeText(InvoiceHistoryDetailsActivity.this, "Item already added in the bill..!", Toast.LENGTH_SHORT).show();
+                                existingListItem.setPieces(existingListItem.getPieces() + Integer.valueOf(occurance.getText().toString()));
+                                invoiceAdapter.notifyDataSetChanged();
+                                manageBillingLayout();
+                                dialog.dismiss();
+                                return;
+
+                            }
+                        }
                         newBillingItemModel.setProductModel(selectedProduct[0]);
                         newBillingItemModel.setType(type[0]);
                         newBillingItemModel.setProductCategory(productCategoryType[0]);
@@ -884,6 +908,21 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                             Toast.makeText(InvoiceHistoryDetailsActivity.this, "Please fill the Price..!", Toast.LENGTH_LONG).show();
                             return;
                         }
+                        for(BillingItemModel existingListItem : itemModelList){
+                            if(existingListItem.getName().equalsIgnoreCase(selectedNonProduct[0].getName())
+                                    && "NON_PRODUCT".equalsIgnoreCase(existingListItem.getType())
+                            ){
+                                Toast.makeText(InvoiceHistoryDetailsActivity.this, "Item already added in the bill..!", Toast.LENGTH_SHORT).show();
+                                existingListItem.setPieces(existingListItem.getPieces() + Integer.valueOf(occurance.getText().toString()));
+                                invoiceAdapter.notifyDataSetChanged();
+                                manageBillingLayout();
+                                dialog.dismiss();
+                                return;
+
+                            }
+
+                        }
+
                         newBillingItemModel.setAccessoriesModel(selectedNonProduct[0]);
                         newBillingItemModel.setType(type[0]);
                         newBillingItemModel.setName(selectedNonProduct[0].getName());
