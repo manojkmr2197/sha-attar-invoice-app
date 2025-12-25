@@ -436,6 +436,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             billing_selling_amount.setText("Rs. " + sellingAmount);
             if (paymentMode.equalsIgnoreCase("CARD")) {
                 onCardChargeClicked(sellingAmount, true);
+            }else{
+                onCardChargeClicked(sellingAmount, false);
             }
             finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount));
         }

@@ -496,6 +496,8 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         sellingAmountTv.setText("Rs. " + round(sellingAmount));
         if (paymentMode.equalsIgnoreCase("CARD")) {
             onCardChargeClicked(sellingAmount, true);
+        }else{
+            onCardChargeClicked(sellingAmount, false);
         }
         finalBillingAmountTv.setText("Rs. " + round(sellingAmount + cardChargeAmount));
         invoiceAdapter.notifyDataSetChanged();
