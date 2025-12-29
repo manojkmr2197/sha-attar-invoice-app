@@ -117,9 +117,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     Activity activity;
 
     Button billing_add, billing_button, complete_order_button;
-    TextView billing_total_amount, billing_selling_amount, billing_discount;
+    TextView billing_total_amount, billing_selling_amount, billing_discount,complete_order_total_price_ll;
 
-    LinearLayout billing_discount_ll;
+    LinearLayout billing_discount_ll,complete_order_layout;
 
     TextView finalBillingAmountTv;
 
@@ -205,12 +205,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         content_ll = (LinearLayout) findViewById(R.id.home_content_ll);
         empty_ll = (LinearLayout) findViewById(R.id.home_empty_ll);
+        empty_ll.setOnClickListener(this);
 
         billing_add = (Button) findViewById(R.id.home_bill_add_bt);
         billing_add.setOnClickListener(this);
 
         complete_order_button = (Button) findViewById(R.id.complete_order_button);
         complete_order_button.setOnClickListener(this);
+
+        complete_order_total_price_ll = (TextView) findViewById(R.id.complete_order_total_price);
+        complete_order_layout=(LinearLayout)findViewById(R.id.complete_order_ll);
+
 
 //        billing_total_amount = (TextView) findViewById(R.id.billing_total_amount_price);
 //        billing_selling_amount = (TextView) findViewById(R.id.billing_total_selling_price);
@@ -547,7 +552,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void manageBillingLayout() {
         if (billingItemModelList.isEmpty()) {
-            complete_order_button.setVisibility(View.GONE);
+            complete_order_layout.setVisibility(View.GONE);
             empty_ll.setVisibility(View.VISIBLE);
             content_ll.setVisibility(View.GONE);
             totalAmount = 0.0;
@@ -555,13 +560,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             cardChargeAmount = 0.0;
             return;
         } else {
-            complete_order_button.setVisibility(View.VISIBLE);
+            complete_order_layout.setVisibility(View.VISIBLE);
             empty_ll.setVisibility(View.GONE);
             content_ll.setVisibility(View.VISIBLE);
             totalAmount = 0.0;
             for (BillingItemModel billingItemModel : billingItemModelList) {
                 totalAmount += (billingItemModel.getPieces() * billingItemModel.getSellingItemPrice());
             }
+            complete_order_total_price_ll.setText("Total : Rs. " + totalAmount);
         }
         sellingAmount = totalAmount - ((totalAmount * discount) / 100);
         billingAdapter.notifyDataSetChanged();
@@ -647,6 +653,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             if (checkInternet())
                 submitInvoiceDetails();
+        } else if (R.id.home_empty_ll ==view.getId()){
+            if (checkInternet())
+                createNewBillDialog(context, null);
         }
     }
 
