@@ -117,7 +117,7 @@ public class PDFHelper {
         paint.setTextAlign(Paint.Align.LEFT);
         canvas.drawText("PRODUCT", 10, y, paint);
         paint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText("QTY", pageWidth / 2f, y, paint);
+        canvas.drawText("QTY", (int)(pageWidth * 0.65f), y, paint);
         paint.setTextAlign(Paint.Align.RIGHT);
         canvas.drawText("PRICE", pageWidth - 20, y, paint);
         y += 20;
@@ -128,7 +128,7 @@ public class PDFHelper {
         y += 20;
 
         float productX = 10;
-        float qtyX = pageWidth / 2f;
+        float qtyX = pageWidth * 0.65f;
         float priceX = pageWidth - 20;
         float productMaxWidth = pageWidth * 0.55f;
         int prdlineHeight = 28;
