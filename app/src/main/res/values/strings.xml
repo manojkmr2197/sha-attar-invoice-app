@@ -33,10 +33,10 @@
     <string name="ML_12">12ML</string>
     <string name="ML_24">24ML</string>
 
-    <string name="ML_10">10ML</string>
-    <string name="ML_30">30ML</string>
-    <string name="ML_50">50ML</string>
-    <string name="ML_100">100ML</string>
+    <string name="ML_10">12ML</string>
+    <string name="ML_30">35ML</string>
+    <string name="ML_50">55ML</string>
+    <string name="ML_100">110ML</string>
 
     <string-array name="spinner_expense_filter_type">
         <item>ALL</item>

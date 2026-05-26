@@ -1615,16 +1615,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         double actualPerfumePrice = 0;
         ConfigModel configModel = sharedPrefHelper.getPerfumeActualMix();
         switch (ml) {
-            case 10:
+            case 12:
                 actualPerfumePrice = unitPrice * configModel.getPerfume10mlMixer();
                 break;
-            case 30:
+            case 35:
                 actualPerfumePrice = unitPrice * configModel.getPerfume30mlMixer();
                 break;
-            case 50:
+            case 55:
                 actualPerfumePrice = unitPrice * configModel.getPerfume50mlMixer();
                 break;
-            case 100:
+            case 110:
                 actualPerfumePrice = unitPrice * configModel.getPerfume100mlMixer();
                 break;
         }

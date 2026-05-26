@@ -191,7 +191,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="5dp"
-                                android:hint="Enter 10 ML Price *">
+                                android:hint="Enter 12 ML Price *">
 
                                 <!--this is the actual edit text which takes the input-->
                                 <com.google.android.material.textfield.TextInputEditText
@@ -208,7 +208,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="5dp"
-                                android:hint="Enter 30 ML Price *">
+                                android:hint="Enter 35 ML Price *">
 
                                 <!--this is the actual edit text which takes the input-->
                                 <com.google.android.material.textfield.TextInputEditText
@@ -225,7 +225,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="5dp"
-                                android:hint="Enter 50 ML Price *">
+                                android:hint="Enter 55 ML Price *">
 
                                 <!--this is the actual edit text which takes the input-->
                                 <com.google.android.material.textfield.TextInputEditText
@@ -242,7 +242,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="5dp"
-                                android:hint="Enter 100 ML Price *">
+                                android:hint="Enter 110 ML Price *">
 
                                 <!--this is the actual edit text which takes the input-->
                                 <com.google.android.material.textfield.TextInputEditText
