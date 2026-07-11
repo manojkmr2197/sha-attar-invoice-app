@@ -150,6 +150,26 @@ public class DBUtil {
                 });
     }
 
+    public void getAllBillingInvoices(FirestoreCallback<List<BillingInvoiceModel>> callback) {
+        db.collection(DatabaseConstants.INVOICE_COLLECTION)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            List<BillingInvoiceModel> invoices = new ArrayList<>();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                BillingInvoiceModel model = document.toObject(BillingInvoiceModel.class);
+                                invoices.add(model);
+                            }
+                            callback.onCallback(invoices);
+                        } else {
+                            System.err.println("Error fetching all invoices: " + task.getException());
+                        }
+                    }
+                });
+    }
+
     public void deleteRecordsBefore(FirestoreCallback<List<DocumentSnapshot>> callback, long beforeTimestamp) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 

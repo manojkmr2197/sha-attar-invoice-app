@@ -70,6 +70,9 @@
             android:name=".activity.ReportActivity"
             android:exported="false" />
         <activity
+            android:name=".activity.ClientReportActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.AccessoriesActivity"
             android:exported="false" />
         <activity

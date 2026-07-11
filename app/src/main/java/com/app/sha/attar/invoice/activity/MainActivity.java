@@ -602,6 +602,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_report) {
             i = new Intent(MainActivity.this, ReportActivity.class);
             startActivity(i);
+        } else if (item.getItemId() == R.id.nav_client_report) {
+            i = new Intent(MainActivity.this, ClientReportActivity.class);
+            startActivity(i);
         } else if (item.getItemId() == R.id.nav_sales_person) {
             i = new Intent(MainActivity.this, SalesPersonActivity.class);
             startActivity(i);
@@ -677,6 +680,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return;
         }
 
+        TextInputEditText clientNameEt = cartDialog.findViewById(R.id.new_billing_client_name);
+        TextInputEditText clientPhoneEt = cartDialog.findViewById(R.id.new_billing_client_phone);
+        String clientName = "";
+        String clientPhone = "";
+        if (clientNameEt != null && clientPhoneEt != null) {
+            clientName = clientNameEt.getText().toString().trim();
+            clientPhone = clientPhoneEt.getText().toString().trim();
+        }
+
+        if (TextUtils.isEmpty(clientName)) {
+            Toast.makeText(MainActivity.this, "Please Enter Client Name..!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (TextUtils.isEmpty(clientPhone) || clientPhone.length() != 10) {
+            Toast.makeText(MainActivity.this, "Please Enter Valid 10-Digit Client Phone Number..!", Toast.LENGTH_LONG).show();
+            return;
+        }
 
         BillingInvoiceModel billingInvoiceModel = new BillingInvoiceModel();
 
@@ -686,6 +707,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         billingInvoiceModel.setCustomerName(sharedPrefHelper.getLoginUserName());
         billingInvoiceModel.setCustomerPhone(sharedPrefHelper.getLoginUserPhone());
+        billingInvoiceModel.setClientName(clientName);
+        billingInvoiceModel.setClientPhoneNo(clientPhone);
         billingInvoiceModel.setPaymentMode(paymentMode);
         billingInvoiceModel.setDiscount(discount);
         billingInvoiceModel.setSellingCost(sellingAmount);

@@ -46,6 +46,10 @@
                 android:icon="@drawable/baseline_file_copy_24"
                 android:title="Invoice Details" />
             <item
+                android:id="@+id/nav_client_report"
+                android:icon="@drawable/customer"
+                android:title="Client Report" />
+            <item
                 android:id="@+id/nav_report"
                 android:icon="@drawable/line"
                 android:title="Sales Report" />

@@ -19,6 +19,8 @@ public class BillingInvoiceModel implements Cloneable{
     String remarks;
     Double sellingCost;
     List<BillingItemModel> billingItemModelList;
+    String clientName;
+    String clientPhoneNo;
 
     public BillingInvoiceModel(){}
     public BillingInvoiceModel(Long billingDate,Double totalCost,Double discount,String customerName,String customerPhone,Double sellingCost){
@@ -140,6 +142,22 @@ public class BillingInvoiceModel implements Cloneable{
 
     public void setCardCharges(Double cardCharges) {
         this.cardCharges = cardCharges;
+    }
+
+    public String getClientName() {
+        return clientName;
+    }
+
+    public void setClientName(String clientName) {
+        this.clientName = clientName;
+    }
+
+    public String getClientPhoneNo() {
+        return clientPhoneNo;
+    }
+
+    public void setClientPhoneNo(String clientPhoneNo) {
+        this.clientPhoneNo = clientPhoneNo;
     }
 
     @Override
