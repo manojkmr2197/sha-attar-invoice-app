@@ -20,8 +20,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -430,6 +432,51 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // Update cart dialog with current data
         updateCartDialog();
+
+        // Auto-fill client name when 10-digit phone number is entered
+        TextInputEditText clientPhoneEt = cartDialog.findViewById(R.id.new_billing_client_phone);
+        TextInputEditText clientNameEt = cartDialog.findViewById(R.id.new_billing_client_name);
+        if (clientPhoneEt != null && clientNameEt != null) {
+            clientPhoneEt.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    String phone = s.toString().trim();
+                    if (phone.length() == 10) {
+                        dbObj.getClientInvoiceByPhone(phone, invoices -> {
+                            if (invoices != null && !invoices.isEmpty()) {
+                                String foundName = "";
+                                for (BillingInvoiceModel invoice : invoices) {
+                                    if (invoice != null) {
+                                        String name = invoice.getClientName();
+                                        if (TextUtils.isEmpty(name)) {
+                                            name = invoice.getCustomerName();
+                                        }
+                                        if (!TextUtils.isEmpty(name) && !"Unknown Client".equalsIgnoreCase(name)) {
+                                            foundName = name;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (!TextUtils.isEmpty(foundName)) {
+                                    clientNameEt.setText(foundName);
+                                    Toast.makeText(context, "Customer name filled automatically", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(context, "New Customer", Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
+                                Toast.makeText(context, "New Customer", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+            });
+        }
 
         cartDialog.show();
     }

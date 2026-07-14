@@ -71,10 +71,10 @@
                 android:id="@+id/client_report_search_bar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Search Client (Name / Phone)"
                 android:inputType="text"
                 android:textSize="14sp"
-                android:padding="12dp"
+                android:hint="Search Client (Name / Phone)"
+                android:padding="22dp"
                 android:completionThreshold="1" />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -181,5 +181,16 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
         </LinearLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/client_report_download_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:src="@drawable/baseline_cloud_download_24"
+            app:backgroundTint="@color/app_color"
+            app:tint="@color/white" />
     </FrameLayout>
 </LinearLayout>

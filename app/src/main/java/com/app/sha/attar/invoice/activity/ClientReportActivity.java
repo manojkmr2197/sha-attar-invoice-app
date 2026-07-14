@@ -51,6 +51,7 @@ public class ClientReportActivity extends AppCompatActivity implements View.OnCl
     private Button filterBtn;
     private RecyclerView recyclerView;
     private LinearLayout dataLl, noDataLl;
+    private com.google.android.material.floatingactionbutton.FloatingActionButton downloadFab;
 
     private DBUtil dbObj;
     private OffsetDateTime customStartDt;
@@ -85,6 +86,7 @@ public class ClientReportActivity extends AppCompatActivity implements View.OnCl
         recyclerView = findViewById(R.id.client_report_recyclerView);
         dataLl = findViewById(R.id.client_report_data_ll);
         noDataLl = findViewById(R.id.client_report_no_data_ll);
+        downloadFab = findViewById(R.id.client_report_download_fab);
 
         dbObj = new DBUtil();
 
@@ -93,6 +95,7 @@ public class ClientReportActivity extends AppCompatActivity implements View.OnCl
         startDatetv.setOnClickListener(this);
         endDatetv.setOnClickListener(this);
         filterBtn.setOnClickListener(this);
+        downloadFab.setOnClickListener(this);
 
         // Setup RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -322,27 +325,43 @@ public class ClientReportActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void processFilter() {
-        if (customStartDt == null || customEndDt == null) {
+        String searchQuery = searchBar.getText().toString().trim();
+        boolean hasDateFilter = (customStartDt != null && customEndDt != null);
+        boolean hasSearchFilter = !searchQuery.isEmpty();
+
+        if (!hasDateFilter && !hasSearchFilter) {
+            Toast.makeText(this, "Please enter a search query or select a date range", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // If user partially selected dates, show warning
+        if ((customStartDt != null && customEndDt == null) || (customStartDt == null && customEndDt != null)) {
             Toast.makeText(this, "Please select both Start and End Dates", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        long startEpoch = customStartDt.toEpochSecond();
-        long endEpoch = customEndDt.toEpochSecond();
-
         List<BillingInvoiceModel> filteredInvoices = new ArrayList<>();
-        for (BillingInvoiceModel invoice : allInvoices) {
-            if (invoice.getBillingDate() != null) {
-                long billingTime = invoice.getBillingDate();
-                if (billingTime >= startEpoch && billingTime <= endEpoch) {
-                    filteredInvoices.add(invoice);
+        if (hasDateFilter) {
+            long startEpoch = customStartDt.toEpochSecond();
+            long endEpoch = customEndDt.toEpochSecond();
+            for (BillingInvoiceModel invoice : allInvoices) {
+                if (invoice.getBillingDate() != null) {
+                    long billingTime = invoice.getBillingDate();
+                    if (billingTime >= startEpoch && billingTime <= endEpoch) {
+                        filteredInvoices.add(invoice);
+                    }
                 }
             }
+        } else {
+            filteredInvoices.addAll(allInvoices);
         }
 
         isFiltered = true;
         filterBtn.setText("Reset");
         groupAndDisplayClients(filteredInvoices);
+        
+        // Ensure the search bar query filter is applied to the newly updated dataset
+        filterClients(searchQuery);
         Toast.makeText(this, "Filtered report loaded", Toast.LENGTH_SHORT).show();
     }
 
@@ -351,6 +370,7 @@ public class ClientReportActivity extends AppCompatActivity implements View.OnCl
         customEndDt = null;
         startDatetv.setText("Start Date");
         endDatetv.setText("End Date");
+        searchBar.setText("");
         isFiltered = false;
         filterBtn.setText("Filter");
         groupAndDisplayClients(allInvoices);
@@ -372,6 +392,33 @@ public class ClientReportActivity extends AppCompatActivity implements View.OnCl
             } else {
                 processFilter();
             }
+        } else if (id == R.id.client_report_download_fab) {
+            downloadClientReport();
+        }
+    }
+
+    private void downloadClientReport() {
+        if (displayClients.isEmpty()) {
+            Toast.makeText(this, "No data to export!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            String fileName = "client-report-" + System.currentTimeMillis() + ".xlsx";
+            java.io.File file = new java.io.File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), fileName);
+            com.app.sha.attar.invoice.utils.ReportGenerator reportGenerator = new com.app.sha.attar.invoice.utils.ReportGenerator();
+            reportGenerator.createClientExcelReport(displayClients, file);
+
+            Toast.makeText(this, "Report Generated: " + fileName, Toast.LENGTH_LONG).show();
+
+            // Open using FileProvider
+            android.net.Uri fileUri = androidx.core.content.FileProvider.getUriForFile(this, com.app.sha.attar.invoice.utils.AppConstants.COM_APP_SHA_PERFUME_INVOICE_FILEPROVIDER, file);
+            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+            intent.setDataAndType(fileUri, "application/vnd.ms-excel");
+            intent.setFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Report Generation failed!", Toast.LENGTH_LONG).show();
         }
     }
 }

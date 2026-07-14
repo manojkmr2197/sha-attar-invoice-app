@@ -7,6 +7,7 @@ import com.app.sha.attar.invoice.activity.ProductActivity;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
+import com.app.sha.attar.invoice.model.ClientModel;
 import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.ExpenseModel;
 import com.app.sha.attar.invoice.model.ProductModel;
@@ -37,6 +38,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class ReportGenerator {
@@ -788,4 +790,172 @@ public class ReportGenerator {
 
     }
 
+    public void createClientExcelReport(List<ClientModel> clientList, File file) throws Exception {
+        Workbook workbook = new XSSFWorkbook();
+
+        prepareClientSummarySheet(workbook, clientList);
+        prepareClientDetailedSheet(workbook, clientList);
+
+        // Write the output to a file
+        FileOutputStream fileOut = new FileOutputStream(file.getAbsolutePath());
+        workbook.write(fileOut);
+        fileOut.close();
+        workbook.close();
+    }
+
+    private void prepareClientSummarySheet(Workbook workbook, List<ClientModel> clientList) {
+        CellStyle wrapStyle = workbook.createCellStyle();
+        wrapStyle.setWrapText(true);
+        Sheet sheet = workbook.createSheet("Client Summary");
+        Row headerRow = sheet.createRow(0);
+        int cellIndex = 0;
+
+        String[] headers = {"Client Name", "Phone Number", "Total Orders", "Total Spent (Rs.)"};
+
+        for (String key : headers) {
+            Cell cell = headerRow.createCell(cellIndex++);
+            cell.setCellValue(key);
+            cell.setCellStyle(wrapStyle);
+        }
+
+        int rowCount = 0;
+        for (ClientModel entry : clientList) {
+            rowCount = rowCount + 1;
+            Row row = sheet.createRow(rowCount);
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(entry.getName());
+            cell0.setCellStyle(wrapStyle);
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(entry.getPhone());
+            cell1.setCellStyle(wrapStyle);
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue(entry.getInvoices() != null ? entry.getInvoices().size() : 0);
+            cell2.setCellStyle(wrapStyle);
+            Cell cell3 = row.createCell(3);
+            cell3.setCellValue(entry.getTotalSpent());
+            cell3.setCellStyle(wrapStyle);
+        }
+    }
+
+    private void prepareClientDetailedSheet(Workbook workbook, List<ClientModel> clientList) {
+        CellStyle wrapStyle = workbook.createCellStyle();
+        wrapStyle.setWrapText(true);
+        Sheet sheet = workbook.createSheet("Detailed Purchases");
+        Row headerRow = sheet.createRow(0);
+        int cellIndex = 0;
+
+        String[] headers = {"Date & Time", "Client Name", "Phone Number", "Payment Mode", "Order Amount (Rs.)", "Items Purchased"};
+
+        for (String key : headers) {
+            Cell cell = headerRow.createCell(cellIndex++);
+            cell.setCellValue(key);
+            cell.setCellStyle(wrapStyle);
+        }
+
+        // We collect all invoices from all clients to display them in chronological order
+        List<BillingInvoiceModel> allInvoices = new ArrayList<>();
+        // Map of client name/phone to find easily
+        Map<BillingInvoiceModel, ClientModel> invoiceToClientMap = new HashMap<>();
+
+        for (ClientModel client : clientList) {
+            if (client.getInvoices() != null) {
+                for (BillingInvoiceModel invoice : client.getInvoices()) {
+                    allInvoices.add(invoice);
+                    invoiceToClientMap.put(invoice, client);
+                }
+            }
+        }
+
+        // Sort invoices chronological or reverse chronological? Let's do reverse chronological (latest first)
+        Collections.sort(allInvoices, (i1, i2) -> {
+            Long d1 = i1.getBillingDate();
+            Long d2 = i2.getBillingDate();
+            if (d1 == null && d2 == null) return 0;
+            if (d1 == null) return 1;
+            if (d2 == null) return -1;
+            return d2.compareTo(d1);
+        });
+
+        int rowCount = 0;
+        DateTimeFormatter formatter = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm a");
+        }
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.getDefault());
+
+        for (BillingInvoiceModel invoice : allInvoices) {
+            ClientModel client = invoiceToClientMap.get(invoice);
+            if (client == null) continue;
+
+            rowCount = rowCount + 1;
+            Row row = sheet.createRow(rowCount);
+
+            // Format date
+            String dateStr = "";
+            if (invoice.getBillingDate() != null) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    try {
+                        ZoneOffset istOffset = ZoneOffset.ofHoursMinutes(5, 30);
+                        OffsetDateTime offsetDateTime = Instant.ofEpochSecond(invoice.getBillingDate()).atOffset(istOffset);
+                        dateStr = offsetDateTime.format(formatter);
+                    } catch (Exception e) {
+                        dateStr = String.valueOf(invoice.getBillingDate());
+                    }
+                } else {
+                    try {
+                        java.util.Date date = new java.util.Date(invoice.getBillingDate() * 1000L);
+                        dateStr = sdf.format(date);
+                    } catch (Exception e) {
+                        dateStr = String.valueOf(invoice.getBillingDate());
+                    }
+                }
+            }
+
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(dateStr);
+            cell0.setCellStyle(wrapStyle);
+
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(client.getName());
+            cell1.setCellStyle(wrapStyle);
+
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue(client.getPhone());
+            cell2.setCellStyle(wrapStyle);
+
+            Cell cell3 = row.createCell(3);
+            cell3.setCellValue(invoice.getPaymentMode() != null ? invoice.getPaymentMode().toUpperCase() : "-");
+            cell3.setCellStyle(wrapStyle);
+
+            Cell cell4 = row.createCell(4);
+            cell4.setCellValue(invoice.getSellingCost() != null ? invoice.getSellingCost() : 0.0);
+            cell4.setCellStyle(wrapStyle);
+
+            // Item summary description
+            StringBuilder itemDesc = new StringBuilder();
+            if (invoice.getBillingItemModelList() != null) {
+                for (int i = 0; i < invoice.getBillingItemModelList().size(); i++) {
+                    BillingItemModel item = invoice.getBillingItemModelList().get(i);
+                    if (item == null) continue;
+
+                    if (i > 0) {
+                        itemDesc.append(", ");
+                    }
+
+                    int pieces = item.getPieces() != null ? item.getPieces() : 1;
+                    String itemName = item.getName() != null ? item.getName() : "";
+
+                    if ("PRODUCT".equalsIgnoreCase(item.getType())) {
+                        int ml = item.getUnits() != null ? item.getUnits() : 0;
+                        itemDesc.append(itemName).append(" ").append(ml).append("ML (").append(pieces).append(" pcs)");
+                    } else {
+                        itemDesc.append(itemName).append(" (").append(pieces).append(" pcs)");
+                    }
+                }
+            }
+            Cell cell5 = row.createCell(5);
+            cell5.setCellValue(itemDesc.toString());
+            cell5.setCellStyle(wrapStyle);
+        }
+    }
 }

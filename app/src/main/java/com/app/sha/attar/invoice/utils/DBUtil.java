@@ -99,6 +99,42 @@ public class DBUtil {
                 });
     }
 
+    public void getClientInvoiceByPhone(String phoneNumber, FirestoreCallback<List<BillingInvoiceModel>> callback) {
+        db.collection(DatabaseConstants.INVOICE_COLLECTION)
+                .whereEqualTo("clientPhoneNo", phoneNumber)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                            List<BillingInvoiceModel> saleDetails = new ArrayList<>();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                BillingInvoiceModel model = document.toObject(BillingInvoiceModel.class);
+                                saleDetails.add(model);
+                            }
+                            callback.onCallback(saleDetails);
+                        } else {
+                            db.collection(DatabaseConstants.INVOICE_COLLECTION)
+                                    .whereEqualTo("customerPhone", phoneNumber)
+                                    .get()
+                                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<QuerySnapshot> task2) {
+                                            List<BillingInvoiceModel> saleDetails = new ArrayList<>();
+                                            if (task2.isSuccessful()) {
+                                                for (DocumentSnapshot document : task2.getResult()) {
+                                                    BillingInvoiceModel model = document.toObject(BillingInvoiceModel.class);
+                                                    saleDetails.add(model);
+                                                }
+                                            }
+                                            callback.onCallback(saleDetails);
+                                        }
+                                    });
+                        }
+                    }
+                });
+    }
+
     public void getBillingInvoiceDetail(FirestoreCallback<List<BillingInvoiceModel>> callback, Long startTime, Long endTime,String customerPhone) {
         db.collection(DatabaseConstants.INVOICE_COLLECTION).whereGreaterThanOrEqualTo("billingDate", startTime)
                 .whereLessThanOrEqualTo("billingDate", endTime)
