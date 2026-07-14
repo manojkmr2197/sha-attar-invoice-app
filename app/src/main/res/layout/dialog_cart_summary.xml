@@ -226,51 +226,32 @@
                 android:layout_marginTop="12dp"
                 android:layout_marginBottom="8dp" />
 
-            <com.google.android.material.textfield.TextInputLayout
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                app:boxCornerRadiusBottomEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusTopStart="8dp"
-                app:boxStrokeColor="@color/app_color"
-                app:hintTextColor="@color/app_color"
-                app:boxStrokeWidth="1dp">
+                android:layout_height="wrap_content">
 
-                <com.google.android.material.textfield.TextInputEditText
+                <AutoCompleteTextView
                     android:id="@+id/new_billing_client_phone"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:hint="Client Phone Number"
                     android:inputType="phone"
                     android:maxLength="10"
                     android:textSize="13sp" />
 
-            </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:boxCornerRadiusBottomEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusTopStart="8dp"
-                app:boxStrokeColor="@color/app_color"
-                app:hintTextColor="@color/app_color"
-                app:boxStrokeWidth="1dp">
-
-                <com.google.android.material.textfield.TextInputEditText
+                <EditText
                     android:id="@+id/new_billing_client_name"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:hint="Client Name"
                     android:inputType="textPersonName"
                     android:textSize="13sp" />
 
-            </com.google.android.material.textfield.TextInputLayout>
 
-
+            </LinearLayout>
 
             <!-- Payment Methods -->
             <TextView

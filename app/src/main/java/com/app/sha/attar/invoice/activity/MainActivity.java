@@ -68,6 +68,7 @@ import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
 import com.app.sha.attar.invoice.model.ConfigModel;
+import com.app.sha.attar.invoice.model.ClientModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.utils.BluetoothPrinterHelper;
 import com.app.sha.attar.invoice.utils.DBUtil;
@@ -94,7 +95,9 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -139,6 +142,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     SharedPrefHelper sharedPrefHelper;
     DBUtil dbObj;
     FirebaseFirestore db;
+
+    private final List<ClientModel> cachedClients = new ArrayList<>();
+    private final List<String> cachedPhoneNumbers = new ArrayList<>();
+    private final List<String> cachedPhoneSuggestions = new ArrayList<>();
 
     private static final int REQUEST_WRITE_PERMISSION = 786;
     private static final int REQUEST_ENABLE_BT = 10;
@@ -359,7 +366,39 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         enableBluetooth();
         manageBillingLayout();
+        cacheClients();
+    }
 
+    private void cacheClients() {
+        dbObj.getAllBillingInvoices(invoices -> {
+            cachedClients.clear();
+            cachedPhoneNumbers.clear();
+            cachedPhoneSuggestions.clear();
+            Map<String, String> clientMap = new HashMap<>();
+            if (invoices != null) {
+                for (BillingInvoiceModel invoice : invoices) {
+                    String phone = invoice.getClientPhoneNo();
+                    if (TextUtils.isEmpty(phone)) {
+                        phone = invoice.getCustomerPhone();
+                    }
+                    if (TextUtils.isEmpty(phone)) {
+                        continue;
+                    }
+                    String name = invoice.getClientName();
+                    if (TextUtils.isEmpty(name)) {
+                        name = invoice.getCustomerName();
+                    }
+                    if (!TextUtils.isEmpty(name) && !"Unknown Client".equalsIgnoreCase(name)) {
+                        clientMap.put(phone, name);
+                    }
+                }
+            }
+            for (Map.Entry<String, String> entry : clientMap.entrySet()) {
+                cachedClients.add(new ClientModel(entry.getValue(), entry.getKey()));
+                cachedPhoneNumbers.add(entry.getKey());
+                cachedPhoneSuggestions.add(entry.getKey() + " (" + entry.getValue() + ")");
+            }
+        });
     }
 
 
@@ -434,9 +473,40 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         updateCartDialog();
 
         // Auto-fill client name when 10-digit phone number is entered
-        TextInputEditText clientPhoneEt = cartDialog.findViewById(R.id.new_billing_client_phone);
-        TextInputEditText clientNameEt = cartDialog.findViewById(R.id.new_billing_client_name);
+        AutoCompleteTextView clientPhoneEt = cartDialog.findViewById(R.id.new_billing_client_phone);
+        EditText clientNameEt = cartDialog.findViewById(R.id.new_billing_client_name);
         if (clientPhoneEt != null && clientNameEt != null) {
+            ArrayAdapter<String> phoneAdapter = new ArrayAdapter<>(context, android.R.layout.simple_dropdown_item_1line, cachedPhoneSuggestions);
+            clientPhoneEt.setAdapter(phoneAdapter);
+            clientPhoneEt.setThreshold(1);
+
+            clientPhoneEt.setOnItemClickListener((parent, view, position, id) -> {
+                String selectedItem = (String) parent.getItemAtPosition(position);
+                int bracketIndex = selectedItem.indexOf(" (");
+                if (bracketIndex != -1) {
+                    String selectedPhone = selectedItem.substring(0, bracketIndex).trim();
+                    String selectedName = selectedItem.substring(bracketIndex + 2, selectedItem.length() - 1).trim();
+                    
+                    // Post to message queue to run after default autocomplete selection completes
+                    clientPhoneEt.post(() -> {
+                        clientPhoneEt.setText(selectedPhone);
+                        clientPhoneEt.setSelection(selectedPhone.length());
+                        clientNameEt.setText(selectedName);
+                        
+                        // Dismiss the dropdown list
+                        clientPhoneEt.dismissDropDown();
+                        
+                        // Clear focus and hide keyboard
+                        clientPhoneEt.clearFocus();
+                        InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+                        if (imm != null) {
+                            imm.hideSoftInputFromWindow(clientPhoneEt.getWindowToken(), 0);
+                        }
+                    });
+                    Toast.makeText(context, "Customer name filled automatically", Toast.LENGTH_SHORT).show();
+                }
+            });
+
             clientPhoneEt.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -448,31 +518,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 public void afterTextChanged(Editable s) {
                     String phone = s.toString().trim();
                     if (phone.length() == 10) {
-                        dbObj.getClientInvoiceByPhone(phone, invoices -> {
-                            if (invoices != null && !invoices.isEmpty()) {
-                                String foundName = "";
-                                for (BillingInvoiceModel invoice : invoices) {
-                                    if (invoice != null) {
-                                        String name = invoice.getClientName();
-                                        if (TextUtils.isEmpty(name)) {
-                                            name = invoice.getCustomerName();
-                                        }
-                                        if (!TextUtils.isEmpty(name) && !"Unknown Client".equalsIgnoreCase(name)) {
-                                            foundName = name;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (!TextUtils.isEmpty(foundName)) {
-                                    clientNameEt.setText(foundName);
-                                    Toast.makeText(context, "Customer name filled automatically", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Toast.makeText(context, "New Customer", Toast.LENGTH_SHORT).show();
-                                }
-                            } else {
-                                Toast.makeText(context, "New Customer", Toast.LENGTH_SHORT).show();
+                        boolean found = false;
+                        for (ClientModel client : cachedClients) {
+                            if (client.getPhone().equals(phone)) {
+                                clientNameEt.setText(client.getName());
+                                Toast.makeText(context, "Customer name filled automatically", Toast.LENGTH_SHORT).show();
+                                found = true;
+                                break;
                             }
-                        });
+                        }
+                        if (!found) {
+                            Toast.makeText(context, "New Customer", Toast.LENGTH_SHORT).show();
+                        }
+                    }else{
+                        clientNameEt.setText("");
                     }
                 }
             });
@@ -728,7 +787,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         TextInputEditText clientNameEt = cartDialog.findViewById(R.id.new_billing_client_name);
-        TextInputEditText clientPhoneEt = cartDialog.findViewById(R.id.new_billing_client_phone);
+        AutoCompleteTextView clientPhoneEt = cartDialog.findViewById(R.id.new_billing_client_phone);
         String clientName = "";
         String clientPhone = "";
         if (clientNameEt != null && clientPhoneEt != null) {
@@ -793,6 +852,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onSuccess(Void unused) {
                         Toast.makeText(MainActivity.this, "Submitted Successfully..!", Toast.LENGTH_LONG).show();
+                        String clientPhone = billingInvoiceModel.getClientPhoneNo();
+                        String clientName = billingInvoiceModel.getClientName();
+                        if (!TextUtils.isEmpty(clientPhone) && !cachedPhoneNumbers.contains(clientPhone)) {
+                            cachedClients.add(new ClientModel(clientName, clientPhone));
+                            cachedPhoneNumbers.add(clientPhone);
+                            cachedPhoneSuggestions.add(clientPhone + " (" + clientName + ")");
+                        }
                         sharePrintWhatsappDialog(billingInvoiceModel);
                     }
                 }).addOnFailureListener(new OnFailureListener() {
