@@ -786,7 +786,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return;
         }
 
-        TextInputEditText clientNameEt = cartDialog.findViewById(R.id.new_billing_client_name);
+        EditText clientNameEt = cartDialog.findViewById(R.id.new_billing_client_name);
         AutoCompleteTextView clientPhoneEt = cartDialog.findViewById(R.id.new_billing_client_phone);
         String clientName = "";
         String clientPhone = "";
