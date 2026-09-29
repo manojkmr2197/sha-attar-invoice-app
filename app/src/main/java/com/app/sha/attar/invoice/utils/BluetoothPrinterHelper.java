@@ -137,9 +137,10 @@ public class BluetoothPrinterHelper {
             String starSeparator = new String(new char[lineWidth]).replace('\0', '*');
 
             // =================================================
-            // BUILD PRODUCT LINES (MULTILINE SAFE)
+            // BUILD PRODUCT LINES (MULTILINE SAFE, 48 CHARS MAX)
             // =================================================
             StringBuilder productLines = new StringBuilder();
+            boolean isGst = billData.getIsGSTApplicable() != null && billData.getIsGSTApplicable();
 
             for (BillingItemModel item : billData.getBillingItemModelList()) {
 
@@ -151,21 +152,22 @@ public class BluetoothPrinterHelper {
                 }
 
                 String qty = item.getUnits() != null ? item.getUnits() + " ML" : "";
+                String gstStr = isGst ? String.format("%.0f%%", item.getGstPercentage() > 0 ? item.getGstPercentage() : 18.0) : "-";
                 String price = "Rs." + String.format("%.2f", item.getPieces() * item.getSellingItemPrice());
 
-                // Split product name into 24-char safe chunks
-                List<String> nameLines = splitFixedWidth(displayName, 24);
+                // Split product name into 20-char safe chunks to accommodate GST%
+                List<String> nameLines = splitFixedWidth(displayName, 20);
 
-                // ---- First line (with QTY & PRICE) ----
+                // ---- First line (with QTY, GST% & PRICE) ----
                 productLines.append(
-                        String.format("[L]%-24s %8s %12s\n",
-                                nameLines.get(0), qty, price)
+                        String.format("[L]%-20s %7s %6s %11s\n",
+                                nameLines.get(0), qty, gstStr, price)
                 );
 
                 // ---- Remaining wrapped lines (NAME ONLY) ----
                 for (int i = 1; i < nameLines.size(); i++) {
                     productLines.append(
-                            String.format("[L]%-24s\n", nameLines.get(i))
+                            String.format("[L]%-20s\n", nameLines.get(i))
                     );
                 }
             }
@@ -181,7 +183,8 @@ public class BluetoothPrinterHelper {
                     .append("</img>\n");
 
             receipt.append("[C]<b>SHA'S ATTAR & PERFUMES</b>\n");
-            receipt.append("[C](Make your own Perfume)\n\n");
+            receipt.append("[C](Make your own Perfume)\n");
+            receipt.append("[C]<b>GSTIN: 33FIPPM7687P1ZZ</b>\n\n");
             receipt.append("[R]Date: ").append(dateStr.toUpperCase()).append("\n\n");
 
             receipt.append("[L]<b>ORDER No:</b> ")
@@ -190,9 +193,16 @@ public class BluetoothPrinterHelper {
             receipt.append("[L]<b>Bill by:</b> ")
                     .append(billData.getCustomerName().toUpperCase()).append("\n");
 
+            if (isGst) {
+                if (billData.getCustomerGST() != null && !billData.getCustomerGST().trim().isEmpty()) {
+                    receipt.append("[L]<b>Cust GSTIN:</b> ")
+                            .append(billData.getCustomerGST().toUpperCase()).append("\n");
+                }
+            }
+
             receipt.append("[L]").append(separator).append("\n");
-            receipt.append(String.format("[L]%-24s %8s %12s\n",
-                    "PRODUCT", "QTY", "PRICE"));
+            receipt.append(String.format("[L]%-20s %7s %6s %11s\n",
+                    "PRODUCT", "QTY", "GST%", "PRICE"));
             receipt.append("[L]").append(separator).append("\n");
             receipt.append(productLines);
             receipt.append("[L]").append(separator).append("\n");
@@ -217,25 +227,68 @@ public class BluetoothPrinterHelper {
                 ));
             }
 
+            double totalTax = 0.0;
+            if (isGst) {
+                receipt.append(String.format(
+                        "[L]%-30s [R]Rs.%s\n",
+                        "Taxable Amount",
+                        String.format("%.2f", billData.getTaxableAmount() > 0 ? billData.getTaxableAmount() : sellingCost)
+                ));
+
+                if (GSTCalculator.isInsideTN(billData.getPlaceOfSupply())) {
+                    receipt.append(String.format(
+                            "[L]%-30s [R]Rs.%s\n",
+                            "CGST (9%)",
+                            String.format("%.2f", billData.getCgstAmount())
+                    ));
+                    receipt.append(String.format(
+                            "[L]%-30s [R]Rs.%s\n",
+                            "SGST (9%)",
+                            String.format("%.2f", billData.getSgstAmount())
+                    ));
+                    totalTax = billData.getCgstAmount() + billData.getSgstAmount();
+                } else {
+                    receipt.append(String.format(
+                            "[L]%-30s [R]Rs.%s\n",
+                            "IGST (18%)",
+                            String.format("%.2f", billData.getIgstAmount())
+                    ));
+                    totalTax = billData.getIgstAmount();
+                }
+            }
+
+            double courierAmt = 0.0;
             if (billData.getIsCourier() != null && billData.getIsCourier()) {
+                courierAmt = billData.getCourierAmount();
                 receipt.append(String.format(
                         "[L]%-30s [R]Rs.%s\n",
                         "Courier Charges",
-                        String.format("%.2f", billData.getCourierAmount())
+                        String.format("%.2f", courierAmt)
                 ));
-                sellingCost += billData.getCourierAmount();
+            }
+
+            double roundOffAmt = 0.0;
+            if (isGst && billData.getRoundOff() != null && Math.abs(billData.getRoundOff()) > 0.001) {
+                roundOffAmt = billData.getRoundOff();
+                receipt.append(String.format(
+                        "[L]%-30s [R]Rs.%s\n",
+                        "Round Off",
+                        String.format("%.2f", roundOffAmt)
+                ));
             }
 
             receipt.append("[L]").append(separator).append("\n");
+
+            double grandTotal = round(sellingCost + totalTax + courierAmt + roundOffAmt);
 
             // =================================================
             // CARD PAYMENT SECTION
             // =================================================
             if ("CARD".equalsIgnoreCase(billData.getPaymentMode())) {
 
-                double cardCharge = round(sellingCost * 0.03);
+                double cardCharge = round(grandTotal * 0.03);
                 double gst = round(cardCharge * 0.18);
-                double finalPayable = round(sellingCost + cardCharge + gst);
+                double finalPayable = round(grandTotal + cardCharge + gst);
 
                 receipt.append(String.format(
                         "[L]%-30s [R]Rs.%s\n",
@@ -261,7 +314,7 @@ public class BluetoothPrinterHelper {
                 receipt.append(String.format(
                         "[L]<b>%-30s [R]Rs.%s</b>\n",
                         "TOTAL",
-                        String.format("%.2f", sellingCost)
+                        String.format("%.2f", grandTotal)
                 ));
             }
 

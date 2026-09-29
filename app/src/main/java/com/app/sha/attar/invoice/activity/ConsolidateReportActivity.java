@@ -311,14 +311,15 @@ public class ConsolidateReportActivity extends AppCompatActivity implements View
         });
 
         billingInvoiceModelList.stream().forEach(data -> {
+            Double amount = data.getGrandTotal();
             if ("CASH".equalsIgnoreCase(data.getPaymentMode())) {
-                totalCash = totalCash + data.getSellingCost();
+                totalCash = totalCash + amount;
             }
             if ("UPI".equalsIgnoreCase(data.getPaymentMode())) {
-                totalUpi = totalUpi + data.getSellingCost();
+                totalUpi = totalUpi + amount;
             }
             if ("CARD".equalsIgnoreCase(data.getPaymentMode())) {
-                totalCard = totalCard + data.getSellingCost();
+                totalCard = totalCard + amount;
             }
             if (data.getIsCourier() != null && data.getIsCourier()) {
                 courierCountValue = courierCountValue + 1;

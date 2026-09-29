@@ -14,7 +14,7 @@ import com.app.sha.attar.invoice.R;
 public class InvoiceHistoryViewHolder extends RecyclerView.ViewHolder {
 
     public Button edit,delete;
-    public TextView id,date,name,phone,discount,sellingPrice,actualPrice,profit,courierAmount,paymentMode;
+    public TextView id,date,name,phone,billBy,discount,sellingPrice,actualPrice,profit,courierAmount,paymentMode;
     public ImageView printBt,shareBt,qrShareBt;
     public LinearLayout owner_view,courier_view;
 
@@ -26,6 +26,7 @@ public class InvoiceHistoryViewHolder extends RecyclerView.ViewHolder {
         date = (TextView) itemView.findViewById(R.id.invoice_history_item_date);
         name = (TextView) itemView.findViewById(R.id.invoice_history_item_name);
         phone = (TextView) itemView.findViewById(R.id.invoice_history_item_phone);
+        billBy = (TextView) itemView.findViewById(R.id.invoice_history_item_bill_by);
         discount = (TextView) itemView.findViewById(R.id.invoice_history_item_discount);
         sellingPrice = (TextView) itemView.findViewById(R.id.invoice_history_item_selling_amount);
         actualPrice = (TextView) itemView.findViewById(R.id.invoice_history_item_actual_amount);

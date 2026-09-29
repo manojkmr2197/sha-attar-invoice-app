@@ -73,6 +73,7 @@ import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.utils.BluetoothPrinterHelper;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
+import com.app.sha.attar.invoice.utils.GSTCalculator;
 import com.app.sha.attar.invoice.utils.PDFHelper;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
@@ -138,6 +139,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     // Cart dialog components
     Dialog cartDialog;
+    CheckBox cbApplyGst;
+    RadioGroup rgPlaceOfSupply;
+    RadioButton rbInsideTn, rbOutsideTn;
+    EditText etCustomerGstin;
+    TextView tvCartGstAmount;
+    LinearLayout llGstDetails;
 
     SharedPrefHelper sharedPrefHelper;
     DBUtil dbObj;
@@ -424,6 +431,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         courier_amount = cartDialog.findViewById(R.id.new_billing_courier_amount);
         finalBillingAmountTv = cartDialog.findViewById(R.id.tvFinalPayableAmount);
 
+        // Initialize GST UI components
+        cbApplyGst = cartDialog.findViewById(R.id.cb_apply_gst);
+        rgPlaceOfSupply = cartDialog.findViewById(R.id.rg_place_of_supply);
+        rbInsideTn = cartDialog.findViewById(R.id.rb_inside_tn);
+        rbOutsideTn = cartDialog.findViewById(R.id.rb_outside_tn);
+        etCustomerGstin = cartDialog.findViewById(R.id.et_customer_gstin);
+        tvCartGstAmount = cartDialog.findViewById(R.id.tv_cart_gst_amount);
+        llGstDetails = cartDialog.findViewById(R.id.ll_gst_details);
+
+        TextView tvGstRateHint = cartDialog.findViewById(R.id.tv_gst_rate_hint);
+        if (cbApplyGst != null) {
+            cbApplyGst.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (llGstDetails != null) {
+                    llGstDetails.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+                }
+                if (tvGstRateHint != null) {
+                    tvGstRateHint.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+                }
+                updateCartDialog();
+            });
+        }
+
+        if (rgPlaceOfSupply != null) {
+            rgPlaceOfSupply.setOnCheckedChangeListener((group, checkedId) -> {
+                updateCartDialog();
+            });
+        }
+
         // Set up cart items recycler
         RecyclerView cartItemsRecycler = cartDialog.findViewById(R.id.cart_items_recycler);
         CartItemAdapter cartAdapter = new CartItemAdapter(context, billingItemModelList);
@@ -460,6 +495,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 courier_amount.setText("0.0");
                 courier_amount.setVisibility(View.GONE);
             }
+            updateCartDialog();
         });
 
         // Set up click listeners
@@ -550,7 +586,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }else{
                 onCardChargeClicked(sellingAmount, false);
             }
-            finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount));
+
+            double gstAmountVal = 0.0;
+            if (cbApplyGst != null && cbApplyGst.isChecked()) {
+                gstAmountVal = round(sellingAmount * 0.18);
+                if (tvCartGstAmount != null) {
+                    tvCartGstAmount.setText("+Rs. " + String.format("%.2f", gstAmountVal));
+                    tvCartGstAmount.setVisibility(View.VISIBLE);
+                }
+            } else {
+                if (tvCartGstAmount != null) {
+                    tvCartGstAmount.setText("+Rs. 0.00");
+                    tvCartGstAmount.setVisibility(View.GONE);
+                }
+            }
+
+            double courierVal = 0.0;
+            if (courier_checkBox != null && courier_checkBox.isChecked() && courier_amount != null && StringUtils.isNotBlank(courier_amount.getText().toString())) {
+                try {
+                    courierVal = Double.parseDouble(courier_amount.getText().toString());
+                } catch (Exception ignored) {}
+            }
+
+            double finalPayable = sellingAmount + gstAmountVal + cardChargeAmount + courierVal;
+            if (finalBillingAmountTv != null) {
+                finalBillingAmountTv.setText("Rs. " + String.format("%.2f", round(finalPayable)));
+            }
         }
     }
 
@@ -584,7 +645,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (finalBillingAmountTv != null) {
-            finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount));
+            double gstAmountVal = (cbApplyGst != null && cbApplyGst.isChecked()) ? round(sellingAmount * 0.18) : 0.0;
+            finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount + gstAmountVal));
         }
     }
 
@@ -823,10 +885,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         billingInvoiceModel.setIsCourier(courier_checkBox.isChecked());
         billingInvoiceModel.setCardCharges(cardChargeAmount);
         billingInvoiceModel.setCourierAmount(StringUtils.isNotBlank(courier_amount.getText().toString()) ? Double.parseDouble(courier_amount.getText().toString()) : 0.0);
+
+        boolean isGST = cbApplyGst != null && cbApplyGst.isChecked();
+        String placeOfSupply = (rbOutsideTn != null && rbOutsideTn.isChecked()) ? "Outside TN" : "Inside TN";
+        String customerGst = etCustomerGstin != null ? etCustomerGstin.getText().toString().trim() : "";
+
+        billingInvoiceModel.setIsGSTApplicable(isGST);
+        billingInvoiceModel.setPlaceOfSupply(placeOfSupply);
+        billingInvoiceModel.setCustomerGST(customerGst);
+        billingInvoiceModel.setInvoiceDate(billingInvoiceModel.getBillingDate());
+        billingInvoiceModel.setInvoiceNumber("INV-" + billingInvoiceModel.getBillingDate());
+
         for (BillingItemModel item : billingItemModelList) {
             item.setInvoiceId(billingInvoiceModel.getBillingDate());
+            GSTCalculator.populateItemGST(item);
         }
         billingInvoiceModel.setBillingItemModelList(billingItemModelList);
+
+        // Calculate and populate all GST amounts, taxable amount, and round off
+        GSTCalculator.calculateInvoiceTaxes(billingInvoiceModel);
         if (billingInvoiceModel.getBillingItemModelList().isEmpty()) {
             Toast.makeText(MainActivity.this, "Please Add products / Accessories..!", Toast.LENGTH_LONG).show();
             return;
@@ -871,7 +948,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void generatePaymentQR(BillingInvoiceModel billingInvoiceModel) {
 
-        Double totalPay = (billingInvoiceModel.getIsCourier()) ? billingInvoiceModel.getSellingCost() + billingInvoiceModel.getCourierAmount() : billingInvoiceModel.getSellingCost();
+        Double totalPay = billingInvoiceModel.getGrandTotal();
 
         String upiUri = "upi://pay?pa=" + sharedPrefHelper.getUpiId() +
                 "&pn=" + sharedPrefHelper.getPayeeName() +
@@ -1047,7 +1124,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String generateQRImage(BillingInvoiceModel billingInvoiceModel) {
         try {
 
-            Double totalPay = (billingInvoiceModel.getIsCourier()) ? billingInvoiceModel.getSellingCost() + billingInvoiceModel.getCourierAmount() : billingInvoiceModel.getSellingCost();
+            Double totalPay = billingInvoiceModel.getGrandTotal();
 
             String upiUri = "upi://pay?pa=" + sharedPrefHelper.getUpiId() +
                     "&pn=" + sharedPrefHelper.getPayeeName() +

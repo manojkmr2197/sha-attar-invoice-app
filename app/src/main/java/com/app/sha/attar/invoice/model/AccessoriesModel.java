@@ -10,6 +10,8 @@ public class AccessoriesModel {
     private String owner;
     private String dealer;
     private String status;
+    private String hsnCode;
+    private Double gstPercentage;
 
     public AccessoriesModel() {
     }
@@ -84,5 +86,21 @@ public class AccessoriesModel {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getHsnCode() {
+        return hsnCode != null ? hsnCode : "33074100";
+    }
+
+    public void setHsnCode(String hsnCode) {
+        this.hsnCode = hsnCode;
+    }
+
+    public Double getGstPercentage() {
+        return gstPercentage != null ? gstPercentage : 18.0;
+    }
+
+    public void setGstPercentage(Double gstPercentage) {
+        this.gstPercentage = gstPercentage;
     }
 }

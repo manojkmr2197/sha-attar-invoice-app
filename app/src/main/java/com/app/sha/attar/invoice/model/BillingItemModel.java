@@ -15,6 +15,13 @@ public class BillingItemModel {
     String productCategory;
     Integer pieces;
 
+    // GST Fields
+    String hsnCode;
+    Double gstPercentage;
+    Double gstAmount;
+    Double taxableValue;
+    Double discount;
+
     public BillingItemModel() {
     }
 
@@ -44,7 +51,7 @@ public class BillingItemModel {
     }
 
     public String getName() {
-        return name;
+        return name != null ? name : "";
     }
 
     public void setName(String name) {
@@ -68,7 +75,7 @@ public class BillingItemModel {
     }
 
     public Double getUnitPrice() {
-        return unitPrice;
+        return unitPrice != null ? unitPrice : 0.0;
     }
 
     public void setUnitPrice(Double unitPrice) {
@@ -76,7 +83,7 @@ public class BillingItemModel {
     }
 
     public Double getTotalPrice() {
-        return totalPrice;
+        return totalPrice != null ? totalPrice : 0.0;
     }
 
     public void setTotalPrice(Double totalPrice) {
@@ -108,7 +115,7 @@ public class BillingItemModel {
     }
 
     public Double getSellingItemPrice() {
-        return sellingItemPrice;
+        return sellingItemPrice != null ? sellingItemPrice : 0.0;
     }
 
     public void setSellingItemPrice(Double sellingItemPrice) {
@@ -116,10 +123,50 @@ public class BillingItemModel {
     }
 
     public Integer getPieces() {
-        return pieces;
+        return pieces != null ? pieces : 1;
     }
 
     public void setPieces(Integer pieces) {
         this.pieces = pieces;
+    }
+
+    public String getHsnCode() {
+        return hsnCode != null ? hsnCode : "";
+    }
+
+    public void setHsnCode(String hsnCode) {
+        this.hsnCode = hsnCode;
+    }
+
+    public Double getGstPercentage() {
+        return gstPercentage != null ? gstPercentage : 0.0;
+    }
+
+    public void setGstPercentage(Double gstPercentage) {
+        this.gstPercentage = gstPercentage;
+    }
+
+    public Double getGstAmount() {
+        return gstAmount != null ? gstAmount : 0.0;
+    }
+
+    public void setGstAmount(Double gstAmount) {
+        this.gstAmount = gstAmount;
+    }
+
+    public Double getTaxableValue() {
+        return taxableValue != null ? taxableValue : 0.0;
+    }
+
+    public void setTaxableValue(Double taxableValue) {
+        this.taxableValue = taxableValue;
+    }
+
+    public Double getDiscount() {
+        return discount != null ? discount : 0.0;
+    }
+
+    public void setDiscount(Double discount) {
+        this.discount = discount;
     }
 }

@@ -294,7 +294,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
     private String generateQRImage(BillingInvoiceModel billingInvoiceModel) {
         try {
 
-            Double totalPay = (billingInvoiceModel.getIsCourier()) ? billingInvoiceModel.getSellingCost() + billingInvoiceModel.getCourierAmount() : billingInvoiceModel.getSellingCost();
+            Double totalPay = billingInvoiceModel.getGrandTotal();
 
             String upiUri = "upi://pay?pa=" + sharedPrefHelper.getUpiId() +
                     "&pn=" + sharedPrefHelper.getPayeeName() +

@@ -87,97 +87,79 @@
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="16dp"
-                    android:layout_marginTop="8dp"
-                    android:visibility="gone"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="6dp">
+                    android:layout_margin="3dp"
+                    app:cardCornerRadius="6dp"
+                    app:cardElevation="3dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/card_gradient_background"
                         android:orientation="vertical"
-                        android:padding="20dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:drawableStart="@drawable/ic_baseline_person_24"
-                            android:drawablePadding="8dp"
-                            android:drawableTint="@color/app_color"
-                            android:text="Customer Information"
-                            android:textColor="@color/app_color"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <View
-                            android:layout_width="60dp"
-                            android:layout_height="3dp"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginBottom="16dp"
-                            android:background="@color/app_color" />
+                        android:padding="8dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical">
 
-                            <LinearLayout
+                            <TextView
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:orientation="vertical">
+                                android:drawableStart="@drawable/ic_baseline_person_24"
+                                android:drawablePadding="6dp"
+                                android:drawableTint="@color/app_color"
+                                android:text="Customer Details"
+                                android:textColor="@color/app_color"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
 
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Name"
-                                    android:textColor="#666666"
-                                    android:textSize="12sp" />
-
-                                <TextView
-                                    android:id="@+id/invoice_history_detail_customer_name"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:text="Mano"
-                                    android:textColor="@color/black"
-                                    android:textSize="18sp"
-                                    android:textStyle="bold" />
-
-                            </LinearLayout>
-
-                            <View
-                                android:layout_width="1dp"
-                                android:layout_height="40dp"
-                                android:layout_marginHorizontal="16dp"
-                                android:background="#E0E0E0" />
-
-                            <LinearLayout
-                                android:layout_width="0dp"
+                            <TextView
+                                android:id="@+id/invoice_history_detail_customer_name"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:text="Bill by: -"
+                                android:textColor="#666666"
+                                android:textSize="11sp" />
+
+                            <TextView
+                                android:id="@+id/invoice_history_detail_customer_phone"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:visibility="gone" />
+
+                        </LinearLayout>
+
+                        <!-- Client Phone & Name Inputs -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:orientation="horizontal">
+
+                            <AutoCompleteTextView
+                                android:id="@+id/invoice_history_detail_client_phone"
+                                android:layout_width="0dp"
+                                android:layout_height="36dp"
                                 android:layout_weight="1"
-                                android:orientation="vertical">
+                                android:background="@drawable/input_field_background"
+                                android:hint="Phone (10 digits)"
+                                android:paddingHorizontal="8dp"
+                                android:inputType="phone"
+                                android:maxLength="10"
+                                android:textSize="12sp" />
 
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Phone"
-                                    android:textColor="#666666"
-                                    android:textSize="12sp" />
-
-                                <TextView
-                                    android:id="@+id/invoice_history_detail_customer_phone"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:text="9585905176"
-                                    android:textColor="@color/black"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold" />
-
-                            </LinearLayout>
+                            <EditText
+                                android:id="@+id/invoice_history_detail_client_name"
+                                android:layout_width="0dp"
+                                android:layout_height="36dp"
+                                android:layout_weight="1"
+                                android:layout_marginStart="6dp"
+                                android:background="@drawable/input_field_background"
+                                android:hint="Customer Name"
+                                android:paddingHorizontal="8dp"
+                                android:inputType="textPersonName"
+                                android:textSize="12sp" />
 
                         </LinearLayout>
 
@@ -416,6 +398,91 @@
                                 android:textColor="@color/app_color"
                                 android:textSize="18sp"
                                 android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <!-- GST Section -->
+                        <LinearLayout
+                            android:id="@+id/invoice_history_detail_gst_section"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginTop="4dp"
+                            android:background="@drawable/payment_option_background"
+                            android:padding="6dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+
+                                <CheckBox
+                                    android:id="@+id/invoice_history_detail_cb_apply_gst"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="30dp"
+                                    android:text="GST"
+                                    android:checked="true"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/black" />
+
+                                <LinearLayout
+                                    android:id="@+id/invoice_history_detail_ll_gst_details"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical"
+                                    android:layout_marginStart="6dp">
+
+                                    <RadioGroup
+                                        android:id="@+id/invoice_history_detail_rg_place_of_supply"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal">
+
+                                        <RadioButton
+                                            android:id="@+id/invoice_history_detail_rb_inside_tn"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="28dp"
+                                            android:text="TN"
+                                            android:checked="true"
+                                            android:textSize="11sp" />
+
+                                        <RadioButton
+                                            android:id="@+id/invoice_history_detail_rb_outside_tn"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="28dp"
+                                            android:text="Other"
+                                            android:layout_marginStart="4dp"
+                                            android:textSize="11sp" />
+
+                                    </RadioGroup>
+
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/invoice_history_detail_tv_gst_amount"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="+Rs. 0.00"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/app_color" />
+
+                            </LinearLayout>
+
+                            <!-- GST Rates Info Hint -->
+                            <TextView
+                                android:id="@+id/invoice_history_detail_tv_gst_rate_hint"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="* 18% for Attar and 12% accessories"
+                                android:textColor="#555555"
+                                android:textSize="10sp"
+                                android:paddingStart="4dp"
+                                android:layout_marginTop="1dp" />
 
                         </LinearLayout>
 

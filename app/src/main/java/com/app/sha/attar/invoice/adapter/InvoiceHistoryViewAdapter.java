@@ -61,15 +61,29 @@ public class InvoiceHistoryViewAdapter extends RecyclerView.Adapter<InvoiceHisto
             holder.date.setText(offsetDateTime.format(formatter));
         }
 
-        holder.name.setText(contentList.get(index).getCustomerName().trim());
-        holder.phone.setText(contentList.get(index).getCustomerPhone().trim());
+        String clientName = contentList.get(index).getClientName();
+        String clientPhone = contentList.get(index).getClientPhoneNo();
+        String custName = contentList.get(index).getCustomerName();
+        String custPhone = contentList.get(index).getCustomerPhone();
 
-        if(contentList.get(index).getPaymentMode().equalsIgnoreCase("CARD")){
-            holder.paymentMode.setText(contentList.get(index).getPaymentMode()+ "[Charge Inc. ₹"+df.format(contentList.get(index).getCardCharges())+"]");
-            holder.sellingPrice.setText("₹ " + df.format(contentList.get(index).getSellingCost()+contentList.get(index).getCardCharges()));
-        }else{
-            holder.paymentMode.setText(contentList.get(index).getPaymentMode());
-            holder.sellingPrice.setText("₹ " + df.format(contentList.get(index).getSellingCost()));
+        String displayName = (clientName != null && !clientName.trim().isEmpty()) ? clientName.trim() : ((custName != null && !custName.trim().isEmpty()) ? custName.trim() : "Walk-in");
+        String displayPhone = (clientPhone != null && !clientPhone.trim().isEmpty()) ? clientPhone.trim() : ((custPhone != null && !custPhone.trim().isEmpty()) ? custPhone.trim() : "-");
+
+        holder.name.setText(displayName);
+        holder.phone.setText(displayPhone);
+        holder.billBy.setText("Bill By : "+contentList.get(index).getCustomerName());
+
+        String pMode = contentList.get(index).getPaymentMode() != null ? contentList.get(index).getPaymentMode() : "CASH";
+        Double cardCharges = contentList.get(index).getCardCharges() != null ? contentList.get(index).getCardCharges() : 0.0;
+        Double sellCost = contentList.get(index).getSellingCost() != null ? contentList.get(index).getSellingCost() : 0.0;
+        Double grandTotal = contentList.get(index).getGrandTotal();
+
+        if ("CARD".equalsIgnoreCase(pMode)) {
+            holder.paymentMode.setText(pMode + " [Charge Inc. ₹" + df.format(cardCharges) + "]");
+            holder.sellingPrice.setText("₹ " + df.format(grandTotal + cardCharges));
+        } else {
+            holder.paymentMode.setText(pMode);
+            holder.sellingPrice.setText("₹ " + df.format(grandTotal));
         }
         holder.discount.setText(contentList.get(index).getDiscount() + " %");
 
@@ -84,10 +98,16 @@ public class InvoiceHistoryViewAdapter extends RecyclerView.Adapter<InvoiceHisto
             holder.owner_view.setVisibility(View.VISIBLE);
 
             final Double[] actualPrice = {0.0};
-            contentList.get(index).getBillingItemModelList().stream().forEach(data -> actualPrice[0] += data.getTotalPrice());
+            if (contentList.get(index).getBillingItemModelList() != null) {
+                contentList.get(index).getBillingItemModelList().forEach(data -> {
+                    if (data != null && data.getTotalPrice() != null) {
+                        actualPrice[0] += data.getTotalPrice();
+                    }
+                });
+            }
 
             holder.actualPrice.setText("Rs. " + df.format(actualPrice[0]));
-            holder.profit.setText("Rs. " + df.format((contentList.get(index).getSellingCost() - actualPrice[0])));
+            holder.profit.setText("Rs. " + df.format(sellCost - actualPrice[0]));
         } else {
             holder.owner_view.setVisibility(View.GONE);
         }

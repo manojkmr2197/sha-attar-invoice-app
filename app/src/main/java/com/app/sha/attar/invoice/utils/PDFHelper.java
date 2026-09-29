@@ -54,11 +54,12 @@ public class PDFHelper {
         int logoHeight = 150;
         int estimatedLines = 0;
 
-        estimatedLines += 6; // Header lines
+        estimatedLines += 8; // Header lines
         estimatedLines += 4; // Address and footer
-        estimatedLines += billData.getBillingItemModelList().size(); // Items
+        estimatedLines += billData.getBillingItemModelList().size() * 2; // Items with potential multi-line
         if (billData.getDiscount() > 0) estimatedLines += 2;
-        estimatedLines += 10; // separators, thank you, etc.
+        if (billData.getIsGSTApplicable() != null && billData.getIsGSTApplicable()) estimatedLines += 5;
+        estimatedLines += 12; // separators, thank you, etc.
 
         int pageHeight = marginTop + logoHeight + (estimatedLines * lineHeight) + 100;
 
@@ -80,14 +81,17 @@ public class PDFHelper {
         y += 30;
         paint.setTextSize(18f);
         canvas.drawText("(Make your own Perfume)", pageWidth / 2f, y, paint);
-        y += 40;
+        y += 25;
+        paint.setTextSize(16f);
+        canvas.drawText("GSTIN: 33FIPPM7687P1ZZ", pageWidth / 2f, y, paint);
+        y += 35;
 
         // Date
         paint.setTextSize(16f);
         paint.setTextAlign(Paint.Align.RIGHT);
         String dateStr = new SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.getDefault()).format(new Date());
         canvas.drawText("Date: " + dateStr.toUpperCase(), pageWidth - 20, y, paint);
-        y += 40;
+        y += 35;
 
         // Order details
         paint.setTextAlign(Paint.Align.LEFT);
@@ -97,27 +101,31 @@ public class PDFHelper {
         canvas.drawText("Bill by: " + billData.getCustomerName().toUpperCase(), 10, y, paint);
         y += 30;
 
-        // Separator
+        boolean isGst = billData.getIsGSTApplicable() != null && billData.getIsGSTApplicable();
+        if (isGst) {
+            if (billData.getCustomerGST() != null && !billData.getCustomerGST().trim().isEmpty()) {
+                canvas.drawText("Cust GSTIN: " + billData.getCustomerGST().toUpperCase(), 10, y, paint);
+                y += 30;
+            }
+        }
 
+        // Separators
         int starWidth = (int) paint.measureText("*");
         int starCount = pageWidth / starWidth;
         String starLine = new String(new char[starCount]).replace('\0', '*');
-        paint.setTextAlign(Paint.Align.LEFT);
 
         int dashWidth = (int) paint.measureText("-");
         int dashCount = pageWidth / dashWidth;
-
-        // Build the line
         String dashLine = new String(new char[dashCount]).replace('\0', '-');
-        canvas.drawText(dashLine, 0, y, paint);  // start at X=0
-        //canvas.drawText(dashLine, pageWidth / 2f, y, paint);
+        canvas.drawText(dashLine, 0, y, paint);
         y += 20;
 
         // Table header
         paint.setTextAlign(Paint.Align.LEFT);
         canvas.drawText("PRODUCT", 10, y, paint);
         paint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText("QTY", (int)(pageWidth * 0.65f), y, paint);
+        canvas.drawText("QTY", (int)(pageWidth * 0.52f), y, paint);
+        canvas.drawText("GST %", (int)(pageWidth * 0.70f), y, paint);
         paint.setTextAlign(Paint.Align.RIGHT);
         canvas.drawText("PRICE", pageWidth - 20, y, paint);
         y += 20;
@@ -128,9 +136,10 @@ public class PDFHelper {
         y += 20;
 
         float productX = 10;
-        float qtyX = pageWidth * 0.65f;
+        float qtyX = pageWidth * 0.52f;
+        float gstX = pageWidth * 0.70f;
         float priceX = pageWidth - 20;
-        float productMaxWidth = pageWidth * 0.55f;
+        float productMaxWidth = pageWidth * 0.44f;
         int prdlineHeight = 28;
 
         paint.setTextAlign(Paint.Align.LEFT);
@@ -145,6 +154,7 @@ public class PDFHelper {
             }
 
             String qty = item.getUnits() != null ? item.getUnits() + " ML" : "";
+            String gstStr = isGst ? String.format("%.0f%%", item.getGstPercentage() > 0 ? item.getGstPercentage() : 18.0) : "-";
             String price = "Rs." + String.format("%.2f", item.getPieces() * item.getSellingItemPrice());
 
             // Draw multiline product name
@@ -158,9 +168,10 @@ public class PDFHelper {
                     prdlineHeight
             );
 
-            // QTY & PRICE only on first line
+            // QTY, GST% & PRICE only on first line
             paint.setTextAlign(Paint.Align.CENTER);
             canvas.drawText(qty, qtyX, y, paint);
+            canvas.drawText(gstStr, gstX, y, paint);
 
             paint.setTextAlign(Paint.Align.RIGHT);
             canvas.drawText(price, priceX, y, paint);
@@ -178,20 +189,20 @@ public class PDFHelper {
         y += 30;
 
         // =====================
-// PROFESSIONAL TOTALS
-// =====================
+        // PROFESSIONAL TOTALS
+        // =====================
         paint.setTextSize(18f);
         paint.setTypeface(Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL));
 
         double sellingCost = billData.getSellingCost();
 
-// Subtotal
+        // Subtotal
         drawRow(canvas, paint, "Subtotal",
                 "Rs." + String.format("%.2f", billData.getTotalCost()),
                 y, pageWidth);
         y += 25;
 
-// Discount
+        // Discount
         if (billData.getDiscount() > 0) {
             drawRow(canvas, paint,
                     "Discount (" + billData.getDiscount() + "%)",
@@ -201,30 +212,78 @@ public class PDFHelper {
             y += 25;
         }
 
-// Courier
-        if (billData.getIsCourier() != null && billData.getIsCourier()) {
+        // Separator
+        paint.setTextAlign(Paint.Align.LEFT);
+        canvas.drawText(dashLine, 0, y, paint);
+        y += 30;
+
+        double totalTax = 0.0;
+        // GST Section
+        if (isGst) {
             drawRow(canvas, paint,
-                    "Courier Charges",
-                    "Rs." + String.format("%.2f", billData.getCourierAmount()),
+                    "Taxable Amount",
+                    "Rs." + String.format("%.2f", billData.getTaxableAmount() > 0 ? billData.getTaxableAmount() : sellingCost),
                     y, pageWidth);
             y += 25;
 
-            sellingCost += billData.getCourierAmount();
+            if (GSTCalculator.isInsideTN(billData.getPlaceOfSupply())) {
+                drawRow(canvas, paint,
+                        "CGST (9%)",
+                        "Rs." + String.format("%.2f", billData.getCgstAmount()),
+                        y, pageWidth);
+                y += 25;
+                drawRow(canvas, paint,
+                        "SGST (9%)",
+                        "Rs." + String.format("%.2f", billData.getSgstAmount()),
+                        y, pageWidth);
+                y += 25;
+                totalTax = billData.getCgstAmount() + billData.getSgstAmount();
+            } else {
+                drawRow(canvas, paint,
+                        "IGST (18%)",
+                        "Rs." + String.format("%.2f", billData.getIgstAmount()),
+                        y, pageWidth);
+                y += 25;
+                totalTax = billData.getIgstAmount();
+            }
         }
 
-// Separator
+        double courierAmt = 0.0;
+        // Courier
+        if (billData.getIsCourier() != null && billData.getIsCourier()) {
+            courierAmt = billData.getCourierAmount();
+            drawRow(canvas, paint,
+                    "Courier Charges",
+                    "Rs." + String.format("%.2f", courierAmt),
+                    y, pageWidth);
+            y += 25;
+        }
+
+        double roundOffAmt = 0.0;
+        if (isGst && billData.getRoundOff() != null && Math.abs(billData.getRoundOff()) > 0.001) {
+            roundOffAmt = billData.getRoundOff();
+            drawRow(canvas, paint,
+                    "Round Off",
+                    "Rs." + String.format("%.2f", roundOffAmt),
+                    y, pageWidth);
+            y += 25;
+        }
+
+        // Separator
         paint.setTextAlign(Paint.Align.LEFT);
         canvas.drawText(dashLine, 0, y, paint);
         y += 25;
 
-// -----------------
-// CARD CHARGES
-// -----------------
+        double grandTotal = round(sellingCost + totalTax + courierAmt + roundOffAmt);
+
+        // -----------------
+        // CARD CHARGES
+        // -----------------
         if ("CARD".equalsIgnoreCase(billData.getPaymentMode())) {
 
-            double cardCharge = round(sellingCost * 0.03);
+            double cardCharge = round(grandTotal * 0.03);
             double gst = round(cardCharge * 0.18);
-            double finalPayable = round(sellingCost + cardCharge + gst);
+            double finalPayable = round(grandTotal + cardCharge + gst);
 
             drawRow(canvas, paint,
                     "Card Charges (3%)",
@@ -259,7 +318,7 @@ public class PDFHelper {
 
             drawRow(canvas, paint,
                     "TOTAL",
-                    "Rs." + String.format("%.2f", sellingCost),
+                    "Rs." + String.format("%.2f", grandTotal),
                     y, pageWidth);
             y += 40;
         }

@@ -55,12 +55,14 @@ import com.app.sha.attar.invoice.listener.TimeApi;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.BillingItemModel;
+import com.app.sha.attar.invoice.model.ClientModel;
 import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.model.TimeResponse;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
+import com.app.sha.attar.invoice.utils.GSTCalculator;
 import com.app.sha.attar.invoice.utils.RetrofitClient;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
@@ -83,6 +85,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -97,6 +100,12 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import com.app.sha.attar.invoice.model.ClientModel;
+import com.app.sha.attar.invoice.utils.GSTCalculator;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements View.OnClickListener {
 
     Context context;
@@ -109,6 +118,18 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
     TextView backIcon;
     TextView invoiceIdTv, invoiceDtTv;
     TextView customerName, customerPhone;
+
+    EditText clientNameEt;
+    AutoCompleteTextView clientPhoneEt;
+    CheckBox cbApplyGst;
+    RadioGroup rgPlaceOfSupply;
+    RadioButton rbInsideTn, rbOutsideTn;
+    TextView tvGstAmount, tvGstRateHint;
+    LinearLayout llGstDetails;
+
+    List<ClientModel> cachedClients = new ArrayList<>();
+    List<String> cachedPhoneNumbers = new ArrayList<>();
+    List<String> cachedPhoneSuggestions = new ArrayList<>();
 
     RadioGroup paymentGroup;
     RadioButton cashRadioBt, upiRadioBt, cardRadioBt;
@@ -175,6 +196,37 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         customerName = findViewById(R.id.invoice_history_detail_customer_name);
         customerPhone = findViewById(R.id.invoice_history_detail_customer_phone);
 
+        clientNameEt = findViewById(R.id.invoice_history_detail_client_name);
+        clientPhoneEt = findViewById(R.id.invoice_history_detail_client_phone);
+
+        cbApplyGst = findViewById(R.id.invoice_history_detail_cb_apply_gst);
+        rgPlaceOfSupply = findViewById(R.id.invoice_history_detail_rg_place_of_supply);
+        rbInsideTn = findViewById(R.id.invoice_history_detail_rb_inside_tn);
+        rbOutsideTn = findViewById(R.id.invoice_history_detail_rb_outside_tn);
+        tvGstAmount = findViewById(R.id.invoice_history_detail_tv_gst_amount);
+        tvGstRateHint = findViewById(R.id.invoice_history_detail_tv_gst_rate_hint);
+        llGstDetails = findViewById(R.id.invoice_history_detail_ll_gst_details);
+
+        if (cbApplyGst != null) {
+            cbApplyGst.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (llGstDetails != null) {
+                    llGstDetails.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+                }
+                if (tvGstRateHint != null) {
+                    tvGstRateHint.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+                }
+                manageBillingLayout();
+            });
+        }
+
+        if (rgPlaceOfSupply != null) {
+            rgPlaceOfSupply.setOnCheckedChangeListener((group, checkedId) -> {
+                manageBillingLayout();
+            });
+        }
+
+        loadClientsForAutoFill();
+
         paymentGroup = findViewById(R.id.invoice_history_detail_payment_radio_group);
         cashRadioBt = findViewById(R.id.invoice_history_detail_payment_cash);
         upiRadioBt = findViewById(R.id.invoice_history_detail_payment_upi);
@@ -213,6 +265,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 courier_amount.setText("0.0");
                 courier_amount.setVisibility(View.GONE);
             }
+            manageBillingLayout();
         });
 
 
@@ -262,11 +315,93 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         } else {
             addInvoiceBt.setText("Add Invoice");
             billingInvoiceModel = new BillingInvoiceModel();
-            customerName.setText(sharedPrefHelper.getLoginUserName());
+            customerName.setText("Bill by: " + sharedPrefHelper.getLoginUserName());
             customerPhone.setText(sharedPrefHelper.getLoginUserPhone());
             getServerDate();
         }
 
+    }
+
+    private void loadClientsForAutoFill() {
+        dbObj.getAllBillingInvoices(invoices -> {
+            cachedClients.clear();
+            cachedPhoneNumbers.clear();
+            cachedPhoneSuggestions.clear();
+            Map<String, String> clientMap = new HashMap<>();
+            if (invoices != null) {
+                for (BillingInvoiceModel invoice : invoices) {
+                    String phone = invoice.getClientPhoneNo();
+                    if (TextUtils.isEmpty(phone)) {
+                        phone = invoice.getCustomerPhone();
+                    }
+                    if (TextUtils.isEmpty(phone)) {
+                        continue;
+                    }
+                    String name = invoice.getClientName();
+                    if (TextUtils.isEmpty(name)) {
+                        name = invoice.getCustomerName();
+                    }
+                    if (!TextUtils.isEmpty(name) && !"Unknown Client".equalsIgnoreCase(name)) {
+                        clientMap.put(phone, name);
+                    }
+                }
+            }
+            for (Map.Entry<String, String> entry : clientMap.entrySet()) {
+                cachedClients.add(new ClientModel(entry.getValue(), entry.getKey()));
+                cachedPhoneNumbers.add(entry.getKey());
+                cachedPhoneSuggestions.add(entry.getKey() + " (" + entry.getValue() + ")");
+            }
+
+            if (clientPhoneEt != null && clientNameEt != null) {
+                ArrayAdapter<String> phoneAdapter = new ArrayAdapter<>(context, android.R.layout.simple_dropdown_item_1line, cachedPhoneSuggestions);
+                clientPhoneEt.setAdapter(phoneAdapter);
+                clientPhoneEt.setThreshold(1);
+
+                clientPhoneEt.setOnItemClickListener((parent, view, position, id) -> {
+                    String selectedItem = (String) parent.getItemAtPosition(position);
+                    int bracketIndex = selectedItem.indexOf(" (");
+                    if (bracketIndex != -1) {
+                        String selectedPhone = selectedItem.substring(0, bracketIndex).trim();
+                        String selectedName = selectedItem.substring(bracketIndex + 2, selectedItem.length() - 1).trim();
+
+                        clientPhoneEt.post(() -> {
+                            clientPhoneEt.setText(selectedPhone);
+                            clientPhoneEt.setSelection(selectedPhone.length());
+                            clientNameEt.setText(selectedName);
+                            clientPhoneEt.dismissDropDown();
+                            clientPhoneEt.clearFocus();
+                            InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+                            if (imm != null) {
+                                imm.hideSoftInputFromWindow(clientPhoneEt.getWindowToken(), 0);
+                            }
+                        });
+                        Toast.makeText(context, "Customer name filled automatically", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                clientPhoneEt.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        String phone = s.toString().trim();
+                        if (phone.length() == 10) {
+                            for (ClientModel client : cachedClients) {
+                                if (client.getPhone().equals(phone)) {
+                                    clientNameEt.setText(client.getName());
+                                    Toast.makeText(context, "Customer name filled automatically", Toast.LENGTH_SHORT).show();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
     }
 
     private void onCardChargeClicked(double billAmount, boolean isCardChargeVisible) {
@@ -350,22 +485,45 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 invoiceIdTv.setText("Invoice ID : " + billingInvoiceModel.getBillingDate());
                 customerName.setText(billingInvoiceModel.getCustomerName());
                 customerPhone.setText(billingInvoiceModel.getCustomerPhone());
+
+                if (clientNameEt != null) {
+                    clientNameEt.setText(StringUtils.isNotBlank(billingInvoiceModel.getClientName()) ? billingInvoiceModel.getClientName() : "");
+                }
+                if (clientPhoneEt != null) {
+                    clientPhoneEt.setText(StringUtils.isNotBlank(billingInvoiceModel.getClientPhoneNo()) ? billingInvoiceModel.getClientPhoneNo() : "");
+                }
+
+                boolean isGst = billingInvoiceModel.getIsGSTApplicable() != null && billingInvoiceModel.getIsGSTApplicable();
+                if (cbApplyGst != null) {
+                    cbApplyGst.setChecked(isGst);
+                }
+                if (llGstDetails != null) {
+                    llGstDetails.setVisibility(isGst ? View.VISIBLE : View.GONE);
+                }
+                if (tvGstRateHint != null) {
+                    tvGstRateHint.setVisibility(isGst ? View.VISIBLE : View.GONE);
+                }
+                if (rgPlaceOfSupply != null) {
+                    if ("OUTSIDE_TN".equalsIgnoreCase(billingInvoiceModel.getPlaceOfSupply())) {
+                        if (rbOutsideTn != null) rbOutsideTn.setChecked(true);
+                    } else {
+                        if (rbInsideTn != null) rbInsideTn.setChecked(true);
+                    }
+                }
+
                 paymentMode = billingInvoiceModel.getPaymentMode();
                 if ("CASH".equalsIgnoreCase(paymentMode)) {
                     cashRadioBt.setChecked(true);
                     upiRadioBt.setChecked(false);
                     cardRadioBt.setChecked(false);
-                    onCardChargeClicked(billingInvoiceModel.getSellingCost(), false);
                 } else if ("UPI".equalsIgnoreCase(paymentMode)) {
                     cashRadioBt.setChecked(false);
                     upiRadioBt.setChecked(true);
                     cardRadioBt.setChecked(false);
-                    onCardChargeClicked(billingInvoiceModel.getSellingCost(), false);
                 } else if ("CARD".equalsIgnoreCase(paymentMode)) {
                     cardRadioBt.setChecked(true);
                     cashRadioBt.setChecked(false);
                     upiRadioBt.setChecked(false);
-                    onCardChargeClicked(billingInvoiceModel.getSellingCost(), true);
                 }
 
                 if (billingInvoiceModel.getIsCourier() != null && billingInvoiceModel.getCourierAmount() != null) {
@@ -382,20 +540,16 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                     courier_amount.setVisibility(View.GONE);
                 }
 
-                totalAmountTv.setText("Rs. " + df.format(billingInvoiceModel.getTotalCost()));
-                discountTv.setText(String.valueOf(Math.round(billingInvoiceModel.getDiscount())) + "%");
-                sellingAmountTv.setText("Rs. " + df.format(billingInvoiceModel.getSellingCost()));
-
-                totalAmount = billingInvoiceModel.getTotalCost();
-                discount = billingInvoiceModel.getDiscount();
-                sellingAmount = billingInvoiceModel.getSellingCost();
-
-                finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount));
+                discount = billingInvoiceModel.getDiscount() != null ? billingInvoiceModel.getDiscount() : 0.0;
 
                 itemModelList.clear();
-                itemModelList.addAll(result.getBillingItemModelList());
+                if (result.getBillingItemModelList() != null) {
+                    itemModelList.addAll(result.getBillingItemModelList());
+                }
                 invoiceAdapter.notifyDataSetChanged();
-                itemRecyclerview.post(() -> itemRecyclerview.scrollToPosition(invoiceAdapter.getItemCount() - 1));
+
+                manageBillingLayout();
+
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                     OffsetDateTime offsetDateTime = Instant.ofEpochSecond(result.getBillingDate()).atOffset(istOffset);
                     invoiceDtTv.setText(offsetDateTime.format(formatter));
@@ -494,12 +648,60 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         totalAmountTv.setText("Rs. " + round(totalAmount));
         discountTv.setText(String.valueOf(Math.round(discount)) + " %");
         sellingAmountTv.setText("Rs. " + round(sellingAmount));
-        if (paymentMode.equalsIgnoreCase("CARD")) {
-            onCardChargeClicked(sellingAmount, true);
-        }else{
-            onCardChargeClicked(sellingAmount, false);
+
+        boolean isGst = cbApplyGst != null && cbApplyGst.isChecked();
+        String pos = (rgPlaceOfSupply != null && rgPlaceOfSupply.getCheckedRadioButtonId() == R.id.invoice_history_detail_rb_outside_tn) ? "OUTSIDE_TN" : "INSIDE_TN";
+
+        if (billingInvoiceModel == null) {
+            billingInvoiceModel = new BillingInvoiceModel();
         }
-        finalBillingAmountTv.setText("Rs. " + round(sellingAmount + cardChargeAmount));
+
+        double courierAmt = 0.0;
+        if (courier_checkBox != null && courier_checkBox.isChecked() && courier_amount != null && StringUtils.isNotBlank(courier_amount.getText().toString())) {
+            try {
+                courierAmt = Double.parseDouble(courier_amount.getText().toString());
+            } catch (Exception ignored) {}
+        }
+        billingInvoiceModel.setIsCourier(courier_checkBox != null && courier_checkBox.isChecked());
+        billingInvoiceModel.setCourierAmount(courierAmt);
+
+        billingInvoiceModel.setTotalCost(totalAmount);
+        billingInvoiceModel.setDiscount(discount);
+        billingInvoiceModel.setSellingCost(sellingAmount);
+        billingInvoiceModel.setBillingItemModelList(itemModelList);
+        billingInvoiceModel.setIsGSTApplicable(isGst);
+        billingInvoiceModel.setPlaceOfSupply(pos);
+
+        if (isGst) {
+            for (BillingItemModel item : itemModelList) {
+                GSTCalculator.populateItemGST(item);
+            }
+            GSTCalculator.calculateInvoiceTaxes(billingInvoiceModel);
+            double totalTax = (billingInvoiceModel.getCgstAmount() != null ? billingInvoiceModel.getCgstAmount() : 0.0) +
+                    (billingInvoiceModel.getSgstAmount() != null ? billingInvoiceModel.getSgstAmount() : 0.0) +
+                    (billingInvoiceModel.getIgstAmount() != null ? billingInvoiceModel.getIgstAmount() : 0.0);
+            if (tvGstAmount != null) {
+                tvGstAmount.setText("₹" + String.format(Locale.ENGLISH, "%.2f", totalTax));
+            }
+        } else {
+            billingInvoiceModel.setTaxableAmount(0.0);
+            billingInvoiceModel.setCgstAmount(0.0);
+            billingInvoiceModel.setSgstAmount(0.0);
+            billingInvoiceModel.setIgstAmount(0.0);
+            billingInvoiceModel.setRoundOff(0.0);
+            if (tvGstAmount != null) {
+                tvGstAmount.setText("₹0.00");
+            }
+        }
+
+        double payableBase = (isGst && billingInvoiceModel.getGrandTotal() != null) ? billingInvoiceModel.getGrandTotal() : (sellingAmount + courierAmt);
+
+        if ("CARD".equalsIgnoreCase(paymentMode)) {
+            onCardChargeClicked(payableBase, true);
+        } else {
+            onCardChargeClicked(payableBase, false);
+        }
+        finalBillingAmountTv.setText("Rs. " + round(payableBase + cardChargeAmount));
         invoiceAdapter.notifyDataSetChanged();
 
         if (invoiceAdapter.getItemCount() > 0) {
@@ -1346,6 +1548,12 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
 
         billingInvoiceModel.setCustomerName(customerName.getText().toString());
         billingInvoiceModel.setCustomerPhone(customerPhone.getText().toString());
+        if (clientNameEt != null && StringUtils.isNotBlank(clientNameEt.getText().toString())) {
+            billingInvoiceModel.setClientName(clientNameEt.getText().toString().trim());
+        }
+        if (clientPhoneEt != null && StringUtils.isNotBlank(clientPhoneEt.getText().toString())) {
+            billingInvoiceModel.setClientPhoneNo(clientPhoneEt.getText().toString().trim());
+        }
         billingInvoiceModel.setPaymentMode(paymentMode);
         billingInvoiceModel.setDiscount(discount);
         billingInvoiceModel.setSellingCost(sellingAmount);
@@ -1354,10 +1562,30 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         billingInvoiceModel.setIsPrint(false);
         billingInvoiceModel.setIsCourier(courier_checkBox.isChecked());
         billingInvoiceModel.setCourierAmount(StringUtils.isNotBlank(courier_amount.getText().toString()) ? Double.parseDouble(courier_amount.getText().toString()) : 0.0);
+
+        boolean isGst = cbApplyGst != null && cbApplyGst.isChecked();
+        String pos = (rgPlaceOfSupply != null && rgPlaceOfSupply.getCheckedRadioButtonId() == R.id.invoice_history_detail_rb_outside_tn) ? "OUTSIDE_TN" : "INSIDE_TN";
+        billingInvoiceModel.setIsGSTApplicable(isGst);
+        billingInvoiceModel.setPlaceOfSupply(pos);
+
         itemModelList.stream().forEach(item -> {
             item.setInvoiceId(billingInvoiceModel.getBillingDate());
+            if (isGst) {
+                GSTCalculator.populateItemGST(item);
+            }
         });
         billingInvoiceModel.setBillingItemModelList(itemModelList);
+
+        if (isGst) {
+            GSTCalculator.calculateInvoiceTaxes(billingInvoiceModel);
+        } else {
+            billingInvoiceModel.setTaxableAmount(0.0);
+            billingInvoiceModel.setCgstAmount(0.0);
+            billingInvoiceModel.setSgstAmount(0.0);
+            billingInvoiceModel.setIgstAmount(0.0);
+            billingInvoiceModel.setRoundOff(0.0);
+        }
+
         Toast.makeText(context, "Loading..!", Toast.LENGTH_LONG).show();
         db.collection(DatabaseConstants.INVOICE_COLLECTION)
                 .document(String.valueOf(billingInvoiceModel.getBillingDate()))

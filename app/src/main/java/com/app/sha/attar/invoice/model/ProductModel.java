@@ -15,6 +15,8 @@ public class ProductModel {
     private HashMap<String,Double> attarSellingPriceMap;
     private HashMap<String,Double> perfumeSellingPriceMap;
 //    private HashMap<String,Double> perfumeActualPriceMap;
+    private String hsnCode;
+    private Double gstPercentage;
 
     public ProductModel(){}
 
@@ -118,4 +120,20 @@ public class ProductModel {
 //    public void setPerfumeActualPriceMap(HashMap<String, Double> perfumeActualPriceMap) {
 //        this.perfumeActualPriceMap = perfumeActualPriceMap;
 //    }
+
+    public String getHsnCode() {
+        return hsnCode != null ? hsnCode : "3303";
+    }
+
+    public void setHsnCode(String hsnCode) {
+        this.hsnCode = hsnCode;
+    }
+
+    public Double getGstPercentage() {
+        return gstPercentage != null ? gstPercentage : 18.0;
+    }
+
+    public void setGstPercentage(Double gstPercentage) {
+        this.gstPercentage = gstPercentage;
+    }
 }
