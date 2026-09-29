@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@drawable/bg_discount_dialog">
+
+    <!-- Title Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/baseline_cloud_download_24"
+            app:tint="@color/app_color" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Export GST Filing Report"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reports for Auditor &amp; GST Return Filing"
+                android:textSize="12sp"
+                android:textColor="@color/app_gray"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        android:layout_marginTop="14dp"
+        android:layout_marginBottom="14dp" />
+
+    <!-- Period Info Box -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#F0F4F8"
+        android:padding="10dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Selected Period: "
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:textColor="#333333" />
+
+        <TextView
+            android:id="@+id/tvExportPeriod"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="01-09-2026 to 30-09-2026"
+            android:textSize="13sp"
+            android:textColor="@color/app_color"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Format Selection -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Format:"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="#333333"
+        android:layout_marginTop="14dp" />
+
+    <RadioGroup
+        android:id="@+id/rgExportFormat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp">
+
+        <RadioButton
+            android:id="@+id/rbFormatExcel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Excel (.xlsx) - Auditor GSTR Format"
+            android:textSize="13sp"
+            android:checked="true"
+            android:textColor="@color/black" />
+
+        <RadioButton
+            android:id="@+id/rbFormatPdf"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="PDF (.pdf) - Audit Statement Format"
+            android:textSize="13sp"
+            android:textColor="@color/black" />
+
+        <RadioButton
+            android:id="@+id/rbFormatBoth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Both (Excel + PDF)"
+            android:textSize="13sp"
+            android:textColor="@color/black" />
+    </RadioGroup>
+
+    <!-- Options CheckBox -->
+    <CheckBox
+        android:id="@+id/cbGstOnly"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="GST Invoices Only (Recommended for GST Filing)"
+        android:checked="true"
+        android:textSize="13sp"
+        android:textColor="@color/black"
+        android:layout_marginTop="8dp" />
+
+    <!-- Action Buttons -->
+    <Button
+        android:id="@+id/btnExportShare"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="GENERATE &amp; SHARE"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="@color/app_color"
+        android:textColor="@color/white" />
+
+    <TextView
+        android:id="@+id/tvExportCancel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cancel"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        android:paddingTop="12dp" />
+
+</LinearLayout>

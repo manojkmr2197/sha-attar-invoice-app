@@ -47,6 +47,8 @@ import com.app.sha.attar.invoice.utils.BluetoothPrinterHelper;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
+import com.app.sha.attar.invoice.utils.GSTReportExcelHelper;
+import com.app.sha.attar.invoice.utils.GSTReportPDFHelper;
 import com.app.sha.attar.invoice.utils.PDFHelper;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
@@ -60,6 +62,12 @@ import com.google.zxing.common.BitMatrix;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 import org.apache.commons.lang3.StringUtils;
+
+import android.graphics.drawable.ColorDrawable;
+import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -96,6 +104,7 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
     LinearLayout filter_ll;
     FrameLayout data_ll, no_data_ll;
     FloatingActionButton add_fab;
+    FloatingActionButton export_fab;
 
     RecyclerView data_recycler_view;
 
@@ -153,8 +162,18 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
         add_fab = (FloatingActionButton) findViewById(R.id.invoice_history_add_fab);
         add_fab.setOnClickListener(this);
 
+        export_fab = (FloatingActionButton) findViewById(R.id.invoice_history_export_fab);
+        if (export_fab != null) {
+            export_fab.setOnClickListener(this);
+        }
+
         Intent intent = getIntent();
         owner = intent.getBooleanExtra("owner", false);
+
+        boolean isAdmin = owner || "OWNER".equalsIgnoreCase(sharedPrefHelper.getLoginUserType()) || "ADMIN".equalsIgnoreCase(sharedPrefHelper.getLoginUserType());
+        if (export_fab != null) {
+            export_fab.setVisibility(isAdmin ? View.VISIBLE : View.GONE);
+        }
 
         listener = new BillingClickListener() {
             @Override
@@ -680,7 +699,112 @@ public class InvoiceHistoryActivity extends AppCompatActivity implements View.On
             Intent i = new Intent(InvoiceHistoryActivity.this, InvoiceHistoryDetailsActivity.class);
             i.putExtra("owner", owner);
             startActivity(i);
+        } else if (R.id.invoice_history_export_fab == view.getId()) {
+            showExportReportDialog();
         }
+    }
+
+    private void showExportReportDialog() {
+        if (contentList == null || contentList.isEmpty()) {
+            Toast.makeText(context, "No invoices loaded to export! Please select a date range and click Get Invoices.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_export_gst_report);
+        dialog.setCancelable(true);
+
+        TextView tvPeriod = dialog.findViewById(R.id.tvExportPeriod);
+        RadioGroup rgFormat = dialog.findViewById(R.id.rgExportFormat);
+        RadioButton rbExcel = dialog.findViewById(R.id.rbFormatExcel);
+        RadioButton rbPdf = dialog.findViewById(R.id.rbFormatPdf);
+        RadioButton rbBoth = dialog.findViewById(R.id.rbFormatBoth);
+        CheckBox cbGstOnly = dialog.findViewById(R.id.cbGstOnly);
+        Button btnExport = dialog.findViewById(R.id.btnExportShare);
+        TextView tvCancel = dialog.findViewById(R.id.tvExportCancel);
+
+        String periodText;
+        if (startOfDay != null && endOfDay != null) {
+            periodText = start_tv.getText().toString() + " to " + end_tv.getText().toString();
+        } else {
+            periodText = "All Loaded Invoices (" + contentList.size() + ")";
+        }
+        if (tvPeriod != null) {
+            tvPeriod.setText(periodText);
+        }
+
+        if (btnExport != null) {
+            btnExport.setOnClickListener(v -> {
+                boolean isGstOnly = cbGstOnly != null && cbGstOnly.isChecked();
+                int checkedId = (rgFormat != null) ? rgFormat.getCheckedRadioButtonId() : R.id.rbFormatExcel;
+
+                try {
+                    Toast.makeText(context, "Generating GST Report...", Toast.LENGTH_SHORT).show();
+                    if (checkedId == R.id.rbFormatExcel) {
+                        File excelFile = GSTReportExcelHelper.generateGSTExcelReport(context, contentList, startOfDay, endOfDay, isGstOnly);
+                        shareSingleReportFile(excelFile, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Share GST Excel Report");
+                    } else if (checkedId == R.id.rbFormatPdf) {
+                        File pdfFile = GSTReportPDFHelper.generateGSTPDFReport(context, contentList, startOfDay, endOfDay, isGstOnly);
+                        shareSingleReportFile(pdfFile, "application/pdf", "Share GST PDF Report");
+                    } else {
+                        // Both
+                        File excelFile = GSTReportExcelHelper.generateGSTExcelReport(context, contentList, startOfDay, endOfDay, isGstOnly);
+                        File pdfFile = GSTReportPDFHelper.generateGSTPDFReport(context, contentList, startOfDay, endOfDay, isGstOnly);
+                        shareMultipleReportFiles(excelFile, pdfFile);
+                    }
+                    dialog.dismiss();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(context, "Error generating report: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
+        if (tvCancel != null) {
+            tvCancel.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.show();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+    }
+
+    private void shareSingleReportFile(File file, String mimeType, String chooserTitle) {
+        if (file == null || !file.exists()) {
+            Toast.makeText(context, "Report file could not be found!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Uri fileUri = FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", file);
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType(mimeType);
+        shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(Intent.createChooser(shareIntent, chooserTitle));
+    }
+
+    private void shareMultipleReportFiles(File file1, File file2) {
+        ArrayList<Uri> uris = new ArrayList<>();
+        if (file1 != null && file1.exists()) {
+            uris.add(FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", file1));
+        }
+        if (file2 != null && file2.exists()) {
+            uris.add(FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", file2));
+        }
+        if (uris.isEmpty()) {
+            Toast.makeText(context, "Report files could not be found!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent shareIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+        shareIntent.setType("*/*");
+        shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(Intent.createChooser(shareIntent, "Share GST Reports (Excel + PDF)"));
     }
 
     private boolean checkInternet() {
