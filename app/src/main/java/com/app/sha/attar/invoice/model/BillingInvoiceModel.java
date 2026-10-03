@@ -1,8 +1,12 @@
 package com.app.sha.attar.invoice.model;
 
+import com.google.firebase.firestore.Exclude;
+import com.google.firebase.firestore.IgnoreExtraProperties;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 
+@IgnoreExtraProperties
 public class BillingInvoiceModel implements Cloneable{
 
     Long billingDate;
@@ -252,6 +256,7 @@ public class BillingInvoiceModel implements Cloneable{
         this.invoiceDate = invoiceDate;
     }
 
+    @Exclude
     public Double getGstTotalAmount() {
         if (isGSTApplicable != null && isGSTApplicable) {
             return (cgstAmount != null ? cgstAmount : 0.0) +
@@ -261,6 +266,7 @@ public class BillingInvoiceModel implements Cloneable{
         return 0.0;
     }
 
+    @Exclude
     public Double getGrandTotal() {
         double total = getSellingCost() + getGstTotalAmount();
         if (isCourier != null && isCourier) {

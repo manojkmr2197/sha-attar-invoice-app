@@ -164,6 +164,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
     SharedPrefHelper sharedPrefHelper;
 
     Boolean owner;
+    private boolean isInitializing = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,13 +216,17 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                 if (tvGstRateHint != null) {
                     tvGstRateHint.setVisibility(isChecked ? View.VISIBLE : View.GONE);
                 }
-                manageBillingLayout();
+                if (!isInitializing) {
+                    manageBillingLayout();
+                }
             });
         }
 
         if (rgPlaceOfSupply != null) {
             rgPlaceOfSupply.setOnCheckedChangeListener((group, checkedId) -> {
-                manageBillingLayout();
+                if (!isInitializing) {
+                    manageBillingLayout();
+                }
             });
         }
 
@@ -237,6 +242,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         paymentGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if (isInitializing) return;
                 // Find which radio button is selected
                 if (R.id.invoice_history_detail_payment_cash == checkedId) {
                     paymentMode = "CASH";
@@ -258,14 +264,18 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
             if (isChecked) {
                 // Expand and show EditText
                 courier_amount.setVisibility(View.VISIBLE);
-                upiRadioBt.setChecked(true);
-                onCardChargeClicked(sellingAmount, false);
+                if (!isInitializing) {
+                    upiRadioBt.setChecked(true);
+                    onCardChargeClicked(sellingAmount, false);
+                }
             } else {
                 // Hide EditText
                 courier_amount.setText("0.0");
                 courier_amount.setVisibility(View.GONE);
             }
-            manageBillingLayout();
+            if (!isInitializing) {
+                manageBillingLayout();
+            }
         });
 
 
@@ -481,6 +491,11 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         dbObj.getBillingItemDetailByDocId(new FirestoreCallback<BillingInvoiceModel>() {
             @Override
             public void onCallback(BillingInvoiceModel result) {
+                if (result == null) {
+                    Toast.makeText(context, "Failed to load invoice details", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                isInitializing = true;
                 billingInvoiceModel = result;
                 invoiceIdTv.setText("Invoice ID : " + billingInvoiceModel.getBillingDate());
                 customerName.setText(billingInvoiceModel.getCustomerName());
@@ -493,6 +508,13 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                     clientPhoneEt.setText(StringUtils.isNotBlank(billingInvoiceModel.getClientPhoneNo()) ? billingInvoiceModel.getClientPhoneNo() : "");
                 }
 
+                itemModelList.clear();
+                if (result.getBillingItemModelList() != null) {
+                    itemModelList.addAll(result.getBillingItemModelList());
+                }
+
+                discount = billingInvoiceModel.getDiscount() != null ? billingInvoiceModel.getDiscount() : 0.0;
+
                 boolean isGst = billingInvoiceModel.getIsGSTApplicable() != null && billingInvoiceModel.getIsGSTApplicable();
                 if (cbApplyGst != null) {
                     cbApplyGst.setChecked(isGst);
@@ -504,14 +526,14 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                     tvGstRateHint.setVisibility(isGst ? View.VISIBLE : View.GONE);
                 }
                 if (rgPlaceOfSupply != null) {
-                    if ("OUTSIDE_TN".equalsIgnoreCase(billingInvoiceModel.getPlaceOfSupply())) {
+                    if ("OUTSIDE_TN".equalsIgnoreCase(billingInvoiceModel.getPlaceOfSupply()) || "Outside TN".equalsIgnoreCase(billingInvoiceModel.getPlaceOfSupply())) {
                         if (rbOutsideTn != null) rbOutsideTn.setChecked(true);
                     } else {
                         if (rbInsideTn != null) rbInsideTn.setChecked(true);
                     }
                 }
 
-                paymentMode = billingInvoiceModel.getPaymentMode();
+                paymentMode = StringUtils.isNotBlank(billingInvoiceModel.getPaymentMode()) ? billingInvoiceModel.getPaymentMode() : "CASH";
                 if ("CASH".equalsIgnoreCase(paymentMode)) {
                     cashRadioBt.setChecked(true);
                     upiRadioBt.setChecked(false);
@@ -526,31 +548,25 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                     upiRadioBt.setChecked(false);
                 }
 
-                if (billingInvoiceModel.getIsCourier() != null && billingInvoiceModel.getCourierAmount() != null) {
-                    courier_checkBox.setChecked(billingInvoiceModel.getIsCourier());
-                    if (billingInvoiceModel.getIsCourier()) {
+                boolean isCourier = billingInvoiceModel.getIsCourier() != null && billingInvoiceModel.getIsCourier();
+                if (courier_checkBox != null) {
+                    courier_checkBox.setChecked(isCourier);
+                }
+                if (courier_amount != null) {
+                    if (isCourier) {
                         courier_amount.setVisibility(View.VISIBLE);
-                        courier_amount.setText("" + billingInvoiceModel.getCourierAmount());
+                        courier_amount.setText(billingInvoiceModel.getCourierAmount() != null ? String.valueOf(billingInvoiceModel.getCourierAmount()) : "0.0");
                     } else {
                         courier_amount.setText("");
                         courier_amount.setVisibility(View.GONE);
                     }
-                } else {
-                    courier_checkBox.setChecked(false);
-                    courier_amount.setVisibility(View.GONE);
                 }
 
-                discount = billingInvoiceModel.getDiscount() != null ? billingInvoiceModel.getDiscount() : 0.0;
-
-                itemModelList.clear();
-                if (result.getBillingItemModelList() != null) {
-                    itemModelList.addAll(result.getBillingItemModelList());
-                }
+                isInitializing = false;
                 invoiceAdapter.notifyDataSetChanged();
-
                 manageBillingLayout();
 
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O && result.getBillingDate() != null) {
                     OffsetDateTime offsetDateTime = Instant.ofEpochSecond(result.getBillingDate()).atOffset(istOffset);
                     invoiceDtTv.setText(offsetDateTime.format(formatter));
                     invoiceDtTv.setClickable(false);
@@ -642,7 +658,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
     private void manageBillingLayout() {
         totalAmount = 0.0;
         for (BillingItemModel billingItemModel : itemModelList) {
-            totalAmount += (billingItemModel.getPieces() * billingItemModel.getSellingItemPrice());
+            int pcs = billingItemModel.getPieces() != null ? billingItemModel.getPieces() : 1;
+            double price = billingItemModel.getSellingItemPrice() != null ? billingItemModel.getSellingItemPrice() : 0.0;
+            totalAmount += (pcs * price);
         }
         sellingAmount = totalAmount - ((totalAmount * discount) / 100);
         totalAmountTv.setText("Rs. " + round(totalAmount));
@@ -674,7 +692,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
 
         if (isGst) {
             for (BillingItemModel item : itemModelList) {
-                GSTCalculator.populateItemGST(item);
+                GSTCalculator.populateItemGST(item, discount);
             }
             GSTCalculator.calculateInvoiceTaxes(billingInvoiceModel);
             double totalTax = (billingInvoiceModel.getCgstAmount() != null ? billingInvoiceModel.getCgstAmount() : 0.0) +
@@ -1021,6 +1039,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                         billingItemModel.setProductCategory(productCategoryType[0]);
                         billingItemModel.setName(selectedProduct[0].getName());
                         billingItemModel.setCode(selectedProduct[0].getCode());
+                        billingItemModel.setGstPercentage(selectedProduct[0].getGstPercentage());
+                        billingItemModel.setHsnCode(selectedProduct[0].getHsnCode());
+                        billingItemModel.setTax_id(selectedProduct[0].getTax_id());
                         Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                         billingItemModel.setUnitPrice(fullPrice / 1000);
                         if ("ATTAR".equalsIgnoreCase(billingItemModel.getProductCategory())) {
@@ -1046,6 +1067,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                         billingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
+                        billingItemModel.setGstPercentage(selectedNonProduct[0].getGstPercentage());
+                        billingItemModel.setHsnCode(selectedNonProduct[0].getHsnCode());
+                        billingItemModel.setTax_id(selectedNonProduct[0].getTax_id());
 
                     }
                     if (StringUtils.isBlank(occurance.getText().toString())) {
@@ -1071,6 +1095,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                             Toast.makeText(InvoiceHistoryDetailsActivity.this, "Please fill the Quantity..!", Toast.LENGTH_LONG).show();
                             return;
                         }
+
                         for(BillingItemModel existingListItem : itemModelList){
                             if(existingListItem.getName().equalsIgnoreCase(selectedProduct[0].getName())
                                     && existingListItem.getUnits().equals(Integer.parseInt(productQtySpinner.getSelectedItem().toString().replace("ML", "")))
@@ -1090,6 +1115,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                         newBillingItemModel.setProductCategory(productCategoryType[0]);
                         newBillingItemModel.setName(selectedProduct[0].getName());
                         newBillingItemModel.setCode(selectedProduct[0].getCode());
+                        newBillingItemModel.setGstPercentage(selectedProduct[0].getGstPercentage());
+                        newBillingItemModel.setHsnCode(selectedProduct[0].getHsnCode());
+                        newBillingItemModel.setTax_id(selectedProduct[0].getTax_id());
                         Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                         newBillingItemModel.setUnitPrice(fullPrice / 1000);
                         if ("ATTAR".equalsIgnoreCase(newBillingItemModel.getProductCategory())) {
@@ -1132,6 +1160,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                         newBillingItemModel.setName(selectedNonProduct[0].getName());
                         newBillingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
+                        newBillingItemModel.setGstPercentage(selectedNonProduct[0].getGstPercentage());
+                        newBillingItemModel.setHsnCode(selectedNonProduct[0].getHsnCode());
+                        newBillingItemModel.setTax_id(selectedNonProduct[0].getTax_id());
                     }
                     newBillingItemModel.setPieces(Integer.valueOf(occurance.getText().toString()));
                     itemModelList.add(newBillingItemModel);
@@ -1366,6 +1397,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                         billingItemModel.setType(type[0]);
                         billingItemModel.setName(selectedProduct[0].getName());
                         billingItemModel.setCode(selectedProduct[0].getCode());
+                        billingItemModel.setGstPercentage(selectedProduct[0].getGstPercentage());
+                        billingItemModel.setHsnCode(selectedProduct[0].getHsnCode());
+                        billingItemModel.setTax_id(selectedProduct[0].getTax_id());
                         billingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
                         Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                         billingItemModel.setUnitPrice(fullPrice / 1000);
@@ -1385,6 +1419,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                         billingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
+                        billingItemModel.setGstPercentage(selectedNonProduct[0].getGstPercentage());
+                        billingItemModel.setHsnCode(selectedNonProduct[0].getHsnCode());
+                        billingItemModel.setTax_id(selectedNonProduct[0].getTax_id());
                         billingItemModel.setProductModel(null);
                     }
                     //itemModelList.add(billingItemModel);
@@ -1412,6 +1449,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                             newBillingItemModel.setType(type[0]);
                             newBillingItemModel.setName(selectedProduct[0].getName());
                             newBillingItemModel.setCode(selectedProduct[0].getCode());
+                            newBillingItemModel.setGstPercentage(selectedProduct[0].getGstPercentage());
+                            newBillingItemModel.setHsnCode(selectedProduct[0].getHsnCode());
+                            newBillingItemModel.setTax_id(selectedProduct[0].getTax_id());
                             newBillingItemModel.setUnits(Integer.parseInt(product_size.getText().toString()));
                             Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                             newBillingItemModel.setUnitPrice(fullPrice / 1000);
@@ -1432,6 +1472,9 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
                             newBillingItemModel.setName(selectedNonProduct[0].getName());
                             newBillingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                             newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
+                            newBillingItemModel.setGstPercentage(selectedNonProduct[0].getGstPercentage());
+                            newBillingItemModel.setHsnCode(selectedNonProduct[0].getHsnCode());
+                            newBillingItemModel.setTax_id(selectedNonProduct[0].getTax_id());
                         }
                         itemModelList.add(newBillingItemModel);
                     }
@@ -1571,7 +1614,7 @@ public class InvoiceHistoryDetailsActivity extends AppCompatActivity implements 
         itemModelList.stream().forEach(item -> {
             item.setInvoiceId(billingInvoiceModel.getBillingDate());
             if (isGst) {
-                GSTCalculator.populateItemGST(item);
+                GSTCalculator.populateItemGST(item, discount);
             }
         });
         billingInvoiceModel.setBillingItemModelList(itemModelList);

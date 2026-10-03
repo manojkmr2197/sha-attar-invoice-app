@@ -105,7 +105,7 @@ public class GSTReportPDFHelper {
                 paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
                 paint.setTextSize(16f);
                 paint.setTextAlign(Paint.Align.CENTER);
-                canvas.drawText("SHA ATTAR", PAGE_WIDTH / 2f, y + 10, paint);
+                canvas.drawText("SHA'S ATTAR AND PERFUMES", PAGE_WIDTH / 2f, y + 10, paint);
                 y += 24;
 
                 paint.setColor(Color.parseColor("#444444"));
@@ -145,7 +145,7 @@ public class GSTReportPDFHelper {
                 paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
                 paint.setTextSize(10f);
                 paint.setTextAlign(Paint.Align.LEFT);
-                canvas.drawText("SHA ATTAR - GST SALES STATEMENT (Contd.)", MARGIN, y + 10, paint);
+                canvas.drawText("SHA'S ATTAR - GST SALES STATEMENT (Contd.)", MARGIN, y + 10, paint);
 
                 paint.setColor(Color.GRAY);
                 paint.setTextAlign(Paint.Align.RIGHT);

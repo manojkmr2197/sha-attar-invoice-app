@@ -28,17 +28,39 @@ public class GSTCalculator {
     }
 
     /**
-     * Compute item level GST details
+     * Compute item level GST details without discount
      */
     public static void populateItemGST(BillingItemModel item) {
+        populateItemGST(item, 0.0);
+    }
+
+    /**
+     * Compute item level GST details taking into account invoice discount
+     */
+    public static void populateItemGST(BillingItemModel item, double discountPercentage) {
         if (item == null) return;
-        double itemPrice = item.getSellingItemPrice() * item.getPieces();
-        double gstRate = item.getGstPercentage() > 0 ? item.getGstPercentage() : DEFAULT_PERFUME_GST;
+        int pieces = item.getPieces() != null ? item.getPieces() : 1;
+        double unitPrice = item.getSellingItemPrice() != null ? item.getSellingItemPrice() : 0.0;
+        double itemPrice = unitPrice * pieces;
+
+        // Determine GST rate - use item's GST percentage if set, otherwise determine by type
+        double gstRate = item.getGstPercentage() != null ? item.getGstPercentage() : 0.0;
+        if (gstRate <= 0) {
+            // Fallback: determine based on item type
+            if ("NON_PRODUCT".equalsIgnoreCase(item.getType())) {
+                gstRate = DEFAULT_BAKHOOR_GST; // 12% for accessories
+            } else {
+                gstRate = DEFAULT_PERFUME_GST; // 18% for products
+            }
+        }
         item.setGstPercentage(gstRate);
-        
-        // Taxable amount before GST
-        double gstAmount = round((itemPrice * gstRate) / 100.0);
-        item.setTaxableValue(itemPrice);
+
+        // Calculate taxable value after proportional invoice discount
+        double discountFactor = (discountPercentage > 0 && discountPercentage <= 100) ? (1.0 - (discountPercentage / 100.0)) : 1.0;
+        double taxableValue = round(itemPrice * discountFactor);
+        double gstAmount = round((taxableValue * gstRate) / 100.0);
+
+        item.setTaxableValue(taxableValue);
         item.setGstAmount(gstAmount);
     }
 
@@ -53,52 +75,45 @@ public class GSTCalculator {
             invoice.setCgstAmount(0.0);
             invoice.setSgstAmount(0.0);
             invoice.setIgstAmount(0.0);
-            invoice.setTaxableAmount(invoice.getSellingCost());
+            invoice.setTaxableAmount(invoice.getSellingCost() != null ? invoice.getSellingCost() : 0.0);
             invoice.setRoundOff(0.0);
             return;
         }
 
-        double taxableAmount = invoice.getSellingCost();
+        double taxableAmount = invoice.getSellingCost() != null ? invoice.getSellingCost() : 0.0;
         invoice.setTaxableAmount(taxableAmount);
 
         boolean insideTN = isInsideTN(invoice.getPlaceOfSupply());
+        double discountPercentage = invoice.getDiscount() != null ? invoice.getDiscount() : 0.0;
 
-        // Default to 18% total GST rate (CGST 9% + SGST 9% or IGST 18%)
-        double totalGstRate = DEFAULT_PERFUME_GST;
-        
-        // If items are present, compute average or highest rate
         List<BillingItemModel> items = invoice.getBillingItemModelList();
+        double totalGstAmount = 0.0;
+
         if (items != null && !items.isEmpty()) {
-            double weightedTax = 0.0;
-            double totalItemCost = 0.0;
             for (BillingItemModel item : items) {
-                double itemTotal = item.getSellingItemPrice() * item.getPieces();
-                double rate = item.getGstPercentage() > 0 ? item.getGstPercentage() : DEFAULT_PERFUME_GST;
-                item.setGstPercentage(rate);
-                weightedTax += (itemTotal * (rate / 100.0));
-                totalItemCost += itemTotal;
+                populateItemGST(item, discountPercentage);
+                totalGstAmount += (item.getGstAmount() != null ? item.getGstAmount() : 0.0);
             }
-            if (totalItemCost > 0) {
-                totalGstRate = (weightedTax / totalItemCost) * 100.0;
-            }
+        } else {
+            // Fallback when items list is not populated
+            totalGstAmount = round(taxableAmount * (DEFAULT_PERFUME_GST / 100.0));
         }
+        totalGstAmount = round(totalGstAmount);
 
         if (insideTN) {
-            double halfRate = totalGstRate / 2.0;
-            double cgst = round(taxableAmount * (halfRate / 100.0));
-            double sgst = round(taxableAmount * (halfRate / 100.0));
+            double cgst = round(totalGstAmount / 2.0);
+            double sgst = round(totalGstAmount - cgst);
             invoice.setCgstAmount(cgst);
             invoice.setSgstAmount(sgst);
             invoice.setIgstAmount(0.0);
         } else {
-            double igst = round(taxableAmount * (totalGstRate / 100.0));
             invoice.setCgstAmount(0.0);
             invoice.setSgstAmount(0.0);
-            invoice.setIgstAmount(igst);
+            invoice.setIgstAmount(totalGstAmount);
         }
 
-        double totalWithTax = taxableAmount + invoice.getCgstAmount() + invoice.getSgstAmount() + invoice.getIgstAmount();
-        if (invoice.getIsCourier() != null && invoice.getIsCourier()) {
+        double totalWithTax = taxableAmount + totalGstAmount;
+        if (invoice.getIsCourier() != null && invoice.getIsCourier() && invoice.getCourierAmount() != null) {
             totalWithTax += invoice.getCourierAmount();
         }
 

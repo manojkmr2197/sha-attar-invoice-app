@@ -141,6 +141,8 @@ public class BluetoothPrinterHelper {
             // =================================================
             StringBuilder productLines = new StringBuilder();
             boolean isGst = billData.getIsGSTApplicable() != null && billData.getIsGSTApplicable();
+            double discountPct = billData.getDiscount() != null ? billData.getDiscount() : 0.0;
+            double discountFactor = (discountPct > 0 && discountPct <= 100) ? (1.0 - (discountPct / 100.0)) : 1.0;
 
             for (BillingItemModel item : billData.getBillingItemModelList()) {
 
@@ -151,9 +153,13 @@ public class BluetoothPrinterHelper {
                             " x Rs." + String.format("%.2f", item.getSellingItemPrice()) + "]";
                 }
 
+                double itemRate = item.getGstPercentage() != null && item.getGstPercentage() > 0 ? item.getGstPercentage() : ("NON_PRODUCT".equalsIgnoreCase(item.getType()) ? 12.0 : 18.0);
+                double itemPrice = (item.getSellingItemPrice() != null ? item.getSellingItemPrice() : 0.0) * (item.getPieces() != null ? item.getPieces() : 1);
+                double itemTax = item.getGstAmount() != null && item.getGstAmount() > 0 ? item.getGstAmount() : round(itemPrice * discountFactor * (itemRate / 100.0));
+
                 String qty = item.getUnits() != null ? item.getUnits() + " ML" : "";
-                String gstStr = isGst ? String.format("%.0f%%", item.getGstPercentage() > 0 ? item.getGstPercentage() : 18.0) : "-";
-                String price = "Rs." + String.format("%.2f", item.getPieces() * item.getSellingItemPrice());
+                String gstStr = isGst ? String.format("%.0f%%", itemRate) : "-";
+                String price = "Rs." + String.format("%.2f", itemPrice);
 
                 // Split product name into 20-char safe chunks to accommodate GST%
                 List<String> nameLines = splitFixedWidth(displayName, 20);
@@ -238,19 +244,19 @@ public class BluetoothPrinterHelper {
                 if (GSTCalculator.isInsideTN(billData.getPlaceOfSupply())) {
                     receipt.append(String.format(
                             "[L]%-30s [R]Rs.%s\n",
-                            "CGST (9%)",
+                            "CGST",
                             String.format("%.2f", billData.getCgstAmount())
                     ));
                     receipt.append(String.format(
                             "[L]%-30s [R]Rs.%s\n",
-                            "SGST (9%)",
+                            "SGST",
                             String.format("%.2f", billData.getSgstAmount())
                     ));
                     totalTax = billData.getCgstAmount() + billData.getSgstAmount();
                 } else {
                     receipt.append(String.format(
                             "[L]%-30s [R]Rs.%s\n",
-                            "IGST (18%)",
+                            "IGST",
                             String.format("%.2f", billData.getIgstAmount())
                     ));
                     totalTax = billData.getIgstAmount();

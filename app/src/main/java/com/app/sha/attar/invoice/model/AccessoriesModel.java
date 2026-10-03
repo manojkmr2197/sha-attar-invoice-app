@@ -12,6 +12,7 @@ public class AccessoriesModel {
     private String status;
     private String hsnCode;
     private Double gstPercentage;
+    private String tax_id;
 
     public AccessoriesModel() {
     }
@@ -97,10 +98,18 @@ public class AccessoriesModel {
     }
 
     public Double getGstPercentage() {
-        return gstPercentage != null ? gstPercentage : 18.0;
+        return gstPercentage != null ? gstPercentage : 12.0;
     }
 
     public void setGstPercentage(Double gstPercentage) {
         this.gstPercentage = gstPercentage;
+    }
+
+    public String getTax_id() {
+        return tax_id != null ? tax_id : "";
+    }
+
+    public void setTax_id(String tax_id) {
+        this.tax_id = tax_id;
     }
 }

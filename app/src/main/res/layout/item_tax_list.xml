@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="2sp"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="6dp">
+
+        <!-- Top Row: Tax Name & Tax Percentage Badge -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tax_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="PERFUMES &amp; ATTARS"
+                android:textAllCaps="true"
+                android:textColor="@color/app_color"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tax_percentage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/app_color"
+                android:padding="4dp"
+                android:text="18% GST"
+                android:textAllCaps="true"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- Second Row: HSN Code & Active/Inactive Status -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/hsn_code"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="HSN: 33029090"
+                android:textColor="@color/black"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tax_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#9FE2BF"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:text="ACTIVE"
+                android:textAllCaps="true"
+                android:textColor="@color/black"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- Third Row: Description -->
+        <TextView
+            android:id="@+id/tax_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="All perfume and attar products"
+            android:textColor="#555555"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

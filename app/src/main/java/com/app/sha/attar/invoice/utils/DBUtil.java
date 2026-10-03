@@ -9,14 +9,17 @@ import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.ExpenseModel;
 import com.app.sha.attar.invoice.model.ProductModel;
 import com.app.sha.attar.invoice.model.SalesPersonModel;
+import com.app.sha.attar.invoice.model.TaxModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DBUtil {
@@ -350,6 +353,180 @@ public class DBUtil {
                             callback.onCallback(saleDetails);
                         } else {
                             System.err.println("Error fetching product details: " + task.getException());
+                        }
+                    }
+                });
+    }
+
+    // ============ TAX MANAGEMENT METHODS ============
+
+    /**
+     * Fetch all taxes from Firestore (without requiring composite index)
+     */
+    public void getTaxList(FirestoreCallback<List<TaxModel>> callback) {
+        db.collection(DatabaseConstants.TAXES_COLLECTION)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful() && task.getResult() != null) {
+                            List<TaxModel> taxList = new ArrayList<>();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                TaxModel tax = document.toObject(TaxModel.class);
+                                if (tax != null) {
+                                    if (tax.getTax_id() == null || tax.getTax_id().isEmpty()) {
+                                        tax.setTax_id(document.getId());
+                                    }
+                                    taxList.add(tax);
+                                }
+                            }
+                            // Sort in-memory: active first, then descending percentage, then ascending name
+                            Collections.sort(taxList, (t1, t2) -> {
+                                boolean a1 = t1.getIs_active() != null && t1.getIs_active();
+                                boolean a2 = t2.getIs_active() != null && t2.getIs_active();
+                                if (a1 != a2) return a1 ? -1 : 1;
+                                double p1 = t1.getTax_percentage() != null ? t1.getTax_percentage() : 0.0;
+                                double p2 = t2.getTax_percentage() != null ? t2.getTax_percentage() : 0.0;
+                                int cmp = Double.compare(p2, p1);
+                                if (cmp != 0) return cmp;
+                                String n1 = t1.getTax_name() != null ? t1.getTax_name() : "";
+                                String n2 = t2.getTax_name() != null ? t2.getTax_name() : "";
+                                return n1.compareToIgnoreCase(n2);
+                            });
+                            callback.onCallback(taxList);
+                        } else {
+                            if (task.getException() != null) {
+                                System.err.println("Error fetching taxes: " + task.getException().getMessage());
+                            }
+                            callback.onCallback(new ArrayList<>());
+                        }
+                    }
+                });
+    }
+
+    /**
+     * Fetch tax by ID
+     */
+    public void getTaxById(String tax_id, FirestoreCallback<TaxModel> callback) {
+        if (tax_id == null || tax_id.trim().isEmpty()) {
+            callback.onCallback(null);
+            return;
+        }
+
+        db.collection(DatabaseConstants.TAXES_COLLECTION)
+                .document(tax_id)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful() && task.getResult() != null) {
+                            DocumentSnapshot document = task.getResult();
+                            if (document.exists()) {
+                                TaxModel tax = document.toObject(TaxModel.class);
+                                if (tax != null) {
+                                    if (tax.getTax_id() == null || tax.getTax_id().isEmpty()) {
+                                        tax.setTax_id(document.getId());
+                                    }
+                                    callback.onCallback(tax);
+                                    return;
+                                }
+                            }
+                            callback.onCallback(null);
+                        } else {
+                            if (task.getException() != null) {
+                                System.err.println("Error fetching tax: " + task.getException().getMessage());
+                            }
+                            callback.onCallback(null);
+                        }
+                    }
+                });
+    }
+
+    /**
+     * Add new tax record
+     */
+    public void addTax(TaxModel tax, FirestoreCallback<String> callback) {
+        if (tax == null || tax.getTax_name() == null || tax.getTax_percentage() == null) {
+            callback.onCallback(null);
+            return;
+        }
+
+        DocumentReference docRef = db.collection(DatabaseConstants.TAXES_COLLECTION).document();
+        String id = docRef.getId();
+        tax.setTax_id(id);
+
+        long currentTime = System.currentTimeMillis();
+        tax.setCreated_at(currentTime);
+        tax.setUpdated_at(currentTime);
+
+        docRef.set(tax)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            callback.onCallback(id);
+                        } else {
+                            if (task.getException() != null) {
+                                System.err.println("Error adding tax: " + task.getException().getMessage());
+                            }
+                            callback.onCallback(null);
+                        }
+                    }
+                });
+    }
+
+    /**
+     * Update existing tax record
+     */
+    public void updateTax(String tax_id, TaxModel tax, FirestoreCallback<Boolean> callback) {
+        if (tax_id == null || tax_id.trim().isEmpty() || tax == null) {
+            callback.onCallback(false);
+            return;
+        }
+
+        tax.setTax_id(tax_id);
+        tax.setUpdated_at(System.currentTimeMillis());
+
+        db.collection(DatabaseConstants.TAXES_COLLECTION)
+                .document(tax_id)
+                .set(tax)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            callback.onCallback(true);
+                        } else {
+                            if (task.getException() != null) {
+                                System.err.println("Error updating tax: " + task.getException().getMessage());
+                            }
+                            callback.onCallback(false);
+                        }
+                    }
+                });
+    }
+
+    /**
+     * Delete tax record from Firestore
+     */
+    public void deleteTax(String tax_id, FirestoreCallback<Boolean> callback) {
+        if (tax_id == null || tax_id.trim().isEmpty()) {
+            callback.onCallback(false);
+            return;
+        }
+
+        db.collection(DatabaseConstants.TAXES_COLLECTION)
+                .document(tax_id)
+                .delete()
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            callback.onCallback(true);
+                        } else {
+                            if (task.getException() != null) {
+                                System.err.println("Error deleting tax: " + task.getException().getMessage());
+                            }
+                            callback.onCallback(false);
                         }
                     }
                 });

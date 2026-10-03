@@ -79,6 +79,12 @@
             android:name=".activity.ProductActivity"
             android:exported="false" />
         <activity
+            android:name=".activity.TaxManagementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.TaxEditActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.ShaAttarInvoice">

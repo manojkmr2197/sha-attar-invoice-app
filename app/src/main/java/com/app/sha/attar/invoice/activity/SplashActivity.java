@@ -16,10 +16,12 @@ import com.app.sha.attar.invoice.listener.TimeApi;
 import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.TimeResponse;
 import com.app.sha.attar.invoice.utils.DBUtil;
+import com.app.sha.attar.invoice.utils.DataMigrationHelper;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.RetrofitClient;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
+import com.app.sha.attar.invoice.utils.TaxInitializationHelper;
 
 import java.io.IOException;
 
@@ -52,6 +54,8 @@ public class SplashActivity extends AppCompatActivity {
         helper.clearLoginUserDetails();
         if (checkInternet()) {
             loadAppConfig();
+            TaxInitializationHelper.initializeDefaultTaxes();
+            DataMigrationHelper.runMigrationIfNeeded(SplashActivity.this);
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {

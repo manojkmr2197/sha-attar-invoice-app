@@ -19,12 +19,26 @@ public class CartItemAdapter extends RecyclerView.Adapter<CartItemAdapter.CartVi
 
     private Context context;
     private List<BillingItemModel> cartItems;
-    DecimalFormat df = new DecimalFormat("#.00");
-
+    private boolean isGstApplicable = false;
+    private double discountPercentage = 0.0;
+    private DecimalFormat df = new DecimalFormat("#.00");
 
     public CartItemAdapter(Context context, List<BillingItemModel> cartItems) {
         this.context = context;
         this.cartItems = cartItems;
+    }
+
+    public CartItemAdapter(Context context, List<BillingItemModel> cartItems, boolean isGstApplicable, double discountPercentage) {
+        this.context = context;
+        this.cartItems = cartItems;
+        this.isGstApplicable = isGstApplicable;
+        this.discountPercentage = discountPercentage;
+    }
+
+    public void setGstDetails(boolean isGstApplicable, double discountPercentage) {
+        this.isGstApplicable = isGstApplicable;
+        this.discountPercentage = discountPercentage;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -39,15 +53,34 @@ public class CartItemAdapter extends RecyclerView.Adapter<CartItemAdapter.CartVi
         BillingItemModel item = cartItems.get(position);
 
         holder.itemName.setText(item.getName());
-        holder.itemPrice.setText("₹" + df.format(item.getPieces() * item.getSellingItemPrice()));
+        double itemTotal = item.getPieces() * item.getSellingItemPrice();
+        holder.itemPrice.setText("₹" + df.format(itemTotal));
 
         if ("PRODUCT".equals(item.getType())) {
             holder.itemQuantity.setText("[" + item.getPieces() + " x ₹" + df.format(item.getSellingItemPrice()) + "]");
-            holder.itemType.setText(item.getProductCategory().substring(0, 1).toUpperCase() + "-" + item.getUnits() + "ML");
+            String category = item.getProductCategory() != null && !item.getProductCategory().isEmpty() ? 
+                    item.getProductCategory().substring(0, 1).toUpperCase() : "P";
+            holder.itemType.setText(category + "-" + item.getUnits() + "ML");
             holder.itemType.setVisibility(View.VISIBLE);
         } else {
             holder.itemQuantity.setText("[" + item.getPieces() + " x ₹" + df.format(item.getSellingItemPrice()) + "]");
             holder.itemType.setVisibility(View.GONE);
+        }
+
+        if (isGstApplicable && holder.itemTaxInfo != null) {
+            double gstRate = item.getGstPercentage() > 0 ? item.getGstPercentage() : 18.0;
+            double taxable = itemTotal * (1.0 - discountPercentage / 100.0);
+            double taxAmt = Math.round((taxable * gstRate / 100.0) * 100.0) / 100.0;
+            
+            String hsn = item.getHsnCode();
+            if (hsn != null && !hsn.trim().isEmpty()) {
+                holder.itemTaxInfo.setText(String.format("HSN: %s | GST %.0f%%: ₹%.2f", hsn, gstRate, taxAmt));
+            } else {
+                holder.itemTaxInfo.setText(String.format("GST %.0f%%: ₹%.2f", gstRate, taxAmt));
+            }
+            holder.itemTaxInfo.setVisibility(View.VISIBLE);
+        } else if (holder.itemTaxInfo != null) {
+            holder.itemTaxInfo.setVisibility(View.GONE);
         }
     }
 
@@ -57,11 +90,12 @@ public class CartItemAdapter extends RecyclerView.Adapter<CartItemAdapter.CartVi
     }
 
     public static class CartViewHolder extends RecyclerView.ViewHolder {
-        TextView itemName, itemQuantity, itemType, itemPrice;
+        TextView itemName, itemTaxInfo, itemQuantity, itemType, itemPrice;
 
         public CartViewHolder(@NonNull View itemView) {
             super(itemView);
             itemName = itemView.findViewById(R.id.cart_item_name);
+            itemTaxInfo = itemView.findViewById(R.id.cart_item_tax_info);
             itemQuantity = itemView.findViewById(R.id.cart_item_quantity);
             itemType = itemView.findViewById(R.id.cart_item_type);
             itemPrice = itemView.findViewById(R.id.cart_item_price);

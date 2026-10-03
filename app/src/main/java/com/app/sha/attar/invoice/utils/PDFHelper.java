@@ -154,8 +154,13 @@ public class PDFHelper {
             }
 
             String qty = item.getUnits() != null ? item.getUnits() + " ML" : "";
-            String gstStr = isGst ? String.format("%.0f%%", item.getGstPercentage() > 0 ? item.getGstPercentage() : 18.0) : "-";
-            String price = "Rs." + String.format("%.2f", item.getPieces() * item.getSellingItemPrice());
+            double itemSellingPrice = item.getPieces() * item.getSellingItemPrice();
+            double gstRate = item.getGstPercentage() > 0 ? item.getGstPercentage() : 18.0;
+            double taxable = itemSellingPrice * (1.0 - billData.getDiscount() / 100.0);
+            double taxAmt = item.getGstAmount() > 0 ? item.getGstAmount() : round(taxable * gstRate / 100.0);
+
+            String gstStr = isGst ? String.format("%.0f%%", gstRate) : "-";
+            String price = "Rs." + String.format("%.2f", itemSellingPrice);
 
             // Draw multiline product name
             int linesUsed = drawMultilineText(
@@ -228,19 +233,19 @@ public class PDFHelper {
 
             if (GSTCalculator.isInsideTN(billData.getPlaceOfSupply())) {
                 drawRow(canvas, paint,
-                        "CGST (9%)",
+                        "CGST",
                         "Rs." + String.format("%.2f", billData.getCgstAmount()),
                         y, pageWidth);
                 y += 25;
                 drawRow(canvas, paint,
-                        "SGST (9%)",
+                        "SGST",
                         "Rs." + String.format("%.2f", billData.getSgstAmount()),
                         y, pageWidth);
                 y += 25;
                 totalTax = billData.getCgstAmount() + billData.getSgstAmount();
             } else {
                 drawRow(canvas, paint,
-                        "IGST (18%)",
+                        "IGST",
                         "Rs." + String.format("%.2f", billData.getIgstAmount()),
                         y, pageWidth);
                 y += 25;

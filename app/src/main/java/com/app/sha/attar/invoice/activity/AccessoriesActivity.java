@@ -49,6 +49,7 @@ import com.app.sha.attar.invoice.adapter.AccessoriesViewAdapter;
 import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.AccessoriesModel;
 import com.app.sha.attar.invoice.model.ProductModel;
+import com.app.sha.attar.invoice.model.TaxModel;
 import com.app.sha.attar.invoice.utils.AppConstants;
 import com.app.sha.attar.invoice.utils.DBUtil;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
@@ -56,6 +57,8 @@ import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.ReportGenerator;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
+import com.app.sha.attar.invoice.utils.TaxInitializationHelper;
+import com.app.sha.attar.invoice.utils.TaxSpinnerHelper;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -463,6 +466,7 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         TextInputEditText actual_price = (TextInputEditText) dialog.findViewById(R.id.accessories_add_actual_price);
         TextInputEditText dealer = (TextInputEditText) dialog.findViewById(R.id.accessories_dealer_name);
         Spinner owner = (Spinner) dialog.findViewById(R.id.accessories_add_owner);
+        Spinner taxSpinner = (Spinner) dialog.findViewById(R.id.accessories_add_tax_spinner);
         CheckBox available = (CheckBox) dialog.findViewById(R.id.accessories_add_checkbox);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -471,6 +475,10 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         owner.setAdapter(adapter);
+
+        // Setup tax spinner helper
+        TaxSpinnerHelper taxSpinnerHelper = new TaxSpinnerHelper(context, taxSpinner, null);
+        taxSpinnerHelper.loadTaxes();
 
         Button submit = (Button) dialog.findViewById(R.id.accessories_add_submit);
         TextView close = (TextView) dialog.findViewById(R.id.accessories_add_close);
@@ -489,6 +497,13 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                 available.setChecked(true);
             } else {
                 available.setChecked(false);
+            }
+
+            // Load existing tax for editing
+            if (accessoriesModel.getTax_id() != null && !accessoriesModel.getTax_id().isEmpty()) {
+                taxSpinnerHelper.setSelectedTaxById(accessoriesModel.getTax_id());
+            } else if (accessoriesModel.getGstPercentage() != null) {
+                taxSpinnerHelper.setSelectedTaxByRate(accessoriesModel.getGstPercentage());
             }
 
             delete.setVisibility(View.VISIBLE);
@@ -521,6 +536,7 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
             });
         } else {
             delete.setVisibility(View.INVISIBLE);
+            taxSpinnerHelper.setSelectedTaxById(TaxInitializationHelper.getDefaultAccessoriesTaxId());
         }
         close.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -544,6 +560,14 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                     Toast.makeText(AccessoriesActivity.this, "Please enter Selling Product Price ..!", Toast.LENGTH_SHORT).show();
                     return;
                 }
+
+                // Validate tax selection
+                TaxModel selectedTax = taxSpinnerHelper.getSelectedTax();
+                if (selectedTax == null) {
+                    Toast.makeText(AccessoriesActivity.this, "Please select a Tax Rate ..!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 Toast.makeText(context, "Loading .! ", Toast.LENGTH_LONG).show();
                 if (accessoriesModel != null) {
                     accessoriesModel.setName(name.getText().toString());
@@ -552,6 +576,11 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                     accessoriesModel.setOwner(owner.getSelectedItem().toString());
                     accessoriesModel.setDealer(dealer.getText().toString());
                     accessoriesModel.setStatus(available.isChecked() ? "Y" : "N");
+                    
+                    // Set tax information from selected tax
+                    accessoriesModel.setTax_id(selectedTax.getTax_id());
+                    accessoriesModel.setGstPercentage(selectedTax.getTax_percentage());
+                    accessoriesModel.setHsnCode(selectedTax.getHsn_code());
                     db.collection(DatabaseConstants.ACCESSORIES_COLLECTION)
                             .document(accessoriesModel.getDocumentId())
                             .set(accessoriesModel)
@@ -588,6 +617,11 @@ public class AccessoriesActivity extends AppCompatActivity implements View.OnCli
                     accessoriesModel.setOwner(owner.getSelectedItem().toString());
                     accessoriesModel.setDealer(dealer.getText().toString());
                     accessoriesModel.setStatus(available.isChecked() ? "Y" : "N");
+                    
+                    // Set tax information from selected tax
+                    accessoriesModel.setTax_id(selectedTax.getTax_id());
+                    accessoriesModel.setGstPercentage(selectedTax.getTax_percentage());
+                    accessoriesModel.setHsnCode(selectedTax.getHsn_code());
                     db.collection(DatabaseConstants.ACCESSORIES_COLLECTION)
                             .document(accessoriesModel.getDocumentId())
                             .set(accessoriesModel)

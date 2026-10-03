@@ -117,7 +117,7 @@ public class GSTReportExcelHelper {
         // Title Row
         Row titleRow = sheet.createRow(rowIdx++);
         Cell titleCell = titleRow.createCell(0);
-        titleCell.setCellValue("SHA ATTAR - GST SALES REGISTER (GSTR-1 FORMAT)");
+        titleCell.setCellValue("SHA'S ATTAR AND PERFUMES - GST SALES REGISTER (GSTR-1 FORMAT)");
         titleCell.setCellStyle(titleStyle);
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 16));
 
@@ -305,7 +305,7 @@ public class GSTReportExcelHelper {
         // Title
         Row titleRow = sheet.createRow(rowIdx++);
         Cell titleCell = titleRow.createCell(0);
-        titleCell.setCellValue("SHA ATTAR - AUDITOR GST SUMMARY STATEMENT");
+        titleCell.setCellValue("SHA'S ATTAR AND PERFUMES- AUDITOR GST SUMMARY STATEMENT");
         titleCell.setCellStyle(titleStyle);
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 6));
 
@@ -338,8 +338,21 @@ public class GSTReportExcelHelper {
             c.setCellStyle(headerStyle);
         }
 
-        double attarTaxable = 0.0, attarCgst = 0.0, attarSgst = 0.0, attarIgst = 0.0;
-        double accTaxable = 0.0, accCgst = 0.0, accSgst = 0.0, accIgst = 0.0;
+        // Dynamic Rate Map for arbitrary tax rates & HSN codes
+        class TaxRateSummary {
+            String rateLabel;
+            String descHsn;
+            double taxable = 0.0;
+            double cgst = 0.0;
+            double sgst = 0.0;
+            double igst = 0.0;
+
+            TaxRateSummary(String rateLabel, String descHsn) {
+                this.rateLabel = rateLabel;
+                this.descHsn = descHsn;
+            }
+        }
+        java.util.Map<String, TaxRateSummary> rateMap = new java.util.LinkedHashMap<>();
 
         for (BillingInvoiceModel inv : invoices) {
             if (inv == null) continue;
@@ -357,55 +370,51 @@ public class GSTReportExcelHelper {
                     double itemTotal = unitPrice * pieces;
                     double itemTaxable = itemTotal - (itemTotal * invoiceDiscount / 100.0);
 
-                    if ("NON_PRODUCT".equalsIgnoreCase(item.getType())) {
-                        // 12% Accessories
-                        accTaxable += itemTaxable;
-                        if (isInsideTn) {
-                            accCgst += itemTaxable * 0.06;
-                            accSgst += itemTaxable * 0.06;
-                        } else {
-                            accIgst += itemTaxable * 0.12;
-                        }
+                    double rate = item.getGstPercentage() > 0 ? item.getGstPercentage() : ("NON_PRODUCT".equalsIgnoreCase(item.getType()) ? 12.0 : 18.0);
+                    String hsn = StringUtils.isNotBlank(item.getHsnCode()) ? item.getHsnCode() : ("NON_PRODUCT".equalsIgnoreCase(item.getType()) ? "96161000" : "33029090");
+                    String rateKey = String.format(Locale.ENGLISH, "%.1f_%s", rate, hsn);
+
+                    TaxRateSummary summary = rateMap.computeIfAbsent(rateKey, k -> {
+                        String label = String.format(Locale.ENGLISH, "%.0f%% GST", rate);
+                        String desc = ("NON_PRODUCT".equalsIgnoreCase(item.getType()) ? "Accessories & Packaging" : "Attar / Perfumes") + " (HSN: " + hsn + ")";
+                        return new TaxRateSummary(label, desc);
+                    });
+
+                    summary.taxable += itemTaxable;
+                    if (isInsideTn) {
+                        summary.cgst += (itemTaxable * (rate / 2.0)) / 100.0;
+                        summary.sgst += (itemTaxable * (rate / 2.0)) / 100.0;
                     } else {
-                        // 18% Attar
-                        attarTaxable += itemTaxable;
-                        if (isInsideTn) {
-                            attarCgst += itemTaxable * 0.09;
-                            attarSgst += itemTaxable * 0.09;
-                        } else {
-                            attarIgst += itemTaxable * 0.18;
-                        }
+                        summary.igst += (itemTaxable * rate) / 100.0;
                     }
                 }
             } else {
                 // Fallback from invoice totals if items list empty
                 double tax = inv.getTaxableAmount() != null ? inv.getTaxableAmount() : 0.0;
-                attarTaxable += tax;
-                attarCgst += inv.getCgstAmount() != null ? inv.getCgstAmount() : 0.0;
-                attarSgst += inv.getSgstAmount() != null ? inv.getSgstAmount() : 0.0;
-                attarIgst += inv.getIgstAmount() != null ? inv.getIgstAmount() : 0.0;
+                TaxRateSummary summary = rateMap.computeIfAbsent("18.0_33029090", k -> new TaxRateSummary("18% GST", "Attar / Perfumes (HSN: 33029090)"));
+                summary.taxable += tax;
+                summary.cgst += inv.getCgstAmount() != null ? inv.getCgstAmount() : 0.0;
+                summary.sgst += inv.getSgstAmount() != null ? inv.getSgstAmount() : 0.0;
+                summary.igst += inv.getIgstAmount() != null ? inv.getIgstAmount() : 0.0;
             }
         }
 
-        // 18% Row
-        Row r18 = sheet.createRow(rowIdx++);
-        createCell(r18, 0, "18% GST", dataStyle);
-        createCell(r18, 1, "Attar / Perfumes (HSN: 33029090)", dataStyle);
-        createNumberCell(r18, 2, attarTaxable, numberStyle);
-        createNumberCell(r18, 3, attarCgst, numberStyle);
-        createNumberCell(r18, 4, attarSgst, numberStyle);
-        createNumberCell(r18, 5, attarIgst, numberStyle);
-        createNumberCell(r18, 6, attarCgst + attarSgst + attarIgst, numberStyle);
+        double grandTaxable = 0.0, grandCgst = 0.0, grandSgst = 0.0, grandIgst = 0.0;
+        for (TaxRateSummary summary : rateMap.values()) {
+            Row r = sheet.createRow(rowIdx++);
+            createCell(r, 0, summary.rateLabel, dataStyle);
+            createCell(r, 1, summary.descHsn, dataStyle);
+            createNumberCell(r, 2, summary.taxable, numberStyle);
+            createNumberCell(r, 3, summary.cgst, numberStyle);
+            createNumberCell(r, 4, summary.sgst, numberStyle);
+            createNumberCell(r, 5, summary.igst, numberStyle);
+            createNumberCell(r, 6, summary.cgst + summary.sgst + summary.igst, numberStyle);
 
-        // 12% Row
-        Row r12 = sheet.createRow(rowIdx++);
-        createCell(r12, 0, "12% GST", dataStyle);
-        createCell(r12, 1, "Accessories & Bottles (HSN: 96161000)", dataStyle);
-        createNumberCell(r12, 2, accTaxable, numberStyle);
-        createNumberCell(r12, 3, accCgst, numberStyle);
-        createNumberCell(r12, 4, accSgst, numberStyle);
-        createNumberCell(r12, 5, accIgst, numberStyle);
-        createNumberCell(r12, 6, accCgst + accSgst + accIgst, numberStyle);
+            grandTaxable += summary.taxable;
+            grandCgst += summary.cgst;
+            grandSgst += summary.sgst;
+            grandIgst += summary.igst;
+        }
 
         // Total Rate Row
         Row rTot = sheet.createRow(rowIdx++);
@@ -414,11 +423,11 @@ public class GSTReportExcelHelper {
         totC.setCellStyle(totalStyle);
         sheet.addMergedRegion(new CellRangeAddress(rowIdx - 1, rowIdx - 1, 0, 1));
         rTot.createCell(1).setCellStyle(totalStyle);
-        createNumberCell(rTot, 2, attarTaxable + accTaxable, totalNumberStyle);
-        createNumberCell(rTot, 3, attarCgst + accCgst, totalNumberStyle);
-        createNumberCell(rTot, 4, attarSgst + accSgst, totalNumberStyle);
-        createNumberCell(rTot, 5, attarIgst + accIgst, totalNumberStyle);
-        createNumberCell(rTot, 6, (attarCgst + accCgst + attarSgst + accSgst + attarIgst + accIgst), totalNumberStyle);
+        createNumberCell(rTot, 2, grandTaxable, totalNumberStyle);
+        createNumberCell(rTot, 3, grandCgst, totalNumberStyle);
+        createNumberCell(rTot, 4, grandSgst, totalNumberStyle);
+        createNumberCell(rTot, 5, grandIgst, totalNumberStyle);
+        createNumberCell(rTot, 6, (grandCgst + grandSgst + grandIgst), totalNumberStyle);
 
         rowIdx += 2; // Spacing
 

@@ -51,12 +51,15 @@ import com.app.sha.attar.invoice.listener.ClickListener;
 import com.app.sha.attar.invoice.model.BillingInvoiceModel;
 import com.app.sha.attar.invoice.model.ConfigModel;
 import com.app.sha.attar.invoice.model.ProductModel;
+import com.app.sha.attar.invoice.model.TaxModel;
 import com.app.sha.attar.invoice.utils.AppConstants;
 import com.app.sha.attar.invoice.utils.DatabaseConstants;
 import com.app.sha.attar.invoice.utils.FirestoreCallback;
 import com.app.sha.attar.invoice.utils.ReportGenerator;
 import com.app.sha.attar.invoice.utils.SharedPrefHelper;
 import com.app.sha.attar.invoice.utils.SingleTon;
+import com.app.sha.attar.invoice.utils.TaxInitializationHelper;
+import com.app.sha.attar.invoice.utils.TaxSpinnerHelper;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -456,6 +459,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         TextInputEditText dealer = (TextInputEditText) dialog.findViewById(R.id.product_dealer_name);
         TextInputEditText price = (TextInputEditText) dialog.findViewById(R.id.product_add_price);
         Spinner owner = (Spinner) dialog.findViewById(R.id.product_add_owner);
+        Spinner taxSpinner = (Spinner) dialog.findViewById(R.id.product_add_tax_spinner);
         CheckBox available = (CheckBox) dialog.findViewById(R.id.product_add_checkbox);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -464,6 +468,10 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         owner.setAdapter(adapter);
+
+        // Setup tax spinner helper
+        TaxSpinnerHelper taxSpinnerHelper = new TaxSpinnerHelper(context, taxSpinner, null);
+        taxSpinnerHelper.loadTaxes();
 
         TextInputEditText attar6ml = (TextInputEditText) dialog.findViewById(R.id.product_add_attar_selling_price);
         TextInputEditText perfume10ml = (TextInputEditText) dialog.findViewById(R.id.product_add_perfume_10ml_selling_price);
@@ -494,6 +502,13 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             perfume30ml.setText(String.valueOf(productModel.getPerfumeSellingPriceMap().get(AppConstants.ML_30)));
             perfume50ml.setText(String.valueOf(productModel.getPerfumeSellingPriceMap().get(AppConstants.ML_50)));
             perfume100ml.setText(String.valueOf(productModel.getPerfumeSellingPriceMap().get(AppConstants.ML_100)));
+
+            // Load existing tax for editing
+            if (productModel.getTax_id() != null && !productModel.getTax_id().isEmpty()) {
+                taxSpinnerHelper.setSelectedTaxById(productModel.getTax_id());
+            } else if (productModel.getGstPercentage() != null) {
+                taxSpinnerHelper.setSelectedTaxByRate(productModel.getGstPercentage());
+            }
 
             delete.setVisibility(View.VISIBLE);
             delete.setOnClickListener(new View.OnClickListener() {
@@ -526,6 +541,7 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
             });
         } else {
             delete.setVisibility(View.INVISIBLE);
+            taxSpinnerHelper.setSelectedTaxById(TaxInitializationHelper.getDefaultPerfumeTaxId());
         }
         close.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -546,6 +562,13 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     return;
                 }
 
+                // Validate tax selection
+                TaxModel selectedTax = taxSpinnerHelper.getSelectedTax();
+                if (selectedTax == null) {
+                    Toast.makeText(ProductActivity.this, "Please select a Tax Rate ..!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 if (StringUtils.isEmpty(attar6ml.getText().toString()) || StringUtils.isEmpty(perfume10ml.getText().toString()) || StringUtils.isEmpty(perfume30ml.getText().toString()) ||
                         StringUtils.isEmpty(perfume50ml.getText().toString()) || StringUtils.isEmpty(perfume100ml.getText().toString())) {
                     Toast.makeText(ProductActivity.this, "Please enter selling attar/Perfume Price ..!", Toast.LENGTH_SHORT).show();
@@ -559,6 +582,11 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     productModel.setDealer(dealer.getText().toString());
                     productModel.setOwner(owner.getSelectedItem().toString());
                     productModel.setStatus(available.isChecked() ? "Y" : "N");
+                    
+                    // Set tax information from selected tax
+                    productModel.setTax_id(selectedTax.getTax_id());
+                    productModel.setGstPercentage(selectedTax.getTax_percentage());
+                    productModel.setHsnCode(selectedTax.getHsn_code());
 
                     double attar1ml = Double.parseDouble(attar6ml.getText().toString()) / 6;
                     ConfigModel configModel = sharedPrefHelper.getPerfumeActualMix();
@@ -611,6 +639,11 @@ public class ProductActivity extends AppCompatActivity implements View.OnClickLi
                     //newProductModel.setCode(prepareProductCode(newProductModel.getName()));
                     //newProductModel.setId(getLatestProductID());
                     newProductModel.setDocumentId(SingleTon.generateProductDocument());
+                    
+                    // Set tax information from selected tax
+                    newProductModel.setTax_id(selectedTax.getTax_id());
+                    newProductModel.setGstPercentage(selectedTax.getTax_percentage());
+                    newProductModel.setHsnCode(selectedTax.getHsn_code());
 
                     double attar1ml = Double.parseDouble(attar6ml.getText().toString()) / 6;
 

@@ -17,6 +17,7 @@ public class ProductModel {
 //    private HashMap<String,Double> perfumeActualPriceMap;
     private String hsnCode;
     private Double gstPercentage;
+    private String tax_id;
 
     public ProductModel(){}
 
@@ -135,5 +136,13 @@ public class ProductModel {
 
     public void setGstPercentage(Double gstPercentage) {
         this.gstPercentage = gstPercentage;
+    }
+
+    public String getTax_id() {
+        return tax_id != null ? tax_id : "";
+    }
+
+    public void setTax_id(String tax_id) {
+        this.tax_id = tax_id;
     }
 }

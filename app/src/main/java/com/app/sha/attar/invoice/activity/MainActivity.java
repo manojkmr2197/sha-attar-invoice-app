@@ -145,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     EditText etCustomerGstin;
     TextView tvCartGstAmount;
     LinearLayout llGstDetails;
+    private CartItemAdapter cartAdapter;
 
     SharedPrefHelper sharedPrefHelper;
     DBUtil dbObj;
@@ -461,7 +462,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // Set up cart items recycler
         RecyclerView cartItemsRecycler = cartDialog.findViewById(R.id.cart_items_recycler);
-        CartItemAdapter cartAdapter = new CartItemAdapter(context, billingItemModelList);
+        boolean isGstInit = cbApplyGst != null && cbApplyGst.isChecked();
+        cartAdapter = new CartItemAdapter(context, billingItemModelList, isGstInit, discount);
         LinearLayoutManager cartLayoutManager = new LinearLayoutManager(context);
         cartItemsRecycler.setLayoutManager(cartLayoutManager);
         cartItemsRecycler.setAdapter(cartAdapter);
@@ -587,9 +589,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 onCardChargeClicked(sellingAmount, false);
             }
 
-            double gstAmountVal = 0.0;
-            if (cbApplyGst != null && cbApplyGst.isChecked()) {
-                gstAmountVal = round(sellingAmount * 0.18);
+            boolean isGst = cbApplyGst != null && cbApplyGst.isChecked();
+            if (cartAdapter != null) {
+                cartAdapter.setGstDetails(isGst, discount);
+            }
+
+            double gstAmountVal = calculateTotalGstAmount();
+            if (isGst) {
                 if (tvCartGstAmount != null) {
                     tvCartGstAmount.setText("+Rs. " + String.format("%.2f", gstAmountVal));
                     tvCartGstAmount.setVisibility(View.VISIBLE);
@@ -613,6 +619,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 finalBillingAmountTv.setText("Rs. " + String.format("%.2f", round(finalPayable)));
             }
         }
+    }
+
+    private double calculateTotalGstAmount() {
+        if (cbApplyGst == null || !cbApplyGst.isChecked() || billingItemModelList == null || billingItemModelList.isEmpty()) {
+            return 0.0;
+        }
+        double totalGst = 0.0;
+        double discountFactor = (totalAmount > 0) ? (sellingAmount / totalAmount) : 1.0;
+        for (BillingItemModel item : billingItemModelList) {
+            double itemTotal = (item.getSellingItemPrice() != null ? item.getSellingItemPrice() : 0.0) * (item.getPieces() != null ? item.getPieces() : 1);
+            double effectiveItemPrice = itemTotal * discountFactor;
+            double rate = (item.getGstPercentage() != null && item.getGstPercentage() > 0) ? item.getGstPercentage() : (item.getType() != null && item.getType().equalsIgnoreCase("NON_PRODUCT") ? 12.0 : 18.0);
+            totalGst += (effectiveItemPrice * rate / 100.0);
+        }
+        return round(totalGst);
     }
 
     private void onCardChargeClicked(double billAmount, boolean isCardChargeVisible) {
@@ -645,8 +666,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (finalBillingAmountTv != null) {
-            double gstAmountVal = (cbApplyGst != null && cbApplyGst.isChecked()) ? round(sellingAmount * 0.18) : 0.0;
-            finalBillingAmountTv.setText("Rs. " + (sellingAmount + cardChargeAmount + gstAmountVal));
+            double gstAmountVal = calculateTotalGstAmount();
+            finalBillingAmountTv.setText("Rs. " + String.format("%.2f", round(sellingAmount + cardChargeAmount + gstAmountVal)));
         }
     }
 
@@ -794,6 +815,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startActivity(i);
         } else if (item.getItemId() == R.id.nav_expense_tracker) {
             i = new Intent(MainActivity.this, ExpenseTrackerActivity.class);
+            startActivity(i);
+        } else if (item.getItemId() == R.id.nav_tax_management) {
+            i = new Intent(MainActivity.this, TaxManagementActivity.class);
             startActivity(i);
         }
         return true;
@@ -1013,6 +1037,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         RadioButton radioPrinter = dialog.findViewById(R.id.radioPrinter);
         RadioButton radioWhatsapp = dialog.findViewById(R.id.radioWhatsapp);
         EditText editWhatsappNumber = dialog.findViewById(R.id.editWhatsappNumber);
+        editWhatsappNumber.setText(billingInvoiceModel.getClientPhoneNo());
         Button btnSubmit = dialog.findViewById(R.id.btnSubmit);
         ImageView btnClose = dialog.findViewById(R.id.bill_share_close);
         if (billingInvoiceModel.getIsCourier()) {
@@ -1694,6 +1719,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         billingItemModel.setProductCategory(productCategoryType[0]);
                         billingItemModel.setName(selectedProduct[0].getName());
                         billingItemModel.setCode(selectedProduct[0].getCode());
+                        billingItemModel.setGstPercentage(selectedProduct[0].getGstPercentage());
+                        billingItemModel.setHsnCode(selectedProduct[0].getHsnCode());
+                        billingItemModel.setTax_id(selectedProduct[0].getTax_id());
                         Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                         billingItemModel.setUnitPrice(fullPrice / 1000);
                         if ("ATTAR".equalsIgnoreCase(billingItemModel.getProductCategory())) {
@@ -1719,6 +1747,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         billingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         billingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
                         billingItemModel.setAccessoriesModel(selectedNonProduct[0]);
+                        billingItemModel.setGstPercentage(selectedNonProduct[0].getGstPercentage());
+                        billingItemModel.setHsnCode(selectedNonProduct[0].getHsnCode());
+                        billingItemModel.setTax_id(selectedNonProduct[0].getTax_id());
 
                     }
                     if (StringUtils.isBlank(occurance.getText().toString())) {
@@ -1766,6 +1797,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         newBillingItemModel.setProductCategory(productCategoryType[0]);
                         newBillingItemModel.setName(selectedProduct[0].getName());
                         newBillingItemModel.setCode(selectedProduct[0].getCode());
+                        newBillingItemModel.setGstPercentage(selectedProduct[0].getGstPercentage());
+                        newBillingItemModel.setHsnCode(selectedProduct[0].getHsnCode());
+                        newBillingItemModel.setTax_id(selectedProduct[0].getTax_id());
                         Double fullPrice = Double.parseDouble(selectedProduct[0].getPrice());
                         newBillingItemModel.setUnitPrice(fullPrice / 1000);
                         if ("ATTAR".equalsIgnoreCase(newBillingItemModel.getProductCategory())) {
@@ -1807,6 +1841,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         newBillingItemModel.setName(selectedNonProduct[0].getName());
                         newBillingItemModel.setTotalPrice(selectedNonProduct[0].getActualPrice() + Integer.valueOf(sharedPrefHelper.getPackageCost()));
                         newBillingItemModel.setSellingItemPrice(Double.valueOf(non_product_price.getText().toString()));
+                        newBillingItemModel.setGstPercentage(selectedNonProduct[0].getGstPercentage());
+                        newBillingItemModel.setHsnCode(selectedNonProduct[0].getHsnCode());
+                        newBillingItemModel.setTax_id(selectedNonProduct[0].getTax_id());
                     }
                     newBillingItemModel.setPieces(Integer.valueOf(occurance.getText().toString()));
                     billingItemModelList.add(newBillingItemModel);

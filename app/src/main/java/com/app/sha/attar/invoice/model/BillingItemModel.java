@@ -1,5 +1,8 @@
 package com.app.sha.attar.invoice.model;
 
+import com.google.firebase.firestore.IgnoreExtraProperties;
+
+@IgnoreExtraProperties
 public class BillingItemModel {
 
     String type;
@@ -15,12 +18,14 @@ public class BillingItemModel {
     String productCategory;
     Integer pieces;
 
-    // GST Fields
-    String hsnCode;
-    Double gstPercentage;
-    Double gstAmount;
-    Double taxableValue;
+    // GST/Tax Fields (Stored at billing time for audit trail & IT filing)
+    String hsnCode;              // Tax HSN Code (e.g., "33029090")
+    Double gstPercentage;        // Tax Percentage (e.g., 18.0, 12.0)
+    Double gstAmount;            // Tax Amount for this item
+    Double taxableValue;         // Taxable value before tax
     Double discount;
+    String tax_id;               // Reference to TaxModel
+    String tax_name;             // Tax name at time of billing (e.g., "Perfumes & Attars")
 
     public BillingItemModel() {
     }
@@ -168,5 +173,21 @@ public class BillingItemModel {
 
     public void setDiscount(Double discount) {
         this.discount = discount;
+    }
+
+    public String getTax_id() {
+        return tax_id != null ? tax_id : "";
+    }
+
+    public void setTax_id(String tax_id) {
+        this.tax_id = tax_id;
+    }
+
+    public String getTax_name() {
+        return tax_name != null ? tax_name : "";
+    }
+
+    public void setTax_name(String tax_name) {
+        this.tax_name = tax_name;
     }
 }
